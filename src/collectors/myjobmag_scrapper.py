@@ -143,7 +143,7 @@ def parse_job_page(html, url):
     # Location 
     location = ""
     location_match = re.search(
-        r"(?.Location|Job Location)\s*[:\-]?\s"
+        r"(?:Location|Job Location)\s*[:\-]?\s"
         r"(.{2, 100}?)(?:\s+(?:Job Type|Industry|Deadline|"
         r"Qualifications|Requirements)\b|$",
         page_text,
@@ -163,8 +163,8 @@ def parse_job_page(html, url):
     # Experience 
     experience = ""
     experience_match = re.search(
-        r"(\d+\+?\s*(?:years?|yrs?"
-        r"(?:\s+of)?\s+(?:relevant\s+)?experience",
+        r"\b(\d+\+?\s*(?:years?|yrs?)"
+        r"(?:\s+of)?\s+(?:relevant\s+)?experience)\b",
         page_text,
         flags=re.IGNORECASE
     )
