@@ -52,22 +52,15 @@ def clean_text(text):
 
 def normalize_url(url):
 
-    parsed = urlparse(url)
+    parsed = urlparse(
+        url
+    )
 
-    # Keep the query string because BrighterMonday
-    # uses ?page=2, ?page=3, etc. for pagination.
-    query = parsed.query
-
-    normalized = (
+    return (
         f"{parsed.scheme}://"
         f"{parsed.netloc}"
         f"{parsed.path}"
-    )
-
-    if query:
-        normalized += f"?{query}"
-
-    return normalized.rstrip("/")
+    ).rstrip("/")
 
 
 def generate_job_id(url):
@@ -133,85 +126,34 @@ def extract_job_links(html):
     )
 
 
-def find_next_page(html, current_url):
+def find_next_page(
+    html,
+    current_url
+):
 
     soup = BeautifulSoup(
         html,
         "html.parser"
     )
 
-    # --------------------------------------------------
-    # Primary method:
-    # BrighterMonday explicitly provides:
-    #
-    # aria-label="Go to next page"
-    # --------------------------------------------------
-
-    next_link = soup.find(
-        "a",
-        attrs={
-            "aria-label": re.compile(
-                r"^Go to next page$",
-                re.IGNORECASE
-            )
-        }
-    )
-
-    if next_link:
-
-        href = next_link.get("href")
-
-        if href:
-
-            next_url = urljoin(
-                current_url,
-                href
-            )
-
-            return normalize_url(
-                next_url
-            )
-
-    # --------------------------------------------------
-    # Fallback:
-    # Find the next numbered page
-    # --------------------------------------------------
-
-    current_page_match = re.search(
-        r"[?&]page=(\d+)",
-        current_url
-    )
-
-    if current_page_match:
-
-        current_page = int(
-            current_page_match.group(1)
-        )
-
-    else:
-
-        # No ?page= means we're on page 1
-        current_page = 1
-
-    next_page = current_page + 1
-
     for a in soup.find_all(
         "a",
         href=True
     ):
 
-        aria = clean_text(
-            a.get(
-                "aria-label",
-                ""
+        text = clean_text(
+            a.get_text(
+                " ",
+                strip=True
             )
-        )
+        ).lower()
 
-        if re.fullmatch(
-            rf"Go to page {next_page}",
-            aria,
-            flags=re.IGNORECASE
-        ):
+        if text in {
+            "next",
+            "next page",
+            "›",
+            "»"
+        }:
 
             return normalize_url(
                 urljoin(
@@ -498,7 +440,9 @@ def parse_job_page(
     }
 
 
-def collect(max_pages=50):
+def collect(
+    max_pages=10
+):
 
     session = create_session()
 
@@ -516,10 +460,6 @@ def collect(max_pages=50):
             print(
                 f"BrighterMonday listing "
                 f"page {page_no}"
-            )
-
-            print(
-                f"  URL: {current_url}"
             )
 
             try:
@@ -545,14 +485,8 @@ def collect(max_pages=50):
                 f"  Found {len(links)} links"
             )
 
-            before = len(urls)
-
             urls.update(
                 links
-            )
-
-            print(
-                f"  New: {len(urls) - before}"
             )
 
             next_url = find_next_page(
@@ -561,23 +495,6 @@ def collect(max_pages=50):
             )
 
             if not next_url:
-
-                print(
-                    "  No next page found."
-                )
-
-                break
-            print(
-                f"  Next page: {next_url}"
-            )
-
-            if next_url == current_url:
-
-                print(
-                    "  Next page is same as "
-                    "current page. Stopping."
-                )
-
                 break
 
             current_url = next_url
@@ -611,26 +528,15 @@ def collect(max_pages=50):
                 url
             )
 
-            if record["_is_tech_candidate"]:
-
-                records.append(
-                    record
-                )
+            records.append(
+                record
+            )
 
         except Exception as e:
 
             print(
-                f"Failed: {url}"
+                f"Failed: {e}"
             )
-
-            print(
-                f"Reason: {e}"
-            )
-
-    print(
-        f"BrighterMonday tech records: "
-        f"{len(records)}"
-    )
 
     return pd.DataFrame(
         records

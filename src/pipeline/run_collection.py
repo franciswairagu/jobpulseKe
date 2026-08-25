@@ -1,14 +1,26 @@
 import os
 import re
 import hashlib
-
 import pandas as pd
 
 from collectors.myjobmag import collect as collect_myjobmag
+from collectors.myjobmag_historical import (
+    collect as collect_myjobmag_historical
+)
+
 from collectors.fuzu import collect as collect_fuzu
+from collectors.fuzu_historical import (
+    collect as collect_fuzu_historical
+)
+
 from collectors.brightermonday import (
     collect as collect_brightermonday
 )
+
+from collectors.brightermonday_historical import (
+    collect_historical_jobs as collect_brightermonday_historical
+)
+
 from collectors.jobicy import (
     collect as collect_jobicy
 )
@@ -17,10 +29,15 @@ from collectors.remotive import (
     collect as collect_remotive
 )
 
+
+# ============================================================
+# CONFIGURATION
+# ============================================================
+
 RAW_DIR = "data/raw"
 PROCESSED_DIR = "data/processed"
 
-FINAL_OUTPUT = (
+MASTER_FILE = (
     f"{PROCESSED_DIR}/kenya_tech_jobs.csv"
 )
 
@@ -51,6 +68,10 @@ STANDARD_COLUMNS = [
     "scraped_at",
 ]
 
+
+# ============================================================
+# TEXT CLEANING
+# ============================================================
 
 def clean_text(value):
 
@@ -127,18 +148,31 @@ def normalize_location(location):
     return location.strip()
 
 
+# ============================================================
+# DUPLICATE FINGERPRINT
+# ============================================================
+
 def create_fingerprint(row):
 
     title = normalize_title(
-        row["job_title"]
+        row.get(
+            "job_title",
+            ""
+        )
     )
 
     company = normalize_company(
-        row["company"]
+        row.get(
+            "company",
+            ""
+        )
     )
 
     location = normalize_location(
-        row["location"]
+        row.get(
+            "location",
+            ""
+        )
     )
 
     return hashlib.sha256(
@@ -148,12 +182,24 @@ def create_fingerprint(row):
     ).hexdigest()[:20]
 
 
+# ============================================================
+# NORMALIZE DATAFRAME
+# ============================================================
+
 def normalize_dataframe(df):
 
-    if df.empty:
-        return df
+    if df is None:
+        return pd.DataFrame()
 
-    # Remove internal collector columns
+    if df.empty:
+        return pd.DataFrame()
+
+    df = df.copy()
+
+    # --------------------------------------------------------
+    # Remove internal columns
+    # --------------------------------------------------------
+
     internal_columns = [
         column
         for column in df.columns
@@ -166,19 +212,28 @@ def normalize_dataframe(df):
             columns=internal_columns
         )
 
-    # Ensure all standard columns exist
+    # --------------------------------------------------------
+    # Ensure schema
+    # --------------------------------------------------------
+
     for column in STANDARD_COLUMNS:
 
         if column not in df.columns:
 
             df[column] = ""
 
-    # Keep only unified schema
+    # --------------------------------------------------------
+    # Keep standard schema
+    # --------------------------------------------------------
+
     df = df[
         STANDARD_COLUMNS
     ].copy()
 
-    # Clean text
+    # --------------------------------------------------------
+    # Clean text fields
+    # --------------------------------------------------------
+
     text_columns = [
         "job_title",
         "company",
@@ -198,17 +253,26 @@ def normalize_dataframe(df):
         "application_deadline",
         "tech_category",
         "vacancy_url",
+        "source",
+        "source_job_id",
+        "job_id",
+        "scraped_at",
     ]
 
     for column in text_columns:
 
-        df[column] = (
-            df[column]
-            .fillna("")
-            .map(clean_text)
-        )
+        if column in df.columns:
 
-    # Boolean-ish fields
+            df[column] = (
+                df[column]
+                .fillna("")
+                .map(clean_text)
+            )
+
+    # --------------------------------------------------------
+    # Remote flag
+    # --------------------------------------------------------
+
     df["remote_eligible"] = (
         pd.to_numeric(
             df["remote_eligible"],
@@ -218,25 +282,34 @@ def normalize_dataframe(df):
         .astype(int)
     )
 
-    # Remove completely empty titles
+    # --------------------------------------------------------
+    # Remove empty titles
+    # --------------------------------------------------------
+
     df = df[
         df["job_title"].str.len() > 2
     ]
 
-    # Create duplicate fingerprint
+    # --------------------------------------------------------
+    # Remove duplicate URLs
+    # --------------------------------------------------------
+
+    df = df.drop_duplicates(
+        subset=[
+            "vacancy_url"
+        ],
+        keep="first"
+    )
+
+    # --------------------------------------------------------
+    # Cross-source fingerprint
+    # --------------------------------------------------------
+
     df["_fingerprint"] = df.apply(
         create_fingerprint,
         axis=1
     )
 
-    # URL duplicates
-    df = df.drop_duplicates(
-        subset=[
-            "vacancy_url"
-        ]
-    )
-
-    # Cross-source duplicates
     df = df.drop_duplicates(
         subset=[
             "_fingerprint"
@@ -255,10 +328,17 @@ def normalize_dataframe(df):
     )
 
 
+# ============================================================
+# SAVE RAW SOURCE
+# ============================================================
+
 def save_raw(
     df,
     filename
 ):
+
+    if df is None:
+        return
 
     os.makedirs(
         RAW_DIR,
@@ -276,9 +356,103 @@ def save_raw(
     )
 
     print(
-        f"Saved raw source: {path}"
+        f"Saved: {path}"
     )
 
+
+# ============================================================
+# LOAD EXISTING MASTER
+# ============================================================
+
+def load_existing_master():
+
+    if not os.path.exists(
+        MASTER_FILE
+    ):
+
+        print(
+            "No existing master CSV found."
+        )
+
+        return pd.DataFrame()
+
+    print()
+    print(
+        "Loading existing master:"
+    )
+    print(
+        MASTER_FILE
+    )
+
+    df = pd.read_csv(
+        MASTER_FILE
+    )
+
+    print(
+        f"Existing master records: "
+        f"{len(df)}"
+    )
+
+    return df
+
+
+# ============================================================
+# COLLECTOR RUNNER
+# ============================================================
+
+def run_collector(
+    name,
+    collector,
+    filename,
+    **kwargs
+):
+
+    print()
+    print("=" * 75)
+    print(
+        f"SOURCE: {name}"
+    )
+    print("=" * 75)
+
+    try:
+
+        df = collector(
+            **kwargs
+        )
+
+        if df is None:
+            df = pd.DataFrame()
+
+        print(
+            f"{name} returned: "
+            f"{len(df)} records"
+        )
+
+        if not df.empty:
+
+            save_raw(
+                df,
+                filename
+            )
+
+        return df
+
+    except Exception as e:
+
+        print()
+        print(
+            f"{name} FAILED:"
+        )
+        print(
+            repr(e)
+        )
+
+        return pd.DataFrame()
+
+
+# ============================================================
+# MAIN
+# ============================================================
 
 def main():
 
@@ -292,199 +466,182 @@ def main():
         exist_ok=True
     )
 
+    print()
     print("=" * 75)
     print(
-        "JOBPULSE MULTI-SOURCE COLLECTION"
+        "JOBPULSE MASTER COLLECTION"
     )
     print("=" * 75)
 
     # ========================================================
-    # MYJOBMAG
+    # LOAD EXISTING MASTER
     # ========================================================
 
-    print()
-    print(
-        "SOURCE 1: MyJobMag"
+    existing_master = (
+        load_existing_master()
     )
 
-    try:
+    frames = []
 
-        myjobmag_df = collect_myjobmag()
+    if not existing_master.empty:
 
-        save_raw(
-            myjobmag_df,
-            "myjobmag_jobs.csv"
+        frames.append(
+            existing_master
         )
-
-    except Exception as e:
-
-        print(
-            f"MyJobMag failed: {e}"
-        )
-
-        myjobmag_df = pd.DataFrame()
-    print(
-        f"Records returned: {len(myjobmag_df)}"
-    )
 
     # ========================================================
-    # FUZU
+    # 1. MYJOBMAG CURRENT
     # ========================================================
 
-    print()
-    print(
-        "SOURCE 2: Fuzu"
+    myjobmag_df = run_collector(
+        "MyJobMag Current",
+        collect_myjobmag,
+        "myjobmag_jobs.csv"
     )
 
-    try:
-
-        fuzu_df = collect_fuzu()
-
-        save_raw(
-            fuzu_df,
-            "fuzu_jobs.csv"
-        )
-
-    except Exception as e:
-
-        print(
-            f"Fuzu failed: {e}"
-        )
-
-        fuzu_df = pd.DataFrame()
-    print(
-        f"Records returned: {len(fuzu_df)}"
+    frames.append(
+        myjobmag_df
     )
 
     # ========================================================
-    # BRIGHTERMONDAY
+    # 2. MYJOBMAG HISTORICAL
     # ========================================================
 
-    print()
-    print(
-        "SOURCE 3: BrighterMonday"
+    myjobmag_historical_df = (
+        run_collector(
+            "MyJobMag Historical",
+            collect_myjobmag_historical,
+            "myjobmag_historical_jobs.csv"
+        )
     )
 
-    try:
-
-        brightermonday_df = (
-            collect_brightermonday(
-                max_pages=10
-            )
-        )
-
-        save_raw(
-            brightermonday_df,
-            "brightermonday_jobs.csv"
-        )
-
-    except Exception as e:
-
-        print(
-            f"BrighterMonday failed: {e}"
-        )
-
-        brightermonday_df = pd.DataFrame()
-    print(
-        f"Records returned: {len(brightermonday_df)}"
+    frames.append(
+        myjobmag_historical_df
     )
 
     # ========================================================
-    # JOBICY
+    # 3. FUZU CURRENT
     # ========================================================
 
-    print()
-    print(
-        "SOURCE 4: Jobicy"
+    fuzu_df = run_collector(
+        "Fuzu Current",
+        collect_fuzu,
+        "fuzu_jobs.csv"
     )
 
-    try:
-
-        jobicy_df = collect_jobicy(
-            count=100
-        )
-
-        save_raw(
-            jobicy_df,
-            "jobicy_jobs.csv"
-        )
-
-        print(
-            f"Records returned: "
-            f"{len(jobicy_df)}"
-        )
-
-    except Exception as e:
-
-        print(
-            f"Jobicy failed: {e}"
-        )
-
-        jobicy_df = pd.DataFrame()
-
-
-    # ========================================================
-    # REMOTIVE
-    # ========================================================
-
-    print()
-    print(
-        "SOURCE 5: Remotive"
+    frames.append(
+        fuzu_df
     )
 
-    try:
-
-        remotive_df = collect_remotive(
-            limit=100
-        )
-
-        save_raw(
-            remotive_df,
-            "remotive_jobs.csv"
-        )
-
-        print(
-            f"Records returned: "
-            f"{len(remotive_df)}"
-        )
-
-    except Exception as e:
-
-        print(
-            f"Remotive failed: {e}"
-        )
-
-        remotive_df = pd.DataFrame()
-
     # ========================================================
-    # COMBINE
+    # 4. FUZU HISTORICAL
     # ========================================================
 
-    print()
-    print(
-        "COMBINING SOURCES"
+    fuzu_historical_df = (
+        run_collector(
+            "Fuzu Historical",
+            collect_fuzu_historical,
+            "fuzu_historical_jobs.csv"
+        )
     )
+
+    frames.append(
+        fuzu_historical_df
+    )
+
+    # ========================================================
+    # 5. BRIGHTERMONDAY CURRENT
+    # ========================================================
+
+    brightermonday_df = (
+        run_collector(
+            "BrighterMonday Current",
+            collect_brightermonday,
+            "brightermonday_jobs.csv",
+            max_pages=10
+        )
+    )
+
+    frames.append(
+        brightermonday_df
+    )
+
+    # ========================================================
+    # 6. BRIGHTERMONDAY HISTORICAL
+    # ========================================================
+
+    brightermonday_historical_df = (
+        run_collector(
+            "BrighterMonday Historical",
+            collect_brightermonday_historical,
+            "brightermonday_historical_jobs.csv"
+        )
+    )
+
+    frames.append(
+        brightermonday_historical_df
+    )
+
+    # ========================================================
+    # 7. JOBICY
+    # ========================================================
+
+    jobicy_df = run_collector(
+        "Jobicy",
+        collect_jobicy,
+        "jobicy_jobs.csv",
+        count=100
+    )
+
+    frames.append(
+        jobicy_df
+    )
+
+    # ========================================================
+    # 8. REMOTIVE
+    # ========================================================
+
+    remotive_df = run_collector(
+        "Remotive",
+        collect_remotive,
+        "remotive_jobs.csv",
+        limit=100
+    )
+
+    frames.append(
+        remotive_df
+    )
+
+    # ========================================================
+    # REMOVE EMPTY DATAFRAMES
+    # ========================================================
 
     frames = [
         df
-        for df in [
-            myjobmag_df,
-            fuzu_df,
-            brightermonday_df,
-            jobicy_df,
-            remotive_df,
-        ]
-        if not df.empty
+        for df in frames
+        if df is not None
+        and not df.empty
     ]
-    
 
     if not frames:
 
+        print()
         print(
-            "No source returned data."
+            "No data collected."
         )
 
         return
+
+    # ========================================================
+    # COMBINE EVERYTHING
+    # ========================================================
+
+    print()
+    print("=" * 75)
+    print(
+        "BUILDING MASTER DATASET"
+    )
+    print("=" * 75)
 
     combined = pd.concat(
         frames,
@@ -492,12 +649,12 @@ def main():
     )
 
     print(
-        f"Raw combined records: "
-        f"{len(combined)}"
+        f"Combined records before "
+        f"deduplication: {len(combined)}"
     )
 
     # ========================================================
-    # NORMALIZE / DEDUPLICATE
+    # NORMALIZE
     # ========================================================
 
     final_df = normalize_dataframe(
@@ -505,27 +662,16 @@ def main():
     )
 
     print(
-        f"After deduplication: "
+        f"Final unique records: "
         f"{len(final_df)}"
     )
 
     # ========================================================
-    # FINAL TECH FILTER
-    # ========================================================
-
-    # Each source already feeds us technology-oriented
-    # listings. MyJobMag has an additional title filter.
-    #
-    # We therefore don't run another aggressive NLP filter here.
-    #
-    # That comes later in processing and can be evaluated.
-
-    # ========================================================
-    # SAVE
+    # SAVE MASTER
     # ========================================================
 
     final_df.to_csv(
-        FINAL_OUTPUT,
+        MASTER_FILE,
         index=False
     )
 
@@ -536,12 +682,12 @@ def main():
     print()
     print("=" * 75)
     print(
-        "COLLECTION COMPLETE"
+        "MASTER DATASET COMPLETE"
     )
     print("=" * 75)
 
     print(
-        f"Final records: "
+        f"Total records: "
         f"{len(final_df)}"
     )
 
@@ -583,6 +729,10 @@ def main():
         final_df[
             "work_mode"
         ]
+        .replace(
+            "",
+            "Not specified"
+        )
         .value_counts()
         .to_string()
     )
@@ -590,13 +740,39 @@ def main():
     print()
 
     print(
-        f"Saved final dataset to:"
+        "BY COUNTRY"
     )
 
     print(
-        FINAL_OUTPUT
+        final_df[
+            "country"
+        ]
+        .replace(
+            "",
+            "Not specified"
+        )
+        .value_counts()
+        .head(20)
+        .to_string()
     )
+
+    print()
+    print(
+        "MASTER FILE:"
+    )
+
+    print(
+        MASTER_FILE
+    )
+
+    print()
+    print("=" * 75)
+    print(
+        "JOBPULSE COLLECTION FINISHED"
+    )
+    print("=" * 75)
 
 
 if __name__ == "__main__":
+
     main()
