@@ -1,0 +1,348 @@
+{
+  "timestamp": "2026-08-31T22:08:06.110393",
+  "stage": "Stage 1: Data Ingestion",
+  "source_csv": "/home/wairagu/Desktop/Moringa/DSF-FT16/module 6/jobpulseKe/data/external/jobpulseke_master_africa_tech_jobs.csv",
+  "output_parquet": "/home/wairagu/Desktop/Moringa/DSF-FT16/module 6/jobpulseKe/data/processed/ingested_raw_20260831_220806.parquet",
+  "summary": {
+    "total_records_ingested": 13347,
+    "columns": 22,
+    "column_list": [
+      "job_id",
+      "source",
+      "source_job_id",
+      "job_title",
+      "company",
+      "job_description",
+      "location",
+      "country",
+      "work_mode",
+      "remote_scope",
+      "job_field",
+      "industry",
+      "employment_type",
+      "experience_required",
+      "education_required",
+      "salary",
+      "currency",
+      "date_posted",
+      "application_deadline",
+      "tech_category",
+      "vacancy_url",
+      "scraped_at"
+    ],
+    "null_counts": {
+      "job_id": 0,
+      "source": 0,
+      "source_job_id": 0,
+      "job_title": 10,
+      "company": 3862,
+      "job_description": 0,
+      "location": 3941,
+      "country": 10,
+      "work_mode": 0,
+      "remote_scope": 12612,
+      "job_field": 12405,
+      "industry": 12398,
+      "employment_type": 12538,
+      "experience_required": 12802,
+      "education_required": 12695,
+      "salary": 13164,
+      "currency": 13280,
+      "date_posted": 11456,
+      "application_deadline": 13347,
+      "tech_category": 3678,
+      "vacancy_url": 6910,
+      "scraped_at": 0
+    },
+    "data_types": {
+      "job_id": "str",
+      "source": "str",
+      "source_job_id": "str",
+      "job_title": "str",
+      "company": "str",
+      "job_description": "str",
+      "location": "str",
+      "country": "str",
+      "work_mode": "str",
+      "remote_scope": "str",
+      "job_field": "str",
+      "industry": "str",
+      "employment_type": "str",
+      "experience_required": "str",
+      "education_required": "str",
+      "salary": "str",
+      "currency": "str",
+      "date_posted": "str",
+      "application_deadline": "float64",
+      "tech_category": "str",
+      "vacancy_url": "str",
+      "scraped_at": "str"
+    },
+    "schema_report": {
+      "total_rows": 13347,
+      "total_columns": 22,
+      "expected_columns": [
+        "job_id",
+        "source",
+        "source_job_id",
+        "job_title",
+        "company",
+        "job_description",
+        "location",
+        "country",
+        "work_mode",
+        "remote_scope",
+        "job_field",
+        "industry",
+        "employment_type",
+        "experience_required",
+        "education_required",
+        "salary",
+        "currency",
+        "date_posted",
+        "application_deadline",
+        "tech_category",
+        "vacancy_url",
+        "scraped_at"
+      ],
+      "actual_columns": [
+        "job_id",
+        "source",
+        "source_job_id",
+        "job_title",
+        "company",
+        "job_description",
+        "location",
+        "country",
+        "work_mode",
+        "remote_scope",
+        "job_field",
+        "industry",
+        "employment_type",
+        "experience_required",
+        "education_required",
+        "salary",
+        "currency",
+        "date_posted",
+        "application_deadline",
+        "tech_category",
+        "vacancy_url",
+        "scraped_at"
+      ],
+      "missing_columns": [],
+      "extra_columns": [],
+      "column_nulls": {
+        "job_id": {
+          "null_count": 0,
+          "null_percentage": 0.0
+        },
+        "source": {
+          "null_count": 0,
+          "null_percentage": 0.0
+        },
+        "source_job_id": {
+          "null_count": 0,
+          "null_percentage": 0.0
+        },
+        "job_title": {
+          "null_count": 10,
+          "null_percentage": 0.07
+        },
+        "company": {
+          "null_count": 3862,
+          "null_percentage": 28.94
+        },
+        "job_description": {
+          "null_count": 12131,
+          "null_percentage": 90.89
+        },
+        "location": {
+          "null_count": 3941,
+          "null_percentage": 29.53
+        },
+        "country": {
+          "null_count": 10,
+          "null_percentage": 0.07
+        },
+        "work_mode": {
+          "null_count": 0,
+          "null_percentage": 0.0
+        },
+        "remote_scope": {
+          "null_count": 12612,
+          "null_percentage": 94.49
+        },
+        "job_field": {
+          "null_count": 12405,
+          "null_percentage": 92.94
+        },
+        "industry": {
+          "null_count": 12398,
+          "null_percentage": 92.89
+        },
+        "employment_type": {
+          "null_count": 12538,
+          "null_percentage": 93.94
+        },
+        "experience_required": {
+          "null_count": 12802,
+          "null_percentage": 95.92
+        },
+        "education_required": {
+          "null_count": 12695,
+          "null_percentage": 95.12
+        },
+        "salary": {
+          "null_count": 13164,
+          "null_percentage": 98.63
+        },
+        "currency": {
+          "null_count": 13280,
+          "null_percentage": 99.5
+        },
+        "date_posted": {
+          "null_count": 11456,
+          "null_percentage": 85.83
+        },
+        "application_deadline": {
+          "null_count": 13347,
+          "null_percentage": 100.0
+        },
+        "tech_category": {
+          "null_count": 3678,
+          "null_percentage": 27.56
+        },
+        "vacancy_url": {
+          "null_count": 6910,
+          "null_percentage": 51.77
+        },
+        "scraped_at": {
+          "null_count": 0,
+          "null_percentage": 0.0
+        }
+      }
+    },
+    "sample_records": [
+      {
+        "job_id": "bbd20f21c744b6fb",
+        "source": "brightermonday",
+        "source_job_id": "office-admin-pgdzvv",
+        "job_title": "OFFICE ADMIN",
+        "company": NaN,
+        "job_description": "OFFICE ADMIN",
+        "location": NaN,
+        "country": "Kenya",
+        "work_mode": "unknown",
+        "remote_scope": NaN,
+        "job_field": "ICT & Computer",
+        "industry": NaN,
+        "employment_type": NaN,
+        "experience_required": NaN,
+        "education_required": NaN,
+        "salary": NaN,
+        "currency": NaN,
+        "date_posted": NaN,
+        "application_deadline": NaN,
+        "tech_category": NaN,
+        "vacancy_url": "https://www.brightermonday.co.ke/listings/office-admin-pgdzvv",
+        "scraped_at": "2026-08-30T15:41:00+00:00"
+      },
+      {
+        "job_id": "e7b1c86afa914d37",
+        "source": "brightermonday",
+        "source_job_id": "lead-baker-5p6jmp",
+        "job_title": "LEAD BAKER",
+        "company": NaN,
+        "job_description": "LEAD BAKER",
+        "location": NaN,
+        "country": "Kenya",
+        "work_mode": "unknown",
+        "remote_scope": NaN,
+        "job_field": "ICT & Computer",
+        "industry": NaN,
+        "employment_type": NaN,
+        "experience_required": NaN,
+        "education_required": NaN,
+        "salary": NaN,
+        "currency": NaN,
+        "date_posted": NaN,
+        "application_deadline": NaN,
+        "tech_category": NaN,
+        "vacancy_url": "https://www.brightermonday.co.ke/listings/lead-baker-5p6jmp",
+        "scraped_at": "2026-08-30T15:41:00+00:00"
+      },
+      {
+        "job_id": "8c65dfc4609af714",
+        "source": "brightermonday",
+        "source_job_id": "sales-marketing-qz4jm6",
+        "job_title": "Sales & Marketing",
+        "company": NaN,
+        "job_description": "Sales & Marketing",
+        "location": NaN,
+        "country": "Kenya",
+        "work_mode": "unknown",
+        "remote_scope": NaN,
+        "job_field": "ICT & Computer",
+        "industry": NaN,
+        "employment_type": NaN,
+        "experience_required": NaN,
+        "education_required": NaN,
+        "salary": NaN,
+        "currency": NaN,
+        "date_posted": NaN,
+        "application_deadline": NaN,
+        "tech_category": NaN,
+        "vacancy_url": "https://www.brightermonday.co.ke/listings/sales-marketing-qz4jm6",
+        "scraped_at": "2026-08-30T15:41:00+00:00"
+      },
+      {
+        "job_id": "bb7288ce3f647741",
+        "source": "brightermonday",
+        "source_job_id": "social-media-it-professional-454zxm",
+        "job_title": "SOCIAL MEDIA & IT PROFESSIONAL",
+        "company": NaN,
+        "job_description": "SOCIAL MEDIA & IT PROFESSIONAL",
+        "location": NaN,
+        "country": "Kenya",
+        "work_mode": "unknown",
+        "remote_scope": NaN,
+        "job_field": "ICT & Computer",
+        "industry": NaN,
+        "employment_type": NaN,
+        "experience_required": NaN,
+        "education_required": NaN,
+        "salary": NaN,
+        "currency": NaN,
+        "date_posted": NaN,
+        "application_deadline": NaN,
+        "tech_category": NaN,
+        "vacancy_url": "https://www.brightermonday.co.ke/listings/social-media-it-professional-454zxm",
+        "scraped_at": "2026-08-30T15:41:00+00:00"
+      },
+      {
+        "job_id": "68e3dad4c001becb",
+        "source": "brightermonday",
+        "source_job_id": "customer-care-representative-6qxerz",
+        "job_title": "Customer Care Representative",
+        "company": NaN,
+        "job_description": "Customer Care Representative",
+        "location": NaN,
+        "country": "Kenya",
+        "work_mode": "unknown",
+        "remote_scope": NaN,
+        "job_field": "ICT & Computer",
+        "industry": NaN,
+        "employment_type": NaN,
+        "experience_required": NaN,
+        "education_required": NaN,
+        "salary": NaN,
+        "currency": NaN,
+        "date_posted": NaN,
+        "application_deadline": NaN,
+        "tech_category": NaN,
+        "vacancy_url": "https://www.brightermonday.co.ke/listings/customer-care-representative-6qxerz",
+        "scraped_at": "2026-08-30T15:41:00+00:00"
+      }
+    ]
+  }
+}
