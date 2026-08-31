@@ -1,0 +1,66 @@
+{
+  "stage": "Stage 4: Feature Engineering & Analytics Aggregations",
+  "timestamp": "2026-08-31T08:58:18.145753",
+  "input": {
+    "records": 9549,
+    "columns": 31
+  },
+  "output": {
+    "records": 9549,
+    "columns": 42
+  },
+  "features_engineered": {
+    "new_columns": [
+      "salary_min_usd",
+      "salary_max_usd",
+      "salary_mid_usd",
+      "is_remote",
+      "is_pan_african",
+      "experience_bucket",
+      "seniority_order",
+      "is_high_salary",
+      "has_salary_data",
+      "skill_richness",
+      "requires_certification"
+    ],
+    "feature_statistics": {
+      "remote_jobs": 153,
+      "remote_pct": 1.6,
+      "pan_african_jobs": 174,
+      "pan_african_pct": 1.82,
+      "jobs_with_salary": 514,
+      "jobs_with_salary_pct": 5.38,
+      "avg_skill_richness": 11.0,
+      "jobs_requiring_cert": 0,
+      "jobs_requiring_cert_pct": 0.0
+    }
+  },
+  "salary_analysis": {
+    "overall_min_usd": 0.0063,
+    "overall_max_usd": 500000.0,
+    "overall_mean_usd": 40227.73460933908,
+    "overall_median_usd": 6.5
+  },
+  "seniority_distribution": {
+    "Mid-Level": 9052,
+    "Lead": 167,
+    "Intern": 144,
+    "Executive": 92,
+    "Senior": 72,
+    "Entry Level": 22
+  },
+  "experience_distribution": {
+    "Not specified": 9393,
+    "5-10 years": 65,
+    "3-5 years": 50,
+    "1-3 years": 29,
+    "10+ years": 12
+  },
+  "aggregations_generated": {
+    "skill_region_matrix": "0 skills",
+    "salary_distribution": "23 countries",
+    "remote_trends": "23 countries",
+    "career_pathways": "6 levels",
+    "skills_by_seniority": "6 levels"
+  }
+}
