@@ -41,7 +41,7 @@ jobpulse/
 
 ## 📋 Execution Stages (Step Gating)
 
-### ✅ **STAGE 1: Data Loading & Ingestion Schema Setup** (CURRENT)
+### ✅ **STAGE 1: Data Loading & Ingestion Schema Setup**
 - Load local CSV dataset (`master_africa_tech_jobs.csv`)
 - Validate against standard schema
 - Filter to rich descriptions (>100 chars) & African/remote jobs
