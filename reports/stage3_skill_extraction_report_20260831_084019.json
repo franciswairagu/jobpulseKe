@@ -1,0 +1,402 @@
+{
+  "stage": "Stage 3: NLP Pipeline & Skill Extraction",
+  "timestamp": "2026-08-31T08:40:21.560352",
+  "input": {
+    "records": 9549,
+    "columns": 22,
+    "source": "/home/wairagu/Desktop/jobpulse/jobpulse/data/processed/jobpulse_cleaned_20260831_082656.parquet"
+  },
+  "output": {
+    "records": 9549,
+    "columns": 31,
+    "path": "/home/wairagu/Desktop/jobpulse/jobpulse/data/processed/jobpulse_nlp_enriched_20260831_084019.parquet"
+  },
+  "skills": {
+    "categories": [
+      "programming_language",
+      "web_framework",
+      "frontend",
+      "ai_ml",
+      "architecture",
+      "cloud_platform",
+      "methodology",
+      "devops",
+      "database",
+      "data_platform",
+      "testing"
+    ],
+    "total_unique_skills": 80,
+    "top_skills_by_category": {
+      "programming_language": [
+        [
+          "go",
+          27
+        ],
+        [
+          "python",
+          23
+        ],
+        [
+          "sql",
+          16
+        ],
+        [
+          "java",
+          15
+        ],
+        [
+          "javascript",
+          14
+        ],
+        [
+          "typescript",
+          9
+        ],
+        [
+          "php",
+          7
+        ],
+        [
+          "r",
+          4
+        ],
+        [
+          "golang",
+          3
+        ],
+        [
+          "ruby",
+          3
+        ]
+      ],
+      "web_framework": [
+        [
+          "rails",
+          26
+        ],
+        [
+          "react",
+          15
+        ],
+        [
+          "angular",
+          7
+        ],
+        [
+          "next.js",
+          4
+        ],
+        [
+          "spring",
+          4
+        ],
+        [
+          "vue",
+          3
+        ],
+        [
+          "django",
+          2
+        ],
+        [
+          "nuxt",
+          2
+        ],
+        [
+          "laravel",
+          2
+        ],
+        [
+          "svelte",
+          2
+        ]
+      ],
+      "frontend": [
+        [
+          "css",
+          7
+        ],
+        [
+          "html",
+          3
+        ]
+      ],
+      "ai_ml": [
+        [
+          "openai",
+          12
+        ],
+        [
+          "llm",
+          7
+        ],
+        [
+          "pytorch",
+          2
+        ],
+        [
+          "scikit-learn",
+          2
+        ],
+        [
+          "langchain",
+          2
+        ],
+        [
+          "tensorflow",
+          1
+        ],
+        [
+          "huggingface",
+          1
+        ],
+        [
+          "pandas",
+          1
+        ]
+      ],
+      "architecture": [
+        [
+          "api",
+          13
+        ],
+        [
+          "rest",
+          8
+        ],
+        [
+          "microservices",
+          3
+        ]
+      ],
+      "cloud_platform": [
+        [
+          "aws",
+          18
+        ],
+        [
+          "azure",
+          8
+        ],
+        [
+          "gcp",
+          7
+        ],
+        [
+          "amazon web services",
+          5
+        ],
+        [
+          "google cloud",
+          3
+        ],
+        [
+          "heroku",
+          1
+        ]
+      ],
+      "methodology": [
+        [
+          "solid",
+          14
+        ],
+        [
+          "agile",
+          11
+        ],
+        [
+          "scrum",
+          6
+        ],
+        [
+          "oop",
+          1
+        ]
+      ],
+      "devops": [
+        [
+          "kubernetes",
+          12
+        ],
+        [
+          "ci/cd",
+          7
+        ],
+        [
+          "git",
+          5
+        ],
+        [
+          "github",
+          5
+        ],
+        [
+          "terraform",
+          4
+        ],
+        [
+          "docker",
+          3
+        ],
+        [
+          "github actions",
+          2
+        ],
+        [
+          "grafana",
+          2
+        ],
+        [
+          "prometheus",
+          2
+        ],
+        [
+          "elk",
+          2
+        ]
+      ],
+      "database": [
+        [
+          "mysql",
+          4
+        ],
+        [
+          "oracle",
+          3
+        ],
+        [
+          "mongodb",
+          2
+        ],
+        [
+          "cassandra",
+          2
+        ],
+        [
+          "postgres",
+          2
+        ],
+        [
+          "graphql",
+          2
+        ],
+        [
+          "postgresql",
+          2
+        ]
+      ],
+      "data_platform": [
+        [
+          "spark",
+          4
+        ],
+        [
+          "snowflake",
+          3
+        ],
+        [
+          "airflow",
+          3
+        ],
+        [
+          "databricks",
+          3
+        ],
+        [
+          "kafka",
+          2
+        ],
+        [
+          "bigquery",
+          1
+        ],
+        [
+          "redshift",
+          1
+        ],
+        [
+          "dbt",
+          1
+        ]
+      ],
+      "testing": [
+        [
+          "jira",
+          1
+        ]
+      ]
+    }
+  },
+  "metadata": {
+    "seniority_distribution": {
+      "Mid-Level": 9052,
+      "Lead": 167,
+      "Intern": 144,
+      "Entry Level": 22,
+      "Executive": 92,
+      "Senior": 72
+    },
+    "experience_stats": {
+      "min": 1,
+      "max": 18,
+      "avg": 4.730769230769231,
+      "records_with_exp": 156
+    },
+    "work_mode_distribution": {
+      "Remote": 153,
+      "Hybrid": 59,
+      "On-Site": 6
+    },
+    "employment_type_distribution": {
+      "Temporary": 27,
+      "Internship": 18,
+      "Part-Time": 5,
+      "Freelance": 13,
+      "Full-Time": 22,
+      "Contract": 11
+    }
+  },
+  "regional_skill_distribution": {
+    "Nigeria": {
+      "programming_language": 29,
+      "web_framework": 14,
+      "frontend": 4,
+      "ai_ml": 3,
+      "architecture": 1,
+      "cloud_platform": 10,
+      "methodology": 9,
+      "devops": 4,
+      "database": 9
+    },
+    "Global Remote": {
+      "database": 7,
+      "architecture": 21,
+      "cloud_platform": 32,
+      "ai_ml": 21,
+      "programming_language": 75,
+      "methodology": 22,
+      "web_framework": 38,
+      "devops": 41,
+      "data_platform": 18,
+      "testing": 1,
+      "frontend": 4
+    },
+    "South Africa": {
+      "programming_language": 22,
+      "web_framework": 18,
+      "ai_ml": 4,
+      "architecture": 2,
+      "methodology": 1,
+      "devops": 2
+    },
+    "Ghana": {
+      "programming_language": 3,
+      "web_framework": 1,
+      "database": 1,
+      "frontend": 2
+    },
+    "Egypt": {
+      "programming_language": 1
+    }
+  }
+}
