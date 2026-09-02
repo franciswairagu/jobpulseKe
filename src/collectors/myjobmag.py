@@ -13,9 +13,9 @@ candidates, then falls back to anchor-based extraction.
 """
 from bs4 import BeautifulSoup
 
-from scrapers.base_scraper import BaseScraper
-from utils.helpers import build_record, is_tech_job
-from utils.parsing import select_first_nonempty, anchor_based_cards, text_or_none
+from src.collectors.base_scraper import BaseScraper
+from src.utils.helpers import build_record, is_tech_job
+from src.utils.parsing import select_first_nonempty, anchor_based_cards, text_or_none
 
 COUNTRY_DOMAINS = {
     "Nigeria": "https://www.myjobmag.com",

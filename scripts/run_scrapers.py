@@ -2,9 +2,9 @@
 Orchestrator for the Africa Tech Jobs scraper suite.
 
 Usage:
-    python main.py                          # run every scraper, 3 pages each
-    python main.py --sources brightermonday fuzu --max-pages 5
-    python main.py --list                   # show available source names
+    python scripts/run_scrapers.py                          # run every scraper
+    python scripts/run_scrapers.py --sources brightermonday fuzu --max-pages 5
+    python scripts/run_scrapers.py --list                   # show available source names
 
 Each scraper's raw output is saved individually to output/<source>.csv
 AND merged into output/master_africa_tech_jobs.csv (deduplicated on
@@ -13,25 +13,30 @@ job_id, which is a hash of source + source_job_id/url).
 import argparse
 import os
 import sys
+from pathlib import Path
 
 import pandas as pd
 
-from config import SCHEMA_COLUMNS, OUTPUT_DIR
-from scrapers.brightermonday import BrighterMondayScraper
-from scrapers.fuzu import FuzuScraper
-from scrapers.myjobmag import MyJobMagScraper
-from scrapers.jobberman import JobbermanScraper
-from scrapers.jobwebkenya import JobWebKenyaScraper
-from scrapers.remoteok import RemoteOKScraper
-from scrapers.weworkremotely import WeWorkRemotelyScraper
-from scrapers.careerjet import CareerJetScraper
-from scrapers.linkedin_guest import LinkedInGuestScraper
-from scrapers.indeed import IndeedScraper
-from scrapers.jobicy import JobicyScraper
-from scrapers.careers24 import Careers24Scraper
-from scrapers.pnet import PNetScraper
-from scrapers.talent_com import TalentComScraper
-from scrapers.hotnigerianjobs import HotNigerianJobsScraper
+# Project root (two levels up: scripts/ -> project root) so `src.*`
+# absolute imports resolve regardless of the current working directory.
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from src.scraping_config import SCHEMA_COLUMNS, OUTPUT_DIR
+from src.collectors.brightermonday import BrighterMondayScraper
+from src.collectors.fuzu import FuzuScraper
+from src.collectors.myjobmag import MyJobMagScraper
+from src.collectors.jobberman import JobbermanScraper
+from src.collectors.jobwebkenya import JobWebKenyaScraper
+from src.collectors.remoteok import RemoteOKScraper
+from src.collectors.weworkremotely import WeWorkRemotelyScraper
+from src.collectors.careerjet import CareerJetScraper
+from src.collectors.linkedin_guest import LinkedInGuestScraper
+from src.collectors.indeed import IndeedScraper
+from src.collectors.jobicy import JobicyScraper
+from src.collectors.careers24 import Careers24Scraper
+from src.collectors.pnet import PNetScraper
+from src.collectors.talent_com import TalentComScraper
+from src.collectors.hotnigerianjobs import HotNigerianJobsScraper
 
 SCRAPER_REGISTRY = {
     "brightermonday": BrighterMondayScraper,
@@ -55,7 +60,7 @@ SCRAPER_REGISTRY = {
 # project so far:
 # - remoteok/weworkremotely/jobicy: API/RSS, most reliable
 # - talent_com: aggregator, high volume potential, structure verified live
-# - hotnigerianjobs: NEW — structure verified live via direct fetch,
+# - hotnigerianjobs: structure verified live via direct fetch,
 #   832 active postings on ONE Nigerian board's tech-industry page alone
 # - linkedin: worked last run (429-limited but got real records)
 # - myjobmag/jobwebkenya/brightermonday/fuzu/jobberman: rewritten v2,

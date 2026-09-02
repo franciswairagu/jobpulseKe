@@ -14,8 +14,8 @@ from difflib import SequenceMatcher
 from hashlib import md5
 import sys
 
-sys.path.insert(0, str(Path(__file__).parent.parent))
-from config import PROCESSED_DATA_DIR, REPORTS_DIR, AFRICAN_COUNTRIES, AFRICAN_COUNTRY_CODES
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from src.config import PROCESSED_DATA_DIR, REPORTS_DIR, AFRICAN_COUNTRIES, AFRICAN_COUNTRY_CODES
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -357,7 +357,12 @@ def run_stage_2_cleaning(input_parquet: str) -> Tuple[pd.DataFrame, dict, str]:
 
 
 if __name__ == "__main__":
-    # Example usage
-    input_file = "/home/wairagu/Desktop/jobpulse/jobpulse/data/processed/ingested_raw_20260831_080646.parquet"
-    df, report, output_path = run_stage_2_cleaning(input_file)
+    # Example usage: clean the most recently ingested Stage 1 output.
+    candidates = sorted(PROCESSED_DATA_DIR.glob("ingested_raw_*.parquet"))
+    if not candidates:
+        raise SystemExit(
+            "No Stage 1 output found in data/processed/. "
+            "Run scripts/run_stage1_ingestion.py first."
+        )
+    df, report, output_path = run_stage_2_cleaning(str(candidates[-1]))
     print(f"\nStage 2 Complete: {len(df):,} cleaned records saved")

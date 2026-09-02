@@ -1,7 +1,7 @@
 """
 merge_jobpulseke.py — pull the collected Kenya tech-jobs dataset from the
 sister "jobpulseKe" project into this project's canonical schema
-(config.SCHEMA_COLUMNS) and merge it into master_africa_tech_jobs.csv,
+(src.scraping_config.SCHEMA_COLUMNS) and merge it into master_africa_tech_jobs.csv,
 the same way merge_csvs.py merges any other schema-conformant CSV.
 
 WHY A DEDICATED SCRIPT (instead of just running merge_csvs.py on the raw
@@ -18,37 +18,40 @@ file): jobpulseKe's output is *schema-compatible but not schema-identical*:
      source labels.
   3. `job_id` there is `sha256(url)`, NOT this project's
      `sha256(f"{source}|{source_job_id or url}")` (see
-     utils.helpers.make_job_id). Different hash scheme -> even a truly
+     src.utils.helpers.make_job_id). Different hash scheme -> even a truly
      identical posting would get a different job_id and dedup would
      miss it. Every row is re-hashed here with the same function this
      project's own scrapers use, so cross-project duplicates collapse
      correctly and the merge is safe to re-run.
   4. `work_mode` there uses "On-site" (unset for ~78% of rows); this
-     project's schema expects the lowercase set in config.WORK_MODES
+     project's schema expects the lowercase set in src.scraping_config.WORK_MODES
      ("remote"/"hybrid"/"onsite"/"unknown"). Existing values are
      normalized, and any missing/unknown value is backfilled with
-     utils.helpers.guess_work_mode() from the title/description/location
+     src.utils.helpers.guess_work_mode() from the title/description/location
      text, same as every scraper here already does.
 
 Usage:
     # default: read data/external/jobpulseke/kenya_tech_jobs_master.csv,
     # merge into data/raw/master_africa_tech_jobs.csv
-    python merge_jobpulseke.py
+    python scripts/merge_jobpulseke.py
 
     # point at a different jobpulseKe export, or a different master:
-    python merge_jobpulseke.py --input path/to/kenya_tech_jobs_master.csv \
+    python scripts/merge_jobpulseke.py --input path/to/kenya_tech_jobs_master.csv \
         --master data/raw/master_africa_tech_jobs.csv
 
     # just see what would happen, don't write anything:
-    python merge_jobpulseke.py --dry-run
+    python scripts/merge_jobpulseke.py --dry-run
 """
 import argparse
 import os
+import sys
+from pathlib import Path
 
 import pandas as pd
 
-from config import SCHEMA_COLUMNS, WORK_MODES
-from utils.helpers import (
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from src.scraping_config import SCHEMA_COLUMNS, WORK_MODES
+from src.utils.helpers import (
     make_job_id, clean_text, guess_work_mode, guess_country,
     classify_tech_category, guess_currency, clean_salary, now_iso,
 )
@@ -70,7 +73,7 @@ SOURCE_NAME_MAP = {
     "remotive": "remotive",
 }
 
-# jobpulseKe's work_mode spellings -> config.WORK_MODES
+# jobpulseKe's work_mode spellings -> src.scraping_config.WORK_MODES
 WORK_MODE_MAP = {
     "remote": "remote",
     "hybrid": "hybrid",

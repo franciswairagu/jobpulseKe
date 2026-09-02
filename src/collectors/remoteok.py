@@ -6,9 +6,9 @@ description/location explicitly welcomes African applicants or is fully
 open ("Anywhere" / "Worldwide" / names an African country) — everything
 else is dropped so it doesn't pollute an "Africa tech market" dataset.
 """
-from utils.helpers import build_record, guess_country
-from scrapers.base_scraper import BaseScraper
-from config import AFRICAN_COUNTRIES
+from src.utils.helpers import build_record, guess_country
+from src.collectors.base_scraper import BaseScraper
+from src.scraping_config import AFRICAN_COUNTRIES
 
 API_URL = "https://remoteok.com/api"
 

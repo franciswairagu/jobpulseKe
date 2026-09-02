@@ -22,9 +22,9 @@ lower success rate than the other sources.
 """
 from bs4 import BeautifulSoup
 
-from scrapers.base_scraper import BaseScraper
-from utils.helpers import build_record
-from utils.parsing import text_or_none
+from src.collectors.base_scraper import BaseScraper
+from src.utils.helpers import build_record
+from src.utils.parsing import text_or_none
 
 # (subdomain_url, needs_location_param) — tried in order per country
 COUNTRY_DOMAIN_CANDIDATES = {
