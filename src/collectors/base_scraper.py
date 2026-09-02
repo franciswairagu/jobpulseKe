@@ -15,7 +15,7 @@ from tenacity import (
     retry, stop_after_attempt, wait_exponential, retry_if_exception_type,
 )
 
-from config import (
+from src.scraping_config import (
     DEFAULT_HEADERS, REQUEST_TIMEOUT, MIN_DELAY, MAX_DELAY, MAX_RETRIES,
     SCHEMA_COLUMNS, OUTPUT_DIR,
 )

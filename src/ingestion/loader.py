@@ -11,8 +11,11 @@ from typing import Optional, Tuple
 from datetime import datetime
 import sys
 
-sys.path.insert(0, str(Path(__file__).parent.parent))
-from config import (
+# Make sure the project root is importable so `src.*` absolute imports
+# resolve, whether this module is run directly or imported as part of
+# the `src` package.
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from src.config import (
     RAW_DATA_DIR, PROCESSED_DATA_DIR, EXPECTED_COLUMNS,
     AFRICAN_COUNTRIES, MIN_JOB_DESCRIPTION_LENGTH, LOG_FORMAT, LOG_LEVEL
 )

@@ -35,21 +35,24 @@ a black box.
 
 Usage:
     pip install datasets --break-system-packages
-    python merge_public_datasets.py --inspect-only      # just print columns + sample, don't process
-    python merge_public_datasets.py                     # filter to Africa, tag tech, save + merge
+    python scripts/merge_public_datasets.py --inspect-only      # just print columns + sample, don't process
+    python scripts/merge_public_datasets.py                     # filter to Africa, tag tech, save + merge
 """
 import argparse
 import os
 import re
+import sys
+from pathlib import Path
 from collections import Counter
 
 import pandas as pd
 
-from config import (
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from src.scraping_config import (
     SCHEMA_COLUMNS, AFRICAN_COUNTRIES, AFRICAN_COUNTRY_CODES,
     AFRICAN_COUNTRY_CODES_ALPHA3, OUTPUT_DIR,
 )
-from utils.helpers import build_record, is_tech_job
+from src.utils.helpers import build_record, is_tech_job
 
 try:
     from datasets import load_dataset

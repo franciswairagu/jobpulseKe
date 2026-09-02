@@ -1,31 +1,53 @@
+"""
+NOTE — this module currently cannot run, and that predates this
+reorganization:
+
+1. `collectors.myjobmag_historical`, `collectors.fuzu_historical`,
+   `collectors.brightermonday_historical`, and `collectors.remotive`
+   don't exist as source files anywhere in this project (only stale
+   compiled .pyc remnants were found), so those imports fail.
+2. Even for the collectors that do exist, this file expects a
+   module-level `collect(...)` function (`collect as collect_myjobmag`,
+   etc.), but the current `src/collectors/*.py` modules only expose
+   class-based scrapers (e.g. `MyJobMagScraper`), not a `collect()`
+   function. The two were never reconciled after the collectors were
+   rewritten.
+
+The import paths below have been updated to point at their real
+location (`src.collectors`) for consistency, but the module will still
+raise ImportError until the missing historical/remotive collectors are
+restored and the interface mismatch above is resolved. The scraper
+suite in `scripts/run_scrapers.py` (backed by `src/collectors/*Scraper`
+classes) is the functional path for collecting fresh data today.
+"""
 import os
 import re
 import hashlib
 import pandas as pd
 
-from collectors.myjobmag import collect as collect_myjobmag
-from collectors.myjobmag_historical import (
+from src.collectors.myjobmag import collect as collect_myjobmag
+from src.collectors.myjobmag_historical import (
     collect as collect_myjobmag_historical
 )
 
-from collectors.fuzu import collect as collect_fuzu
-from collectors.fuzu_historical import (
+from src.collectors.fuzu import collect as collect_fuzu
+from src.collectors.fuzu_historical import (
     collect as collect_fuzu_historical
 )
 
-from collectors.brightermonday import (
+from src.collectors.brightermonday import (
     collect as collect_brightermonday
 )
 
-from collectors.brightermonday_historical import (
+from src.collectors.brightermonday_historical import (
     collect_historical_jobs as collect_brightermonday_historical
 )
 
-from collectors.jobicy import (
+from src.collectors.jobicy import (
     collect as collect_jobicy
 )
 
-from collectors.remotive import (
+from src.collectors.remotive import (
     collect as collect_remotive
 )
 
