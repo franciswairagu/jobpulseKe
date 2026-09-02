@@ -1,0 +1,346 @@
+{
+  "timestamp": "2026-08-31T07:52:36.728045",
+  "stage": "Stage 1: Data Ingestion",
+  "summary": {
+    "total_records_ingested": 690,
+    "columns": 22,
+    "column_list": [
+      "job_id",
+      "source",
+      "source_job_id",
+      "job_title",
+      "company",
+      "job_description",
+      "location",
+      "country",
+      "work_mode",
+      "remote_scope",
+      "job_field",
+      "industry",
+      "employment_type",
+      "experience_required",
+      "education_required",
+      "salary",
+      "currency",
+      "date_posted",
+      "application_deadline",
+      "tech_category",
+      "vacancy_url",
+      "scraped_at"
+    ],
+    "null_counts": {
+      "job_id": 0,
+      "source": 0,
+      "source_job_id": 0,
+      "job_title": 0,
+      "company": 67,
+      "job_description": 0,
+      "location": 183,
+      "country": 0,
+      "work_mode": 0,
+      "remote_scope": 507,
+      "job_field": 619,
+      "industry": 96,
+      "employment_type": 634,
+      "experience_required": 690,
+      "education_required": 690,
+      "salary": 562,
+      "currency": 673,
+      "date_posted": 57,
+      "application_deadline": 690,
+      "tech_category": 296,
+      "vacancy_url": 0,
+      "scraped_at": 0
+    },
+    "data_types": {
+      "job_id": "str",
+      "source": "str",
+      "source_job_id": "str",
+      "job_title": "str",
+      "company": "str",
+      "job_description": "str",
+      "location": "str",
+      "country": "str",
+      "work_mode": "str",
+      "remote_scope": "str",
+      "job_field": "str",
+      "industry": "str",
+      "employment_type": "str",
+      "experience_required": "float64",
+      "education_required": "float64",
+      "salary": "str",
+      "currency": "str",
+      "date_posted": "str",
+      "application_deadline": "float64",
+      "tech_category": "str",
+      "vacancy_url": "str",
+      "scraped_at": "str"
+    },
+    "schema_report": {
+      "total_rows": 12515,
+      "total_columns": 22,
+      "expected_columns": [
+        "job_id",
+        "source",
+        "source_job_id",
+        "job_title",
+        "company",
+        "job_description",
+        "location",
+        "country",
+        "work_mode",
+        "remote_scope",
+        "job_field",
+        "industry",
+        "employment_type",
+        "experience_required",
+        "education_required",
+        "salary",
+        "currency",
+        "date_posted",
+        "application_deadline",
+        "tech_category",
+        "vacancy_url",
+        "scraped_at"
+      ],
+      "actual_columns": [
+        "job_id",
+        "source",
+        "source_job_id",
+        "job_title",
+        "company",
+        "job_description",
+        "location",
+        "country",
+        "work_mode",
+        "remote_scope",
+        "job_field",
+        "industry",
+        "employment_type",
+        "experience_required",
+        "education_required",
+        "salary",
+        "currency",
+        "date_posted",
+        "application_deadline",
+        "tech_category",
+        "vacancy_url",
+        "scraped_at"
+      ],
+      "missing_columns": [],
+      "extra_columns": [],
+      "column_nulls": {
+        "job_id": {
+          "null_count": 0,
+          "null_percentage": 0.0
+        },
+        "source": {
+          "null_count": 0,
+          "null_percentage": 0.0
+        },
+        "source_job_id": {
+          "null_count": 0,
+          "null_percentage": 0.0
+        },
+        "job_title": {
+          "null_count": 10,
+          "null_percentage": 0.08
+        },
+        "company": {
+          "null_count": 3786,
+          "null_percentage": 30.25
+        },
+        "job_description": {
+          "null_count": 11478,
+          "null_percentage": 91.71
+        },
+        "location": {
+          "null_count": 3902,
+          "null_percentage": 31.18
+        },
+        "country": {
+          "null_count": 10,
+          "null_percentage": 0.08
+        },
+        "work_mode": {
+          "null_count": 0,
+          "null_percentage": 0.0
+        },
+        "remote_scope": {
+          "null_count": 11844,
+          "null_percentage": 94.64
+        },
+        "job_field": {
+          "null_count": 12405,
+          "null_percentage": 99.12
+        },
+        "industry": {
+          "null_count": 11606,
+          "null_percentage": 92.74
+        },
+        "employment_type": {
+          "null_count": 12459,
+          "null_percentage": 99.55
+        },
+        "experience_required": {
+          "null_count": 12515,
+          "null_percentage": 100.0
+        },
+        "education_required": {
+          "null_count": 12515,
+          "null_percentage": 100.0
+        },
+        "salary": {
+          "null_count": 12387,
+          "null_percentage": 98.98
+        },
+        "currency": {
+          "null_count": 12498,
+          "null_percentage": 99.86
+        },
+        "date_posted": {
+          "null_count": 10686,
+          "null_percentage": 85.39
+        },
+        "application_deadline": {
+          "null_count": 12515,
+          "null_percentage": 100.0
+        },
+        "tech_category": {
+          "null_count": 3678,
+          "null_percentage": 29.39
+        },
+        "vacancy_url": {
+          "null_count": 6910,
+          "null_percentage": 55.21
+        },
+        "scraped_at": {
+          "null_count": 0,
+          "null_percentage": 0.0
+        }
+      }
+    },
+    "sample_records": [
+      {
+        "job_id": "a9942b48e8f62880",
+        "source": "hotnigerianjobs",
+        "source_job_id": "949591",
+        "job_title": "PZ Cussons Nigeria Limited Job Recruitment (5 Positions)",
+        "company": NaN,
+        "job_description": "PZ Cussons Nigeria Limited Job Recruitment (5 Positions) Cutting-Edge International Academy Job Recruitment (13 Positions) Redeemer's 103.5 FM Volunteer & Exp. Job Recruitment (7 Positions) Contemporary Group Limited (CGL) Job Recruitment (3 Positions) The Impeccable Skills Company Job Recruitment (3 Positions) HNJ Exclusive Job GOODY Bag - AUGUST Week FOUR UPDATE! Noble Guide Academy Job Recruitment (3 Positions) Telic International Academy Job Recruitment (7 Positions) Mater Purissima Secondary School Job Recruitment (8 Positions) TheHRHive Job Recruitment (4 Positions) PGE Travels and Education Consulting Graduate, Internship & Exp. Job Recruitment (4 Positions) Baker Hughes Job Recruitment (6 Positions) Latest Graduate & Management Trainee Job Recruitment in Nigeria - HNJobs (Weekly Recap) HNJobs (Recap): Remote / Work-At-Home Job Opportunities Homeland Integrated Offshore Services Job Recruitment (4 Positions) Atis Limited Graduate & Exp. Job Recruitment (3 Positions) United Nations International Children's Emergency Fund (UNICEF) Job Recruitment (3 Positions) Latest Oil & Gas Job Opportunities in Nigeria - HNJ Exclusive Latest Customer Service / Front Desk Job Recruitment in Nigeria - HNJobs (Weekly Recap) LEAM Consulting Limited Job Recruitment (29 Positions) HNJobs (Recap): Federal / State Government Job Opportunities - HNJ Exclusive Applinet Technology Job Recruitment (11 Positions) Latest Entry-level & Internship Job Recruitment in Nigeria - HNJobs (Weekly Recap) Brint Online Schools Job Recruitment (7 Positions) HNJobs (Recap): International Agency / NGO / Multinational Job Opportunities - HNJ Exclusive Geoplex Drillteq Limited Job Recruitment (6 Positions) Promasidor Nigeria Job Recruitment (3 Positions) Center for Humanitarian Impact and Development (C-HID) Job Recruitment (4 Positions) LinkOrgNetwork Limited Job Recruitment (4 Positions) Dorisfit Gym and SPA Job Recruitment (11 Positions) Medical Diagnostic Centre Job Recruitment (8 Positions) - Cuanu Consult Limited Royal Resource Digital Services Job Recruitment (4 Positions) Terawork Job Recruitment (3 Positions) Kiyix Recruitment Hub Job Recruitment (7 Positions) Fiphs Infrastructure Limited Entry Level & Exp. Job Recruitment (6 Positions) KCH Consumer Healthcare Limited Job Recruitment (4 Positions) CWW Tech Africa Job Recruitment (10 Positions) The Milk Booster Job Recruitment (3 Positions) OCA Consulting Job Recruitment (6 Positions) Femywalsh Limited NYSC, Internship & Exp. Job Recruitment (9 Positions) The Label Store Job Recruitment (3 Positions) Mapemond Resource Job Recruitment (6 Positions) Rand Merchant Bank (RMB) Graduate Job Recruitment (10 Positions) MartGlobal Limited Trainee & Exp. Job Recruitment (4 Positions) Engee PET Manufacturing Company Nigeria Limited Job Recruitment (3 Positions) Malaria Consortium Job Recruitment (4 Positions) Cornerstone Montessori Schools Job Recruitment (3 Positions) Proforce Industries Limited Job Recruitment (8 Positions) Arit of Africa Limited NYSC and Exp. Job Recruitment (3 Positions) ASA Security Job Recruitment (6 Positions)",
+        "location": NaN,
+        "country": "Nigeria",
+        "work_mode": "remote",
+        "remote_scope": "Global",
+        "job_field": NaN,
+        "industry": "Computer / AI / Technology / IT Services",
+        "employment_type": NaN,
+        "experience_required": NaN,
+        "education_required": NaN,
+        "salary": NaN,
+        "currency": NaN,
+        "date_posted": NaN,
+        "application_deadline": NaN,
+        "tech_category": NaN,
+        "vacancy_url": "https://www.hotnigerianjobs.com/hotjobs/949591/pz-cussons-nigeria-limited-job-recruitment-5-posit.html",
+        "scraped_at": "2026-08-30T15:19:40+00:00"
+      },
+      {
+        "job_id": "d18aa48679b2923b",
+        "source": "hotnigerianjobs",
+        "source_job_id": "949585",
+        "job_title": "The Impeccable Skills Company Job Recruitment (3 Positions)",
+        "company": NaN,
+        "job_description": "PZ Cussons Nigeria Limited Job Recruitment (5 Positions) Cutting-Edge International Academy Job Recruitment (13 Positions) Redeemer's 103.5 FM Volunteer & Exp. Job Recruitment (7 Positions) Contemporary Group Limited (CGL) Job Recruitment (3 Positions) The Impeccable Skills Company Job Recruitment (3 Positions) HNJ Exclusive Job GOODY Bag - AUGUST Week FOUR UPDATE! Noble Guide Academy Job Recruitment (3 Positions) Telic International Academy Job Recruitment (7 Positions) Mater Purissima Secondary School Job Recruitment (8 Positions) TheHRHive Job Recruitment (4 Positions) PGE Travels and Education Consulting Graduate, Internship & Exp. Job Recruitment (4 Positions) Baker Hughes Job Recruitment (6 Positions) Latest Graduate & Management Trainee Job Recruitment in Nigeria - HNJobs (Weekly Recap) HNJobs (Recap): Remote / Work-At-Home Job Opportunities Homeland Integrated Offshore Services Job Recruitment (4 Positions) Atis Limited Graduate & Exp. Job Recruitment (3 Positions) United Nations International Children's Emergency Fund (UNICEF) Job Recruitment (3 Positions) Latest Oil & Gas Job Opportunities in Nigeria - HNJ Exclusive Latest Customer Service / Front Desk Job Recruitment in Nigeria - HNJobs (Weekly Recap) LEAM Consulting Limited Job Recruitment (29 Positions) HNJobs (Recap): Federal / State Government Job Opportunities - HNJ Exclusive Applinet Technology Job Recruitment (11 Positions) Latest Entry-level & Internship Job Recruitment in Nigeria - HNJobs (Weekly Recap) Brint Online Schools Job Recruitment (7 Positions) HNJobs (Recap): International Agency / NGO / Multinational Job Opportunities - HNJ Exclusive Geoplex Drillteq Limited Job Recruitment (6 Positions) Promasidor Nigeria Job Recruitment (3 Positions) Center for Humanitarian Impact and Development (C-HID) Job Recruitment (4 Positions) LinkOrgNetwork Limited Job Recruitment (4 Positions) Dorisfit Gym and SPA Job Recruitment (11 Positions) Medical Diagnostic Centre Job Recruitment (8 Positions) - Cuanu Consult Limited Royal Resource Digital Services Job Recruitment (4 Positions) Terawork Job Recruitment (3 Positions) Kiyix Recruitment Hub Job Recruitment (7 Positions) Fiphs Infrastructure Limited Entry Level & Exp. Job Recruitment (6 Positions) KCH Consumer Healthcare Limited Job Recruitment (4 Positions) CWW Tech Africa Job Recruitment (10 Positions) The Milk Booster Job Recruitment (3 Positions) OCA Consulting Job Recruitment (6 Positions) Femywalsh Limited NYSC, Internship & Exp. Job Recruitment (9 Positions) The Label Store Job Recruitment (3 Positions) Mapemond Resource Job Recruitment (6 Positions) Rand Merchant Bank (RMB) Graduate Job Recruitment (10 Positions) MartGlobal Limited Trainee & Exp. Job Recruitment (4 Positions) Engee PET Manufacturing Company Nigeria Limited Job Recruitment (3 Positions) Malaria Consortium Job Recruitment (4 Positions) Cornerstone Montessori Schools Job Recruitment (3 Positions) Proforce Industries Limited Job Recruitment (8 Positions) Arit of Africa Limited NYSC and Exp. Job Recruitment (3 Positions) ASA Security Job Recruitment (6 Positions)",
+        "location": NaN,
+        "country": "Nigeria",
+        "work_mode": "remote",
+        "remote_scope": "Global",
+        "job_field": NaN,
+        "industry": "Computer / AI / Technology / IT Services",
+        "employment_type": NaN,
+        "experience_required": NaN,
+        "education_required": NaN,
+        "salary": NaN,
+        "currency": NaN,
+        "date_posted": NaN,
+        "application_deadline": NaN,
+        "tech_category": NaN,
+        "vacancy_url": "https://www.hotnigerianjobs.com/hotjobs/949585/the-impeccable-skills-company-job-recruitment-3-po.html",
+        "scraped_at": "2026-08-30T15:19:40+00:00"
+      },
+      {
+        "job_id": "98e5f4796eaf39c2",
+        "source": "hotnigerianjobs",
+        "source_job_id": "949584",
+        "job_title": "HNJ Exclusive Job GOODY Bag - AUGUST Week FOUR UPDATE!",
+        "company": NaN,
+        "job_description": "PZ Cussons Nigeria Limited Job Recruitment (5 Positions) Cutting-Edge International Academy Job Recruitment (13 Positions) Redeemer's 103.5 FM Volunteer & Exp. Job Recruitment (7 Positions) Contemporary Group Limited (CGL) Job Recruitment (3 Positions) The Impeccable Skills Company Job Recruitment (3 Positions) HNJ Exclusive Job GOODY Bag - AUGUST Week FOUR UPDATE! Noble Guide Academy Job Recruitment (3 Positions) Telic International Academy Job Recruitment (7 Positions) Mater Purissima Secondary School Job Recruitment (8 Positions) TheHRHive Job Recruitment (4 Positions) PGE Travels and Education Consulting Graduate, Internship & Exp. Job Recruitment (4 Positions) Baker Hughes Job Recruitment (6 Positions) Latest Graduate & Management Trainee Job Recruitment in Nigeria - HNJobs (Weekly Recap) HNJobs (Recap): Remote / Work-At-Home Job Opportunities Homeland Integrated Offshore Services Job Recruitment (4 Positions) Atis Limited Graduate & Exp. Job Recruitment (3 Positions) United Nations International Children's Emergency Fund (UNICEF) Job Recruitment (3 Positions) Latest Oil & Gas Job Opportunities in Nigeria - HNJ Exclusive Latest Customer Service / Front Desk Job Recruitment in Nigeria - HNJobs (Weekly Recap) LEAM Consulting Limited Job Recruitment (29 Positions) HNJobs (Recap): Federal / State Government Job Opportunities - HNJ Exclusive Applinet Technology Job Recruitment (11 Positions) Latest Entry-level & Internship Job Recruitment in Nigeria - HNJobs (Weekly Recap) Brint Online Schools Job Recruitment (7 Positions) HNJobs (Recap): International Agency / NGO / Multinational Job Opportunities - HNJ Exclusive Geoplex Drillteq Limited Job Recruitment (6 Positions) Promasidor Nigeria Job Recruitment (3 Positions) Center for Humanitarian Impact and Development (C-HID) Job Recruitment (4 Positions) LinkOrgNetwork Limited Job Recruitment (4 Positions) Dorisfit Gym and SPA Job Recruitment (11 Positions) Medical Diagnostic Centre Job Recruitment (8 Positions) - Cuanu Consult Limited Royal Resource Digital Services Job Recruitment (4 Positions) Terawork Job Recruitment (3 Positions) Kiyix Recruitment Hub Job Recruitment (7 Positions) Fiphs Infrastructure Limited Entry Level & Exp. Job Recruitment (6 Positions) KCH Consumer Healthcare Limited Job Recruitment (4 Positions) CWW Tech Africa Job Recruitment (10 Positions) The Milk Booster Job Recruitment (3 Positions) OCA Consulting Job Recruitment (6 Positions) Femywalsh Limited NYSC, Internship & Exp. Job Recruitment (9 Positions) The Label Store Job Recruitment (3 Positions) Mapemond Resource Job Recruitment (6 Positions) Rand Merchant Bank (RMB) Graduate Job Recruitment (10 Positions) MartGlobal Limited Trainee & Exp. Job Recruitment (4 Positions) Engee PET Manufacturing Company Nigeria Limited Job Recruitment (3 Positions) Malaria Consortium Job Recruitment (4 Positions) Cornerstone Montessori Schools Job Recruitment (3 Positions) Proforce Industries Limited Job Recruitment (8 Positions) Arit of Africa Limited NYSC and Exp. Job Recruitment (3 Positions) ASA Security Job Recruitment (6 Positions)",
+        "location": NaN,
+        "country": "Nigeria",
+        "work_mode": "remote",
+        "remote_scope": "Global",
+        "job_field": NaN,
+        "industry": "Computer / AI / Technology / IT Services",
+        "employment_type": NaN,
+        "experience_required": NaN,
+        "education_required": NaN,
+        "salary": NaN,
+        "currency": NaN,
+        "date_posted": NaN,
+        "application_deadline": NaN,
+        "tech_category": NaN,
+        "vacancy_url": "https://www.hotnigerianjobs.com/hotjobs/949584/hnj-exclusive-job-goody-bag-august-week-three-upda.html",
+        "scraped_at": "2026-08-30T15:19:40+00:00"
+      },
+      {
+        "job_id": "b973bec54fb963e5",
+        "source": "hotnigerianjobs",
+        "source_job_id": "949581",
+        "job_title": "Noble Guide Academy Job Recruitment (3 Positions)",
+        "company": NaN,
+        "job_description": "PZ Cussons Nigeria Limited Job Recruitment (5 Positions) Cutting-Edge International Academy Job Recruitment (13 Positions) Redeemer's 103.5 FM Volunteer & Exp. Job Recruitment (7 Positions) Contemporary Group Limited (CGL) Job Recruitment (3 Positions) The Impeccable Skills Company Job Recruitment (3 Positions) HNJ Exclusive Job GOODY Bag - AUGUST Week FOUR UPDATE! Noble Guide Academy Job Recruitment (3 Positions) Telic International Academy Job Recruitment (7 Positions) Mater Purissima Secondary School Job Recruitment (8 Positions) TheHRHive Job Recruitment (4 Positions) PGE Travels and Education Consulting Graduate, Internship & Exp. Job Recruitment (4 Positions) Baker Hughes Job Recruitment (6 Positions) Latest Graduate & Management Trainee Job Recruitment in Nigeria - HNJobs (Weekly Recap) HNJobs (Recap): Remote / Work-At-Home Job Opportunities Homeland Integrated Offshore Services Job Recruitment (4 Positions) Atis Limited Graduate & Exp. Job Recruitment (3 Positions) United Nations International Children's Emergency Fund (UNICEF) Job Recruitment (3 Positions) Latest Oil & Gas Job Opportunities in Nigeria - HNJ Exclusive Latest Customer Service / Front Desk Job Recruitment in Nigeria - HNJobs (Weekly Recap) LEAM Consulting Limited Job Recruitment (29 Positions) HNJobs (Recap): Federal / State Government Job Opportunities - HNJ Exclusive Applinet Technology Job Recruitment (11 Positions) Latest Entry-level & Internship Job Recruitment in Nigeria - HNJobs (Weekly Recap) Brint Online Schools Job Recruitment (7 Positions) HNJobs (Recap): International Agency / NGO / Multinational Job Opportunities - HNJ Exclusive Geoplex Drillteq Limited Job Recruitment (6 Positions) Promasidor Nigeria Job Recruitment (3 Positions) Center for Humanitarian Impact and Development (C-HID) Job Recruitment (4 Positions) LinkOrgNetwork Limited Job Recruitment (4 Positions) Dorisfit Gym and SPA Job Recruitment (11 Positions) Medical Diagnostic Centre Job Recruitment (8 Positions) - Cuanu Consult Limited Royal Resource Digital Services Job Recruitment (4 Positions) Terawork Job Recruitment (3 Positions) Kiyix Recruitment Hub Job Recruitment (7 Positions) Fiphs Infrastructure Limited Entry Level & Exp. Job Recruitment (6 Positions) KCH Consumer Healthcare Limited Job Recruitment (4 Positions) CWW Tech Africa Job Recruitment (10 Positions) The Milk Booster Job Recruitment (3 Positions) OCA Consulting Job Recruitment (6 Positions) Femywalsh Limited NYSC, Internship & Exp. Job Recruitment (9 Positions) The Label Store Job Recruitment (3 Positions) Mapemond Resource Job Recruitment (6 Positions) Rand Merchant Bank (RMB) Graduate Job Recruitment (10 Positions) MartGlobal Limited Trainee & Exp. Job Recruitment (4 Positions) Engee PET Manufacturing Company Nigeria Limited Job Recruitment (3 Positions) Malaria Consortium Job Recruitment (4 Positions) Cornerstone Montessori Schools Job Recruitment (3 Positions) Proforce Industries Limited Job Recruitment (8 Positions) Arit of Africa Limited NYSC and Exp. Job Recruitment (3 Positions) ASA Security Job Recruitment (6 Positions)",
+        "location": NaN,
+        "country": "Nigeria",
+        "work_mode": "remote",
+        "remote_scope": "Global",
+        "job_field": NaN,
+        "industry": "Computer / AI / Technology / IT Services",
+        "employment_type": NaN,
+        "experience_required": NaN,
+        "education_required": NaN,
+        "salary": NaN,
+        "currency": NaN,
+        "date_posted": NaN,
+        "application_deadline": NaN,
+        "tech_category": NaN,
+        "vacancy_url": "https://www.hotnigerianjobs.com/hotjobs/949581/noble-guide-academy-job-recruitment-3-positions.html",
+        "scraped_at": "2026-08-30T15:19:40+00:00"
+      },
+      {
+        "job_id": "ba8a44bed817540d",
+        "source": "hotnigerianjobs",
+        "source_job_id": "949572",
+        "job_title": "Telic International Academy Job Recruitment (7 Positions)",
+        "company": NaN,
+        "job_description": "PZ Cussons Nigeria Limited Job Recruitment (5 Positions) Cutting-Edge International Academy Job Recruitment (13 Positions) Redeemer's 103.5 FM Volunteer & Exp. Job Recruitment (7 Positions) Contemporary Group Limited (CGL) Job Recruitment (3 Positions) The Impeccable Skills Company Job Recruitment (3 Positions) HNJ Exclusive Job GOODY Bag - AUGUST Week FOUR UPDATE! Noble Guide Academy Job Recruitment (3 Positions) Telic International Academy Job Recruitment (7 Positions) Mater Purissima Secondary School Job Recruitment (8 Positions) TheHRHive Job Recruitment (4 Positions) PGE Travels and Education Consulting Graduate, Internship & Exp. Job Recruitment (4 Positions) Baker Hughes Job Recruitment (6 Positions) Latest Graduate & Management Trainee Job Recruitment in Nigeria - HNJobs (Weekly Recap) HNJobs (Recap): Remote / Work-At-Home Job Opportunities Homeland Integrated Offshore Services Job Recruitment (4 Positions) Atis Limited Graduate & Exp. Job Recruitment (3 Positions) United Nations International Children's Emergency Fund (UNICEF) Job Recruitment (3 Positions) Latest Oil & Gas Job Opportunities in Nigeria - HNJ Exclusive Latest Customer Service / Front Desk Job Recruitment in Nigeria - HNJobs (Weekly Recap) LEAM Consulting Limited Job Recruitment (29 Positions) HNJobs (Recap): Federal / State Government Job Opportunities - HNJ Exclusive Applinet Technology Job Recruitment (11 Positions) Latest Entry-level & Internship Job Recruitment in Nigeria - HNJobs (Weekly Recap) Brint Online Schools Job Recruitment (7 Positions) HNJobs (Recap): International Agency / NGO / Multinational Job Opportunities - HNJ Exclusive Geoplex Drillteq Limited Job Recruitment (6 Positions) Promasidor Nigeria Job Recruitment (3 Positions) Center for Humanitarian Impact and Development (C-HID) Job Recruitment (4 Positions) LinkOrgNetwork Limited Job Recruitment (4 Positions) Dorisfit Gym and SPA Job Recruitment (11 Positions) Medical Diagnostic Centre Job Recruitment (8 Positions) - Cuanu Consult Limited Royal Resource Digital Services Job Recruitment (4 Positions) Terawork Job Recruitment (3 Positions) Kiyix Recruitment Hub Job Recruitment (7 Positions) Fiphs Infrastructure Limited Entry Level & Exp. Job Recruitment (6 Positions) KCH Consumer Healthcare Limited Job Recruitment (4 Positions) CWW Tech Africa Job Recruitment (10 Positions) The Milk Booster Job Recruitment (3 Positions) OCA Consulting Job Recruitment (6 Positions) Femywalsh Limited NYSC, Internship & Exp. Job Recruitment (9 Positions) The Label Store Job Recruitment (3 Positions) Mapemond Resource Job Recruitment (6 Positions) Rand Merchant Bank (RMB) Graduate Job Recruitment (10 Positions) MartGlobal Limited Trainee & Exp. Job Recruitment (4 Positions) Engee PET Manufacturing Company Nigeria Limited Job Recruitment (3 Positions) Malaria Consortium Job Recruitment (4 Positions) Cornerstone Montessori Schools Job Recruitment (3 Positions) Proforce Industries Limited Job Recruitment (8 Positions) Arit of Africa Limited NYSC and Exp. Job Recruitment (3 Positions) ASA Security Job Recruitment (6 Positions)",
+        "location": NaN,
+        "country": "Nigeria",
+        "work_mode": "remote",
+        "remote_scope": "Global",
+        "job_field": NaN,
+        "industry": "Computer / AI / Technology / IT Services",
+        "employment_type": NaN,
+        "experience_required": NaN,
+        "education_required": NaN,
+        "salary": NaN,
+        "currency": NaN,
+        "date_posted": NaN,
+        "application_deadline": NaN,
+        "tech_category": NaN,
+        "vacancy_url": "https://www.hotnigerianjobs.com/hotjobs/949572/telic-international-academy-job-recruitment-7-posi.html",
+        "scraped_at": "2026-08-30T15:19:40+00:00"
+      }
+    ]
+  }
+}

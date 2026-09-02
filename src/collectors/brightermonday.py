@@ -1,637 +1,144 @@
-import re
-import time
-import hashlib
-import requests
-import pandas as pd
+"""
+BrighterMonday (brightermonday.co.ke / .co.ug) — East Africa job board.
 
+FIX (v2): v1 returned 0 records ("no more results at page 1") — the
+`div.search-result` wrapper class it relied on is either gone or the
+listing page is more JS-hydrated than before. This version:
+  1. Tries several candidate wrapper selectors first (cheap, fast path).
+  2. Falls back to anchor-based extraction keyed off the URL pattern
+     `/listings/<slug>` which BrighterMonday has used consistently for
+     years even across visual redesigns — links are almost always
+     present in initial server HTML even when styling is JS-driven.
+  3. Auto-dumps raw HTML to output/debug/ on a genuine dead end so you
+     can see immediately if the page is fully client-rendered (in which
+     case the README's Selenium/Playwright note applies) vs. just a
+     wrong selector.
+"""
 from bs4 import BeautifulSoup
-from datetime import datetime, timezone
-from urllib.parse import urljoin, urlparse
 
+from src.collectors.base_scraper import BaseScraper
+from src.utils.helpers import build_record
+from src.utils.parsing import select_first_nonempty, anchor_based_cards, text_or_none
 
-BASE_URL = "https://www.brightermonday.co.ke"
-
-START_URLS = [
-    f"{BASE_URL}/jobs/software-data",
-]
-
-REQUEST_DELAY = 1.5
-
-HEADERS = {
-    "User-Agent": (
-        "Mozilla/5.0 (X11; Linux x86_64) "
-        "AppleWebKit/537.36 "
-        "(KHTML, like Gecko) "
-        "Chrome/151.0.0.0 Safari/537.36"
-    )
+COUNTRY_DOMAINS = {
+    "Kenya": "https://www.brightermonday.co.ke",
+    "Uganda": "https://www.brightermonday.co.ug",
 }
+TECH_CATEGORY_SLUG = "jobs-in-ict-computer"
+
+CARD_SELECTOR_CANDIDATES = [
+    "div.search-result",
+    "div[data-cy='listing-cards-components']",
+    "article",
+    "li.search-result",
+]
+JOB_LINK_PATTERNS = [r"/listings/[a-z0-9-]+"]
 
 
-def create_session():
+class BrighterMondayScraper(BaseScraper):
+    source_name = "brightermonday"
 
-    session = requests.Session()
+    def scrape(self, max_pages=15, countries=None, **kwargs):
+        countries = countries or list(COUNTRY_DOMAINS.keys())
+        records = []
+        seen_urls = set()
 
-    session.headers.update(
-        HEADERS
-    )
+        for country in countries:
+            domain = COUNTRY_DOMAINS[country]
+            for page in range(1, max_pages + 1):
+                url = f"{domain}/{TECH_CATEGORY_SLUG}?page={page}"
+                try:
+                    resp = self.get(url)
+                except Exception as e:
+                    self.logger.warning(f"{country} page {page} failed: {e}")
+                    break
 
-    return session
+                soup = BeautifulSoup(resp.text, "lxml")
+                cards, matched_sel = select_first_nonempty(soup, CARD_SELECTOR_CANDIDATES)
 
+                parsed_this_page = 0
+                if cards:
+                    for card in cards:
+                        rec = self._parse_card(card, domain, country)
+                        if rec and rec["vacancy_url"] not in seen_urls:
+                            seen_urls.add(rec["vacancy_url"])
+                            records.append(rec)
+                            parsed_this_page += 1
+                else:
+                    for a, container in anchor_based_cards(soup, JOB_LINK_PATTERNS):
+                        rec = self._parse_anchor(a, container, domain, country)
+                        if rec and rec["vacancy_url"] not in seen_urls:
+                            seen_urls.add(rec["vacancy_url"])
+                            records.append(rec)
+                            parsed_this_page += 1
 
-def clean_text(text):
+                if parsed_this_page == 0:
+                    self.debug_dump(resp.text, tag=f"{country}_p{page}")
+                    self.logger.info(f"{country}: no more results at page {page}")
+                    break
 
-    if not text:
-        return ""
+                self.polite_sleep()
+        return records
 
-    return re.sub(
-        r"\s+",
-        " ",
-        text.replace("\xa0", " ")
-    ).strip()
+    def _parse_card(self, card, domain, country):
+        link_tag = card.select_one("a[href*='/listings/']") or card.find("a", href=True)
+        if not link_tag:
+            return None
+        return self._build(link_tag, card, domain, country)
 
+    def _parse_anchor(self, a, container, domain, country):
+        return self._build(a, container, domain, country)
 
-def normalize_url(url):
+    def _build(self, link_tag, card, domain, country):
+        href = link_tag.get("href")
+        if not href:
+            return None
+        vacancy_url = href if href.startswith("http") else domain + href
+        source_job_id = vacancy_url.rstrip("/").split("/")[-1]
 
-    parsed = urlparse(url)
+        title_tag = card.select_one("p.search-result__job-title") or card.find(["h3", "h2"])
+        company_tag = card.select_one("p.search-result__job-company") or card.select_one("[class*='company']")
+        location_tag = card.select_one("[class*='location']")
+        salary_tag = card.select_one("[class*='salary']")
+        summary_tag = card.select_one("p.search-result__job-summary") or card.select_one("p")
 
-    # Keep the query string because BrighterMonday
-    # uses ?page=2, ?page=3, etc. for pagination.
-    query = parsed.query
-
-    normalized = (
-        f"{parsed.scheme}://"
-        f"{parsed.netloc}"
-        f"{parsed.path}"
-    )
-
-    if query:
-        normalized += f"?{query}"
-
-    return normalized.rstrip("/")
-
-
-def generate_job_id(url):
-
-    return hashlib.sha256(
-        url.encode("utf-8")
-    ).hexdigest()[:16]
-
-
-def get_page(
-    session,
-    url
-):
-
-    time.sleep(
-        REQUEST_DELAY
-    )
-
-    response = session.get(
-        url,
-        timeout=30
-    )
-
-    response.raise_for_status()
-
-    return response.text
-
-
-def extract_job_links(html):
-
-    soup = BeautifulSoup(
-        html,
-        "html.parser"
-    )
-
-    links = set()
-
-    for a in soup.find_all(
-        "a",
-        href=True
-    ):
-
-        href = a["href"]
-
-        # BrighterMonday vacancy pages
-        # conventionally sit under /listings/
-        if "/listings/" not in href:
-            continue
-
-        full_url = normalize_url(
-            urljoin(
-                BASE_URL,
-                href
-            )
+        return build_record(
+            source=self.source_name,
+            source_job_id=source_job_id,
+            job_title=text_or_none(title_tag) or text_or_none(link_tag),
+            company=text_or_none(company_tag),
+            job_description=text_or_none(summary_tag),
+            location=text_or_none(location_tag),
+            country=country,
+            job_field="ICT & Computer",
+            salary=text_or_none(salary_tag),
+            vacancy_url=vacancy_url,
         )
 
-        links.add(
-            full_url
-        )
-
-    return sorted(
-        links
-    )
-
-
-def find_next_page(html, current_url):
-
-    soup = BeautifulSoup(
-        html,
-        "html.parser"
-    )
-
-    # --------------------------------------------------
-    # Primary method:
-    # BrighterMonday explicitly provides:
-    #
-    # aria-label="Go to next page"
-    # --------------------------------------------------
-
-    next_link = soup.find(
-        "a",
-        attrs={
-            "aria-label": re.compile(
-                r"^Go to next page$",
-                re.IGNORECASE
-            )
-        }
-    )
-
-    if next_link:
-
-        href = next_link.get("href")
-
-        if href:
-
-            next_url = urljoin(
-                current_url,
-                href
-            )
-
-            return normalize_url(
-                next_url
-            )
-
-    # --------------------------------------------------
-    # Fallback:
-    # Find the next numbered page
-    # --------------------------------------------------
-
-    current_page_match = re.search(
-        r"[?&]page=(\d+)",
-        current_url
-    )
-
-    if current_page_match:
-
-        current_page = int(
-            current_page_match.group(1)
-        )
-
-    else:
-
-        # No ?page= means we're on page 1
-        current_page = 1
-
-    next_page = current_page + 1
-
-    for a in soup.find_all(
-        "a",
-        href=True
-    ):
-
-        aria = clean_text(
-            a.get(
-                "aria-label",
-                ""
-            )
-        )
-
-        if re.fullmatch(
-            rf"Go to page {next_page}",
-            aria,
-            flags=re.IGNORECASE
-        ):
-
-            return normalize_url(
-                urljoin(
-                    current_url,
-                    a["href"]
-                )
-            )
-
-    return None
-
-
-def extract_description(
-    soup
-):
-
-    # Try article/main first
-    candidates = [
-        soup.find("main"),
-        soup.find("article"),
-    ]
-
-    for candidate in candidates:
-
-        if not candidate:
-            continue
-
-        text = clean_text(
-            candidate.get_text(
-                " ",
-                strip=True
-            )
-        )
-
-        if len(text) > 200:
-
-            return text[:12000]
-
-    return ""
-
-
-def classify_category(
-    title
-):
-
-    text = title.lower()
-
-    if any(
-        x in text
-        for x in [
-            "data scientist",
-            "data analyst",
-            "data engineer",
-            "machine learning",
-            "artificial intelligence",
-            "ai ",
-        ]
-    ):
-        return "Data & AI"
-
-    if any(
-        x in text
-        for x in [
-            "cybersecurity",
-            "cyber security",
-            "security analyst",
-            "security engineer",
-        ]
-    ):
-        return "Cybersecurity"
-
-    if any(
-        x in text
-        for x in [
-            "network engineer",
-            "network administrator",
-            "network technician",
-        ]
-    ):
-        return "Networking"
-
-    if any(
-        x in text
-        for x in [
-            "cloud",
-            "devops",
-        ]
-    ):
-        return "Cloud & DevOps"
-
-    if any(
-        x in text
-        for x in [
-            "qa",
-            "quality assurance",
-            "tester",
-        ]
-    ):
-        return "QA & Testing"
-
-    if any(
-        x in text
-        for x in [
-            "product manager",
-            "product owner",
-            "ux",
-            "ui",
-        ]
-    ):
-        return "Product & UX"
-
-    return "Software & IT"
-
-
-def detect_work_mode(
-    location,
-    text
-):
-
-    combined = clean_text(
-        f"{location} {text}"
-    ).lower()
-
-    if "remote" in combined:
-        return "Remote", 1, "Kenya"
-
-    if "hybrid" in combined:
-        return "Hybrid", 1, "Kenya"
-
-    return "On-site", 0, ""
-
-
-def parse_job_page(
-    html,
-    url
-):
-
-    soup = BeautifulSoup(
-        html,
-        "html.parser"
-    )
-
-    h1 = soup.find(
-        "h1"
-    )
-
-    title = (
-        clean_text(
-            h1.get_text(
-                " ",
-                strip=True
-            )
-        )
-        if h1
-        else ""
-    )
-
-    description = extract_description(
-        soup
-    )
-
-    body_text = clean_text(
-        soup.get_text(
-            " ",
-            strip=True
-        )
-    )
-
-    company = ""
-
-    # Common company markers
-    company_match = re.search(
-        r"Company\s*:?\s*(.{2,100}?)"
-        r"(?=\s+(?:Location|Work Type|"
-        r"Job Function|Experience|Salary)\b|$)",
-        body_text,
-        flags=re.IGNORECASE
-    )
-
-    if company_match:
-
-        company = clean_text(
-            company_match.group(1)
-        )
-
-    location = ""
-
-    location_match = re.search(
-        r"Location\s*:?\s*(.{2,100}?)"
-        r"(?=\s+(?:Work Type|Job Function|"
-        r"Experience Level|Salary|Company)\b|$)",
-        body_text,
-        flags=re.IGNORECASE
-    )
-
-    if location_match:
-
-        location = clean_text(
-            location_match.group(1)
-        )
-
-    work_mode, remote, remote_scope = (
-        detect_work_mode(
-            location,
-            description
-        )
-    )
-
-    work_type = ""
-
-    work_match = re.search(
-        r"Work Type\s*:?\s*(.{2,100}?)"
-        r"(?=\s+(?:Experience Level|"
-        r"Salary|Location|Job Function)\b|$)",
-        body_text,
-        flags=re.IGNORECASE
-    )
-
-    if work_match:
-        work_type = clean_text(
-            work_match.group(1)
-        )
-
-    experience = ""
-
-    experience_match = re.search(
-        r"Experience Level\s*:?\s*(.{2,100}?)"
-        r"(?=\s+(?:Work Type|Salary|"
-        r"Location|Job Function)\b|$)",
-        body_text,
-        flags=re.IGNORECASE
-    )
-
-    if experience_match:
-        experience = clean_text(
-            experience_match.group(1)
-        )
-
-    salary = ""
-
-    salary_match = re.search(
-        r"Salary\s*:?\s*(.{2,100}?)"
-        r"(?=\s+(?:Location|Work Type|"
-        r"Experience|Job Function)\b|$)",
-        body_text,
-        flags=re.IGNORECASE
-    )
-
-    if salary_match:
-        salary = clean_text(
-            salary_match.group(1)
-        )
-
-    return {
-        "job_id": generate_job_id(
-            url
-        ),
-        "source": "BrighterMonday",
-        "source_job_id": generate_job_id(url),
-        "job_title": title,
-        "company": company,
-        "job_description": description,
-        "location": location,
-        "country": "Kenya",
-        "work_mode": work_mode,
-        "remote_eligible": remote,
-        "remote_scope": remote_scope,
-        "job_field": "Software & Data",
-        "industry": "",
-        "employment_type": work_type,
-        "experience_required": experience,
-        "education_required": "",
-        "salary": salary,
-        "currency": "KES" if "KSh" in salary or "KES" in salary else "",
-        "date_posted": "",
-        "application_deadline": "",
-        "tech_category": classify_category(
-            title
-        ),
-        "vacancy_url": url,
-        "scraped_at": datetime.now(
-            timezone.utc
-        ).isoformat(),
-        "_is_tech_candidate": 1,
-    }
-
-
-def collect(max_pages=50):
-
-    session = create_session()
-
-    urls = set()
-
-    for start_url in START_URLS:
-
-        current_url = start_url
-
-        for page_no in range(
-            1,
-            max_pages + 1
-        ):
-
-            print(
-                f"BrighterMonday listing "
-                f"page {page_no}"
-            )
-
-            print(
-                f"  URL: {current_url}"
-            )
-
-            try:
-
-                html = get_page(
-                    session,
-                    current_url
-                )
-
-            except Exception as e:
-
-                print(
-                    f"Failed listing: {e}"
-                )
-
-                break
-
-            links = extract_job_links(
-                html
-            )
-
-            print(
-                f"  Found {len(links)} links"
-            )
-
-            before = len(urls)
-
-            urls.update(
-                links
-            )
-
-            print(
-                f"  New: {len(urls) - before}"
-            )
-
-            next_url = find_next_page(
-                html,
-                current_url
-            )
-
-            if not next_url:
-
-                print(
-                    "  No next page found."
-                )
-
-                break
-            print(
-                f"  Next page: {next_url}"
-            )
-
-            if next_url == current_url:
-
-                print(
-                    "  Next page is same as "
-                    "current page. Stopping."
-                )
-
-                break
-
-            current_url = next_url
-
-    print(
-        f"BrighterMonday vacancy URLs: "
-        f"{len(urls)}"
-    )
-
-    records = []
-
-    for i, url in enumerate(
-        sorted(urls),
-        start=1
-    ):
-
-        print(
-            f"BrighterMonday "
-            f"[{i}/{len(urls)}]"
-        )
-
+    def enrich_with_description(self, record):
+        """Optional second pass: visit vacancy_url to pull the full job
+        description + deadline + experience for a smaller, curated
+        subset if you don't want to hit every detail page."""
         try:
-
-            html = get_page(
-                session,
-                url
-            )
-
-            record = parse_job_page(
-                html,
-                url
-            )
-
-            if record["_is_tech_candidate"]:
-
-                records.append(
-                    record
-                )
-
+            resp = self.get(record["vacancy_url"])
         except Exception as e:
+            self.logger.warning(f"Detail fetch failed for {record['vacancy_url']}: {e}")
+            return record
 
-            print(
-                f"Failed: {url}"
-            )
+        soup = BeautifulSoup(resp.text, "lxml")
+        desc = soup.select_one("div#job-description") or soup.select_one(".job-details")
+        deadline = soup.find(string=lambda s: s and "deadline" in s.lower())
+        exp = soup.find(string=lambda s: s and "experience" in s.lower())
 
-            print(
-                f"Reason: {e}"
-            )
+        if desc:
+            record["job_description"] = desc.get_text(" ", strip=True)
+        if deadline:
+            record["application_deadline"] = deadline.strip()
+        if exp:
+            record["experience_required"] = exp.strip()
+        return record
 
-    print(
-        f"BrighterMonday tech records: "
-        f"{len(records)}"
-    )
 
-    return pd.DataFrame(
-        records
-    )
+if __name__ == "__main__":
+    scraper = BrighterMondayScraper()
+    scraper.run_and_save("output/brightermonday.csv", max_pages=5)
