@@ -8,9 +8,9 @@ is a global board.
 """
 from bs4 import BeautifulSoup
 
-from scrapers.base_scraper import BaseScraper
-from utils.helpers import build_record, guess_country
-from config import AFRICAN_COUNTRIES
+from src.collectors.base_scraper import BaseScraper
+from src.utils.helpers import build_record, guess_country
+from src.scraping_config import AFRICAN_COUNTRIES
 
 FEEDS = {
     "Programming": "https://weworkremotely.com/categories/remote-programming-jobs.rss",

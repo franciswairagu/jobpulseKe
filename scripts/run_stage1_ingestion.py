@@ -2,17 +2,20 @@
 """
 JobPulse - African Tech Job Market Intelligence Platform
 Stage 1 Entry Point
+
+Run from anywhere with:
+    python scripts/run_stage1_ingestion.py
 """
 import sys
 from pathlib import Path
-import json
-from datetime import datetime
 
-# Add src to path
-sys.path.insert(0, str(Path(__file__).parent / "src"))
+# Project root (two levels up: scripts/ -> project root) so `src.*`
+# absolute imports resolve regardless of the current working directory.
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(PROJECT_ROOT))
 
-from config import REPORTS_DIR, PROCESSED_DATA_DIR
-from ingestion import run_stage_1_ingestion
+from src.config import PROCESSED_DATA_DIR
+from src.ingestion import run_stage_1_ingestion
 
 # Source CSV: the merged master dataset produced by the jobpulseKe project
 # (africa_tech_jobs_scraper's live-scraped sources + jobpulseKe's
@@ -22,14 +25,14 @@ from ingestion import run_stage_1_ingestion
 # checkout being present on disk at run time -- re-copy it there whenever
 # jobpulseKe produces a fresh master.
 JOBPULSEKE_MASTER_CSV = (
-    Path(__file__).parent / "data" / "external" / "jobpulseke_master_africa_tech_jobs.csv"
+    PROJECT_ROOT / "data" / "external" / "jobpulseke_master_africa_tech_jobs.csv"
 )
 
 # Stage 2 needs to know which Parquet file this run just produced.
 # run_stage_1_ingestion() doesn't return that path directly (only a
 # summary dict), so we snapshot the directory before/after and record
-# the result here for run_stage2.py to pick up automatically instead of
-# a hardcoded filename.
+# the result here for run_stage2_cleaning.py to pick up automatically
+# instead of a hardcoded filename.
 LAST_RUN_MARKER = PROCESSED_DATA_DIR / ".last_stage1_output"
 
 
@@ -63,23 +66,8 @@ def main():
         )
     LAST_RUN_MARKER.write_text(str(parquet_path))
     print(f"✓ Ingested Parquet: {parquet_path}")
+    print(f"  Records ingested: {summary['total_records_ingested']:,}")
 
-    # Save report
-    REPORTS_DIR.mkdir(parents=True, exist_ok=True)
-    report_path = REPORTS_DIR / f"stage1_ingestion_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
-
-    with open(report_path, 'w') as f:
-        # Convert non-serializable types
-        report_data = {
-            "timestamp": datetime.now().isoformat(),
-            "stage": "Stage 1: Data Ingestion",
-            "source_csv": str(JOBPULSEKE_MASTER_CSV),
-            "output_parquet": str(parquet_path),
-            "summary": summary,
-        }
-        json.dump(report_data, f, indent=2, default=str)
-
-    print(f"\n✓ Report saved to: {report_path}")
     return df
 
 

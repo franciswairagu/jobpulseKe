@@ -6,7 +6,6 @@ Combines skill extraction and metadata extraction into unified pipeline.
 """
 
 import logging
-import json
 from pathlib import Path
 from datetime import datetime
 from typing import Dict, List, Any, Optional
@@ -125,18 +124,17 @@ class NLPPipeline:
         if employment_type:
             self.employment_type_distribution[employment_type] += 1
     
-    def run_pipeline(self, input_parquet: Path, output_parquet: Path,
-                    report_path: Path) -> Dict[str, Any]:
+    def run_pipeline(self, input_parquet: Path, output_parquet: Path) -> Dict[str, Any]:
         """
         Execute full NLP pipeline on parquet dataset.
         
         Args:
             input_parquet: Path to cleaned dataset
             output_parquet: Path to save enriched dataset
-            report_path: Path to save extraction report
         
         Returns:
-            Pipeline execution report
+            In-memory summary of the pipeline run (skills extracted,
+            distributions, etc.) — not written to disk.
         """
         logger.info("\n" + "="*80)
         logger.info("STAGE 3: NLP PIPELINE & SKILL EXTRACTION")
@@ -169,15 +167,15 @@ class NLPPipeline:
         aggregations = self._generate_aggregations()
         logger.info(f"✓ Generated aggregation tables")
         
-        logger.info("\n[STEP 4/4] Saving enriched dataset and report...")
+        logger.info("\n[STEP 4/4] Saving enriched dataset...")
         
         # Convert to DataFrame and save
         enriched_df = pd.DataFrame(enriched_records)
         enriched_df.to_parquet(output_parquet)
         logger.info(f"✓ Saved enriched dataset: {output_parquet}")
         
-        # Generate and save report
-        report = {
+        # In-memory run summary (returned to the caller, not written to disk)
+        summary = {
             'stage': 'Stage 3: NLP Pipeline & Skill Extraction',
             'timestamp': datetime.now().isoformat(),
             'input': {
@@ -225,20 +223,15 @@ class NLPPipeline:
             },
         }
         
-        with open(report_path, 'w') as f:
-            json.dump(report, f, indent=2, default=str)
-        
-        logger.info(f"✓ Saved report: {report_path}")
-        
         logger.info("\n" + "="*80)
         logger.info("STAGE 3 COMPLETE")
         logger.info(f"  Input Records: {input_count:,}")
         logger.info(f"  Output Records: {len(enriched_records):,}")
-        logger.info(f"  Skills Extracted: {report['skills']['total_unique_skills']}")
-        logger.info(f"  Skill Categories: {len(report['skills']['categories'])}")
+        logger.info(f"  Skills Extracted: {summary['skills']['total_unique_skills']}")
+        logger.info(f"  Skill Categories: {len(summary['skills']['categories'])}")
         logger.info("="*80 + "\n")
         
-        return report
+        return summary
     
     def _generate_aggregations(self) -> Dict[str, Any]:
         """Generate aggregation tables for BI consumption"""
@@ -254,7 +247,6 @@ class NLPPipeline:
 def run_stage_3_nlp_extraction(
     input_parquet: Path,
     output_parquet: Path,
-    report_path: Path,
     batch_size: int = 1000
 ) -> Dict[str, Any]:
     """
@@ -263,4 +255,4 @@ def run_stage_3_nlp_extraction(
     Entry point for stage execution.
     """
     pipeline = NLPPipeline(batch_size=batch_size)
-    return pipeline.run_pipeline(input_parquet, output_parquet, report_path)
+    return pipeline.run_pipeline(input_parquet, output_parquet)

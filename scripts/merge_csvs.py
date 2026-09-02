@@ -6,13 +6,13 @@ without re-running any scraper or dataset scan.
 
 Usage:
     # Merge two specific files, write back to master:
-    python merge_csvs.py output/master_africa_tech_jobs.csv output/fantastic_jobs_hf.csv
+    python scripts/merge_csvs.py output/master_africa_tech_jobs.csv output/fantastic_jobs_hf.csv
 
     # Merge EVERY csv currently in output/ (handy after a full run):
-    python merge_csvs.py --all
+    python scripts/merge_csvs.py --all
 
     # Write somewhere other than the default master path:
-    python merge_csvs.py output/a.csv output/b.csv --out output/combined.csv
+    python scripts/merge_csvs.py output/a.csv output/b.csv --out output/combined.csv
 
 Dedup is on `job_id` (same key every scraper/dataset script already
 produces), so re-merging the same file twice is always safe — it just
@@ -21,10 +21,13 @@ won't add duplicates.
 import argparse
 import glob
 import os
+import sys
+from pathlib import Path
 
 import pandas as pd
 
-from config import SCHEMA_COLUMNS, OUTPUT_DIR
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from src.scraping_config import SCHEMA_COLUMNS, OUTPUT_DIR
 
 DEFAULT_MASTER = os.path.join(OUTPUT_DIR, "master_africa_tech_jobs.csv")
 

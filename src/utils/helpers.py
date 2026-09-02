@@ -8,7 +8,7 @@ import hashlib
 import re
 from datetime import datetime, timezone
 
-from config import (
+from src.scraping_config import (
     SCHEMA_COLUMNS, AFRICAN_COUNTRIES, TECH_KEYWORDS, TECH_CATEGORY_MAP,
 )
 
