@@ -1,38 +1,58 @@
+"""
+NOTE — this module currently cannot run, and that predates this
+reorganization:
+
+1. `collectors.myjobmag_historical`, `collectors.fuzu_historical`,
+   `collectors.brightermonday_historical`, and `collectors.remotive`
+   don't exist as source files anywhere in this project (only stale
+   compiled .pyc remnants were found), so those imports fail.
+2. Even for the collectors that do exist, this file expects a
+   module-level `collect(...)` function (`collect as collect_myjobmag`,
+   etc.), but the current `src/collectors/*.py` modules only expose
+   class-based scrapers (e.g. `MyJobMagScraper`), not a `collect()`
+   function. The two were never reconciled after the collectors were
+   rewritten.
+
+The import paths below have been updated to point at their real
+location (`src.collectors`) for consistency, but the module will still
+raise ImportError until the missing historical/remotive collectors are
+restored and the interface mismatch above is resolved. The scraper
+suite in `scripts/run_scrapers.py` (backed by `src/collectors/*Scraper`
+classes) is the functional path for collecting fresh data today.
+"""
 import os
 import re
 import hashlib
 import pandas as pd
 
-from collectors.myjobmag import collect as collect_myjobmag
-from collectors.myjobmag_historical import (
+from src.collectors.myjobmag import collect as collect_myjobmag
+from src.collectors.myjobmag_historical import (
     collect as collect_myjobmag_historical
 )
 
-from collectors.fuzu import collect as collect_fuzu
-from collectors.fuzu_historical import (
+from src.collectors.fuzu import collect as collect_fuzu
+from src.collectors.fuzu_historical import (
     collect as collect_fuzu_historical
 )
 
-from collectors.brightermonday import (
+from src.collectors.brightermonday import (
     collect as collect_brightermonday
 )
 
-from collectors.brightermonday_historical import (
+from src.collectors.brightermonday_historical import (
     collect_historical_jobs as collect_brightermonday_historical
 )
 
-from collectors.jobicy import (
+from src.collectors.jobicy import (
     collect as collect_jobicy
 )
 
-from collectors.remotive import (
+from src.collectors.remotive import (
     collect as collect_remotive
 )
 
 
-# ============================================================
 # CONFIGURATION
-# ============================================================
 
 RAW_DIR = "data/raw"
 PROCESSED_DIR = "data/processed"
@@ -69,9 +89,7 @@ STANDARD_COLUMNS = [
 ]
 
 
-# ============================================================
 # TEXT CLEANING
-# ============================================================
 
 def clean_text(value):
 
@@ -148,9 +166,7 @@ def normalize_location(location):
     return location.strip()
 
 
-# ============================================================
 # DUPLICATE FINGERPRINT
-# ============================================================
 
 def create_fingerprint(row):
 
@@ -182,9 +198,7 @@ def create_fingerprint(row):
     ).hexdigest()[:20]
 
 
-# ============================================================
 # NORMALIZE DATAFRAME
-# ============================================================
 
 def normalize_dataframe(df):
 
@@ -196,9 +210,7 @@ def normalize_dataframe(df):
 
     df = df.copy()
 
-    # --------------------------------------------------------
     # Remove internal columns
-    # --------------------------------------------------------
 
     internal_columns = [
         column
@@ -212,9 +224,7 @@ def normalize_dataframe(df):
             columns=internal_columns
         )
 
-    # --------------------------------------------------------
     # Ensure schema
-    # --------------------------------------------------------
 
     for column in STANDARD_COLUMNS:
 
@@ -222,17 +232,13 @@ def normalize_dataframe(df):
 
             df[column] = ""
 
-    # --------------------------------------------------------
     # Keep standard schema
-    # --------------------------------------------------------
 
     df = df[
         STANDARD_COLUMNS
     ].copy()
 
-    # --------------------------------------------------------
     # Clean text fields
-    # --------------------------------------------------------
 
     text_columns = [
         "job_title",
@@ -269,9 +275,7 @@ def normalize_dataframe(df):
                 .map(clean_text)
             )
 
-    # --------------------------------------------------------
     # Remote flag
-    # --------------------------------------------------------
 
     df["remote_eligible"] = (
         pd.to_numeric(
@@ -282,17 +286,13 @@ def normalize_dataframe(df):
         .astype(int)
     )
 
-    # --------------------------------------------------------
     # Remove empty titles
-    # --------------------------------------------------------
 
     df = df[
         df["job_title"].str.len() > 2
     ]
 
-    # --------------------------------------------------------
     # Remove duplicate URLs
-    # --------------------------------------------------------
 
     df = df.drop_duplicates(
         subset=[
@@ -301,9 +301,7 @@ def normalize_dataframe(df):
         keep="first"
     )
 
-    # --------------------------------------------------------
     # Cross-source fingerprint
-    # --------------------------------------------------------
 
     df["_fingerprint"] = df.apply(
         create_fingerprint,
@@ -328,9 +326,7 @@ def normalize_dataframe(df):
     )
 
 
-# ============================================================
 # SAVE RAW SOURCE
-# ============================================================
 
 def save_raw(
     df,
@@ -360,9 +356,7 @@ def save_raw(
     )
 
 
-# ============================================================
 # LOAD EXISTING MASTER
-# ============================================================
 
 def load_existing_master():
 
@@ -396,9 +390,7 @@ def load_existing_master():
     return df
 
 
-# ============================================================
 # COLLECTOR RUNNER
-# ============================================================
 
 def run_collector(
     name,
@@ -450,9 +442,7 @@ def run_collector(
         return pd.DataFrame()
 
 
-# ============================================================
 # MAIN
-# ============================================================
 
 def main():
 
@@ -473,9 +463,7 @@ def main():
     )
     print("=" * 75)
 
-    # ========================================================
     # LOAD EXISTING MASTER
-    # ========================================================
 
     existing_master = (
         load_existing_master()
@@ -489,9 +477,7 @@ def main():
             existing_master
         )
 
-    # ========================================================
     # 1. MYJOBMAG CURRENT
-    # ========================================================
 
     myjobmag_df = run_collector(
         "MyJobMag Current",
@@ -503,9 +489,7 @@ def main():
         myjobmag_df
     )
 
-    # ========================================================
     # 2. MYJOBMAG HISTORICAL
-    # ========================================================
 
     myjobmag_historical_df = (
         run_collector(
@@ -519,9 +503,7 @@ def main():
         myjobmag_historical_df
     )
 
-    # ========================================================
     # 3. FUZU CURRENT
-    # ========================================================
 
     fuzu_df = run_collector(
         "Fuzu Current",
@@ -533,9 +515,7 @@ def main():
         fuzu_df
     )
 
-    # ========================================================
     # 4. FUZU HISTORICAL
-    # ========================================================
 
     fuzu_historical_df = (
         run_collector(
@@ -549,9 +529,7 @@ def main():
         fuzu_historical_df
     )
 
-    # ========================================================
     # 5. BRIGHTERMONDAY CURRENT
-    # ========================================================
 
     brightermonday_df = (
         run_collector(
@@ -566,9 +544,7 @@ def main():
         brightermonday_df
     )
 
-    # ========================================================
     # 6. BRIGHTERMONDAY HISTORICAL
-    # ========================================================
 
     brightermonday_historical_df = (
         run_collector(
@@ -582,9 +558,7 @@ def main():
         brightermonday_historical_df
     )
 
-    # ========================================================
     # 7. JOBICY
-    # ========================================================
 
     jobicy_df = run_collector(
         "Jobicy",
@@ -597,9 +571,7 @@ def main():
         jobicy_df
     )
 
-    # ========================================================
     # 8. REMOTIVE
-    # ========================================================
 
     remotive_df = run_collector(
         "Remotive",
@@ -612,9 +584,7 @@ def main():
         remotive_df
     )
 
-    # ========================================================
     # REMOVE EMPTY DATAFRAMES
-    # ========================================================
 
     frames = [
         df
@@ -632,9 +602,7 @@ def main():
 
         return
 
-    # ========================================================
     # COMBINE EVERYTHING
-    # ========================================================
 
     print()
     print("=" * 75)
@@ -653,9 +621,7 @@ def main():
         f"deduplication: {len(combined)}"
     )
 
-    # ========================================================
     # NORMALIZE
-    # ========================================================
 
     final_df = normalize_dataframe(
         combined
@@ -666,18 +632,14 @@ def main():
         f"{len(final_df)}"
     )
 
-    # ========================================================
     # SAVE MASTER
-    # ========================================================
 
     final_df.to_csv(
         MASTER_FILE,
         index=False
     )
 
-    # ========================================================
     # REPORT
-    # ========================================================
 
     print()
     print("=" * 75)
