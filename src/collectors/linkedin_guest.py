@@ -24,8 +24,8 @@ import time
 
 from bs4 import BeautifulSoup
 
-from scrapers.base_scraper import BaseScraper
-from utils.helpers import build_record
+from src.collectors.base_scraper import BaseScraper
+from src.utils.helpers import build_record
 
 GUEST_API = "https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search"
 

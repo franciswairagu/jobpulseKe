@@ -11,10 +11,10 @@ ignores/changes that param).
 """
 from bs4 import BeautifulSoup
 
-from scrapers.base_scraper import BaseScraper
-from utils.helpers import build_record
-from utils.parsing import select_first_nonempty, anchor_based_cards, text_or_none
-from config import BROAD_TECH_SEARCH_TERMS
+from src.collectors.base_scraper import BaseScraper
+from src.utils.helpers import build_record
+from src.utils.parsing import select_first_nonempty, anchor_based_cards, text_or_none
+from src.scraping_config import BROAD_TECH_SEARCH_TERMS
 
 COUNTRY_DOMAINS = {
     "Nigeria": "https://www.jobberman.com",

@@ -27,7 +27,7 @@ class Stage4Orchestrator:
         pass
     
     def run_pipeline(self, input_parquet: Path, output_features_parquet: Path,
-                    output_analytics_dir: Path, report_path: Path) -> Dict[str, Any]:
+                    output_analytics_dir: Path) -> Dict[str, Any]:
         """
         Execute full Stage 4 pipeline.
         
@@ -35,10 +35,9 @@ class Stage4Orchestrator:
             input_parquet: NLP-enriched dataset from Stage 3
             output_features_parquet: Output path for feature-engineered dataset
             output_analytics_dir: Directory for aggregation exports
-            report_path: Path to save comprehensive report
         
         Returns:
-            Execution report
+            In-memory summary of the pipeline run — not written to disk.
         """
         logger.info("\n" + "="*80)
         logger.info("STAGE 4: FEATURE ENGINEERING & ANALYTICS AGGREGATIONS")
@@ -92,19 +91,15 @@ class Stage4Orchestrator:
             output_analytics_dir / 'salary_by_segment.csv'
         )
         
-        logger.info("\n[STEP 5/5] Generating comprehensive report...")
+        logger.info("\n[STEP 5/5] Generating run summary...")
         
-        # Generate report
-        report = self._generate_report(
+        # In-memory run summary (returned to the caller, not written to disk)
+        summary = self._generate_report(
             input_count,
             len(df),
             df,
             aggregations
         )
-        
-        with open(report_path, 'w') as f:
-            json.dump(report, f, indent=2, default=str)
-        logger.info(f"✓ Saved report: {report_path}")
         
         logger.info("\n" + "="*80)
         logger.info("STAGE 4 COMPLETE")
@@ -114,7 +109,7 @@ class Stage4Orchestrator:
         logger.info(f"  Aggregation Tables: {len(aggregation_outputs)}")
         logger.info("="*80 + "\n")
         
-        return report
+        return summary
     
     def _export_skill_region_csv(self, matrix: Dict, output_path: Path):
         """Export skill×region matrix as CSV"""
@@ -241,7 +236,6 @@ def run_stage_4_analytics(
     input_parquet: Path,
     output_features_parquet: Path,
     output_analytics_dir: Path,
-    report_path: Path
 ) -> Dict[str, Any]:
     """
     Execute Stage 4 pipeline.
@@ -253,5 +247,4 @@ def run_stage_4_analytics(
         input_parquet,
         output_features_parquet,
         output_analytics_dir,
-        report_path
     )

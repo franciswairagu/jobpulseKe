@@ -25,10 +25,10 @@ import re
 
 from bs4 import BeautifulSoup
 
-from scrapers.base_scraper import BaseScraper
-from utils.helpers import build_record
-from utils.parsing import anchor_based_cards, text_or_none
-from config import BROAD_TECH_SEARCH_TERMS
+from src.collectors.base_scraper import BaseScraper
+from src.utils.helpers import build_record
+from src.utils.parsing import anchor_based_cards, text_or_none
+from src.scraping_config import BROAD_TECH_SEARCH_TERMS
 
 # country_code: display name — subdomain is {code}.talent.com
 COUNTRY_CODES = {

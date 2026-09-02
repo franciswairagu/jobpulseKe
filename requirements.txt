@@ -25,6 +25,11 @@ pydantic>=2.0.0
 streamlit>=1.28.0
 requests>=2.31.0
 
+# Scraping (src/collectors)
+beautifulsoup4>=4.12.0
+tenacity>=8.2.0
+cloudscraper>=1.2.71  # optional, used by base_scraper if installed
+
 # Data Quality & Validation
 great-expectations>=0.17.0
 fuzzywuzzy>=0.18.0

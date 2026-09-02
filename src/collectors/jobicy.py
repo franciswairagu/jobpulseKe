@@ -9,9 +9,9 @@ params, but exact accepted `geo` values aren't guaranteed stable, so we
 fetch broadly and filter client-side against location/description text
 — safer than trusting an undocumented filter value.
 """
-from utils.helpers import build_record, guess_country, is_tech_job
-from scrapers.base_scraper import BaseScraper
-from config import AFRICAN_COUNTRIES
+from src.utils.helpers import build_record, guess_country, is_tech_job
+from src.collectors.base_scraper import BaseScraper
+from src.scraping_config import AFRICAN_COUNTRIES
 
 API_URL = "https://jobicy.com/api/v2/remote-jobs"
 OPEN_TO_ALL_MARKERS = ["anywhere", "worldwide", "global", "any location"]
