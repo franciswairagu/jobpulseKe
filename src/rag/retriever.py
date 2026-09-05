@@ -22,7 +22,7 @@ from typing import Optional
 
 import pandas as pd
 
-from src.config import RAG_DATA_DIR
+from src.config import NLP_DATA_DIR, RAG_DATA_DIR
 from src.rag.vector_store import JobVectorStore
 from src.rag.validation import QueryValidationError
 from src.nlp.nlpv2 import latest_nlp_output

@@ -180,6 +180,7 @@ def enrich_record(row: Dict[str, Any], skill_extractor, metadata_extractor) -> D
 def run_nlp_extraction_v2(
     input_parquet: Optional[Path] = None,
     output_dir: Path = NLP_DATA_DIR,
+    batch_size: int = 1000,
 ) -> "tuple[pd.DataFrame, Dict[str, Any]]":
     """Execute the full Stage 3 (v2) NLP enrichment pipeline.
 
@@ -204,9 +205,10 @@ def run_nlp_extraction_v2(
     skill_extractor = get_extractor()
     metadata_extractor = get_metadata_extractor()
 
+    if batch_size < 1:
+        raise ValueError("batch_size must be at least 1")
     records = df.to_dict(orient="records")
     enriched_records = []
-    batch_size = 1000
     for i in range(0, input_count, batch_size):
         batch = records[i:i + batch_size]
         for row in batch:
