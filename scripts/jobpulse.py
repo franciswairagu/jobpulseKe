@@ -38,6 +38,11 @@ def main() -> int:
     recommend.add_argument("--top-k", type=int, default=10)
     recommend.add_argument("--name", default="")
 
+    ask = subcommands.add_parser("ask", help="Ask the grounded JobPulse RAG assistant.")
+    ask.add_argument("question")
+    ask.add_argument("--top-k", type=int, default=5)
+    ask.add_argument("--json", action="store_true")
+
     args = parser.parse_args()
     if args.command == "refresh":
         command_args = ["--max-pages", str(args.max_pages), "--nlp-batch-size", str(args.nlp_batch_size)]
@@ -49,6 +54,11 @@ def main() -> int:
         if args.sources:
             command_args.extend(["--sources", *args.sources])
         return _run("scripts/run_scheduled_scrape.py", command_args)
+    if args.command == "ask":
+        command_args = [args.question, "--top-k", str(args.top_k)]
+        if args.json:
+            command_args.append("--json")
+        return _run("scripts/ask_jobpulse.py", command_args)
 
     command_args = ["--cv", args.cv, "--jobs", args.jobs, "--top-k", str(args.top_k)]
     if args.name:

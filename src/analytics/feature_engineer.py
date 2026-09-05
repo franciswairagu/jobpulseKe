@@ -9,6 +9,7 @@ Transforms raw NLP-enriched data into ML-ready features:
 5. Normalizes categorical fields
 """
 
+import json
 import logging
 from typing import Dict, Optional, Tuple
 import pandas as pd
@@ -120,12 +121,21 @@ class FeatureEngineer:
         df['has_salary_data'] = df['salary_min_usd'].notna() & (df['salary_min_usd'] > 0)
         
         # 8. Skill richness score (number of unique skill categories present)
-        if 'skill_summary' in df.columns:
-            df['skill_richness'] = df['skill_summary'].apply(
-                lambda x: len(x) if isinstance(x, dict) else 0
-            )
-        else:
-            df['skill_richness'] = 0
+        if 'skill_summary' not in df.columns:
+            if 'skills_json' in df.columns:
+                df['skill_summary'] = df['skills_json'].apply(self._parse_skill_summary)
+            else:
+                df['skill_summary'] = pd.Series([{}] * len(df), index=df.index)
+
+        if 'extracted_skills' not in df.columns:
+            if 'skills_json' in df.columns:
+                df['extracted_skills'] = df['skills_json'].apply(self._parse_extracted_skills)
+            else:
+                df['extracted_skills'] = pd.Series([{}] * len(df), index=df.index)
+
+        df['skill_richness'] = df['skill_summary'].apply(
+            lambda x: len(x) if isinstance(x, dict) else 0
+        )
         
         # 9. Requires certification flag
         if 'certifications' in df.columns:
@@ -139,7 +149,35 @@ class FeatureEngineer:
         
         return df
     
-    def _convert_salary_to_usd(self, salary: Optional[float], 
+    @staticmethod
+    def _parse_skill_summary(skills_json) -> Dict[str, int]:
+        """Derive skill_summary {category: count} from skills_json string."""
+        if not isinstance(skills_json, str) or not skills_json or skills_json == '{}':
+            return {}
+        try:
+            parsed = json.loads(skills_json)
+            if isinstance(parsed, dict):
+                return {cat: len(skills) if isinstance(skills, list) else 0
+                        for cat, skills in parsed.items()}
+        except (json.JSONDecodeError, TypeError):
+            pass
+        return {}
+
+    @staticmethod
+    def _parse_extracted_skills(skills_json) -> Dict[str, list]:
+        """Derive extracted_skills {category: [skills]} from skills_json string."""
+        if not isinstance(skills_json, str) or not skills_json or skills_json == '{}':
+            return {}
+        try:
+            parsed = json.loads(skills_json)
+            if isinstance(parsed, dict):
+                return {cat: skills for cat, skills in parsed.items()
+                        if isinstance(skills, list)}
+        except (json.JSONDecodeError, TypeError):
+            pass
+        return {}
+
+    def _convert_salary_to_usd(self, salary: Optional[float],
                                currency: Optional[str]) -> Optional[float]:
         """Convert salary to USD equivalent"""
         if pd.isna(salary) or salary == 0:
