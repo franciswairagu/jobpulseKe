@@ -59,11 +59,11 @@ class MyJobMagScraper(BaseScraper):
                 parsed_this_page = 0
                 if cards:
                     for card in cards:
-                        rec = self._parse_card(card, domain, country)
-                        if rec and rec["vacancy_url"] not in seen_urls and self._is_relevant(rec):
-                            seen_urls.add(rec["vacancy_url"])
-                            records.append(rec)
-                            parsed_this_page += 1
+                        for rec in self._parse_card(card, domain, country):
+                            if rec["vacancy_url"] not in seen_urls and self._is_relevant(rec):
+                                seen_urls.add(rec["vacancy_url"])
+                                records.append(rec)
+                                parsed_this_page += 1
                 else:
                     for a, container in anchor_based_cards(soup, JOB_LINK_PATTERNS):
                         rec = self._parse_anchor(a, container, domain, country)
@@ -75,8 +75,8 @@ class MyJobMagScraper(BaseScraper):
                 if not cards and parsed_this_page == 0:
                     self.debug_dump(resp.text, tag=f"{country}_p{page}")
 
-                if parsed_this_page == 0 and page > 1:
-                    break  # ran out of pages for this country
+                if not cards and parsed_this_page == 0 and page > 1:
+                    break  # ran out of listing pages (not merely tech roles)
 
                 self.polite_sleep()
         return records
@@ -86,10 +86,13 @@ class MyJobMagScraper(BaseScraper):
         return is_tech_job([rec.get("job_title"), rec.get("job_description")])
 
     def _parse_card(self, card, domain, country):
-        link_tag = card.find("a", href=True)
-        if not link_tag:
-            return None
-        return self._build(link_tag["href"], text_or_none(link_tag), card, domain, country)
+        # The first anchor is normally an employer logo, not the vacancy.
+        # Some cards contain multiple child vacancies, all of which matter.
+        return [
+            self._build(link["href"], text_or_none(link), card, domain, country)
+            for link in card.select("a[href*='/job/']")
+            if text_or_none(link)
+        ]
 
     def _parse_anchor(self, a, container, domain, country):
         return self._build(a.get("href"), text_or_none(a), container, domain, country)
@@ -101,6 +104,13 @@ class MyJobMagScraper(BaseScraper):
         source_job_id = vacancy_url.rstrip("/").split("/")[-1]
 
         company_tag = card.select_one(".job-list-comp, .company-name, [class*='company']")
+        company = text_or_none(company_tag)
+        if not company:
+            logo = card.select_one(".job-logo img[alt]")
+            company = logo.get("alt", "") if logo else None
+            if logo and "default-company-logo" in logo.get("src", ""):
+                company = None
+        description_tag = card.select_one(".job-desc")
         meta_tag = card.select_one(".job-list-meta, .job-meta, [class*='meta']")
 
         location, employment_type = None, None
@@ -116,7 +126,8 @@ class MyJobMagScraper(BaseScraper):
             source=self.source_name,
             source_job_id=source_job_id,
             job_title=title,
-            company=text_or_none(company_tag),
+            company=company,
+            job_description=text_or_none(description_tag),
             location=location,
             country=country,
             employment_type=employment_type,

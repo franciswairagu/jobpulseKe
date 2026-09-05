@@ -171,6 +171,13 @@ either `venv` or Conda.
    `cron/jobpulse-scrapers.cron.example`, then register it with `crontab`.
    See [Scheduled scraping (cron)](#scheduled-scraping-cron) below.
 
+6. Ask the RAG assistant a grounded question after the first refresh. The
+   refresh automatically rebuilds its index from the latest NLP-enriched jobs.
+
+   ```bash
+   python scripts/jobpulse.py ask "Which remote Python jobs are available in Kenya?"
+   ```
+
 Collect fresh data:
 ```bash
 python scripts/run_scrapers.py --list          # see available sources
