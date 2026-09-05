@@ -87,16 +87,89 @@ Site-specific scrapers under `src/collectors/`, orchestrated by `scripts/run_scr
 ### **STAGE 5–9 (planned)**
 ML classification, BI/visualization exports, the FastAPI + Streamlit full-stack app, a RAG-powered assistant, and Dockerized deployment. Scaffolding exists under `src/models/`, `src/api/`, `src/rag/` but these stages aren't implemented yet.
 
+### CV-driven job recommender
+
+The recommender turns an uploaded `.txt`, `.pdf`, or `.docx` CV into a normalised
+candidate skill profile, ranks current JobPulse records by required-skill coverage,
+and returns the most important skill gaps, learning resources, and mock-interview
+actions. Jobs with a deadline in the next seven days are flagged for application
+and interview preparation.
+
+```bash
+python scripts/recommend_from_cv.py \
+  --cv path/to/candidate.pdf \
+  --jobs data/external/jobpulseke_master_africa_tech_jobs.csv \
+  --top-k 10
+```
+
+Output is JSON so it can be consumed by Streamlit or another client. To expose the
+same workflow as an upload endpoint, run:
+
+```bash
+uvicorn src.api.recommender_api:app --reload
+```
+
+`POST /recommend` accepts a `cv` upload, `jobs_path`, and optional `top_k`. The
+uploaded CV is placed in a temporary file only for text extraction and is removed
+before the response is returned.
+
 ---
 
 ## 🚀 Quick Start
 
 ```bash
-cd jobpulseKe
+cd jobpulse
 python -m venv venv
 source venv/bin/activate  # or: venv\Scripts\activate (Windows)
 pip install -r requirements.txt
 ```
+
+### Run JobPulse step by step
+
+All common workflows are available through one command. It always uses the
+currently activated Python environment, which makes the instructions work with
+either `venv` or Conda.
+
+1. Create and activate an environment, then install dependencies.
+
+   ```bash
+   python -m venv .venv
+   source .venv/bin/activate  # Windows: .venv\Scripts\activate
+   python -m pip install --upgrade pip
+   python -m pip install -r requirements.txt
+   ```
+
+2. Confirm available actions.
+
+   ```bash
+   python scripts/jobpulse.py --help
+   ```
+
+3. Fetch current job listings and automatically run the complete pipeline:
+   ingestion, cleaning, NLP enrichment, feature engineering, and analytics.
+
+   ```bash
+   python scripts/jobpulse.py refresh --max-pages 5
+   ```
+
+   Start with one source while testing if desired:
+
+   ```bash
+   python scripts/jobpulse.py refresh --sources remoteok --max-pages 2
+   ```
+
+4. Generate CV-based job, skill-gap, course, and interview-prep recommendations.
+
+   ```bash
+   python scripts/jobpulse.py recommend \
+     --cv path/to/candidate.pdf \
+     --jobs output/master_africa_tech_jobs.csv \
+     --top-k 10
+   ```
+
+5. To automate the same full refresh every six hours, copy and configure
+   `cron/jobpulse-scrapers.cron.example`, then register it with `crontab`.
+   See [Scheduled scraping (cron)](#scheduled-scraping-cron) below.
 
 Collect fresh data:
 ```bash
@@ -105,6 +178,25 @@ python scripts/run_scrapers.py                 # run every scraper
 python scripts/merge_jobpulseke.py              # fold in the sister Kenya dataset
 python scripts/merge_public_datasets.py          # (optional) supplement with public datasets
 ```
+
+### Scheduled scraping (cron)
+
+Use the lock-protected wrapper for scheduled collection; it skips a run rather
+than allowing a second scrape to overlap an active one. Each successful scrape
+automatically runs Stage 1 ingestion, Stage 2 cleaning/deduplication, Stage 3
+NLP enrichment, and Stage 4 feature engineering plus analytics exports. It logs
+to `logs/scraper-schedule.log`.
+
+```bash
+python scripts/run_scheduled_scrape.py --max-pages 5
+```
+
+An every-six-hours Nairobi-time cron template is available at
+`cron/jobpulse-scrapers.cron.example`. Copy it, set `JOBPULSE_ROOT` and
+`JOBPULSE_PYTHON` to the target machine's absolute project and virtual-
+environment paths, then install it with `crontab <your-file>`. Cron does not
+load an interactive shell, so using the virtual environment's Python executable
+is required for reproducible dependencies.
 
 Run the pipeline on the merged dataset:
 ```bash

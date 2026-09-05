@@ -141,6 +141,15 @@ SKILL_TAXONOMY = {
     'databricks': 'data_platform',
     'delta lake': 'data_platform',
     'hive': 'data_platform',
+
+    # Analytics & visualisation
+    'tableau': 'analytics',
+    'power bi': 'analytics',
+    'excel': 'analytics',
+    'looker': 'analytics',
+    'looker studio': 'analytics',
+    'matplotlib': 'analytics',
+    'seaborn': 'analytics',
     
     # Frontend Technologies
     'html': 'frontend',
@@ -221,7 +230,7 @@ class SkillExtractor:
             # Escape special characters and create word boundary pattern
             escaped = re.escape(skill)
             patterns[skill] = re.compile(
-                rf'\b{escaped}\b',
+                rf'(?<![a-z0-9]){escaped}(?![a-z0-9])',
                 re.IGNORECASE
             )
         return patterns

@@ -1,4 +1,6 @@
-from typing import Set, Tuple
+from typing import Iterable, Set, Tuple
+
+from .skill_normalizer import SkillNormalizer
 
 class SkillMatcher:
     """
@@ -6,19 +8,15 @@ class SkillMatcher:
     the skills required by a job
     """
 
-    def __init__(self, required_skill_weight: float = 1.0):
+    def __init__(self, required_skill_weight: float = 1.0, normalizer: SkillNormalizer | None = None):
         self.required_skill_weight = required_skill_weight
+        self.normalizer = normalizer or SkillNormalizer()
 
-    @staticmethod
-    def normalize_skills(skills: Set[str]) -> Set[str]:
+    def normalize_skills(self, skills: Iterable[str] | None) -> Set[str]:
         """
         Normalize skill names for reliable comparison
         """
-        return {
-            skill.lower().strip()
-            for skill in skills
-            if skill and skill.strip()
-        }
+        return self.normalizer.normalize_many(skills)
 
     def find_matches(
             self,
