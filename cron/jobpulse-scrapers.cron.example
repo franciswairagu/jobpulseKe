@@ -1,0 +1,10 @@
+# JobPulse full-refresh schedule: every six hours in Nairobi time.
+# Copy this file, set these two values for the target machine, then install it
+# with: crontab /path/to/jobpulse-scrapers.cron
+CRON_TZ=Africa/Nairobi
+JOBPULSE_ROOT=/absolute/path/to/jobpulse
+JOBPULSE_PYTHON=/absolute/path/to/venv/bin/python
+
+# Scrape -> ingestion -> cleaning -> NLP -> analytics. Output is logged by the
+# wrapper to $JOBPULSE_ROOT/logs/scraper-schedule.log.
+0 */6 * * * cd "$JOBPULSE_ROOT" && "$JOBPULSE_PYTHON" scripts/run_scheduled_scrape.py --max-pages 5 --nlp-batch-size 1000
