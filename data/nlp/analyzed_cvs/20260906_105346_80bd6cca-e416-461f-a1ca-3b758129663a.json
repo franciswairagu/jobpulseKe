@@ -1,0 +1,27 @@
+{
+  "cv_id": "80bd6cca-e416-461f-a1ca-3b758129663a",
+  "analyzed_at": "2026-09-06T10:53:46.586020",
+  "source_filename": "john.txt",
+  "candidate_name": "John Smith",
+  "skills": [
+    "pandas",
+    "python",
+    "scikit-learn",
+    "sql",
+    "tensorflow"
+  ],
+  "years_experience": 0,
+  "education": [
+    "Associate Degree"
+  ],
+  "certifications": [],
+  "seniority_level": "Mid-Level",
+  "predicted_tech_category": "Data & AI",
+  "prediction_confidence": 0.3427170922701309,
+  "top_category_probabilities": {
+    "Data & AI": 0.3427170922701309,
+    "Software Development": 0.16462766831694894,
+    "Other Tech": 0.16381626163852694
+  },
+  "saved_path": null
+}

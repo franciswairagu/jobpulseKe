@@ -1,0 +1,35 @@
+{
+  "cv_id": "3952b51f-0d71-4ffa-8fdf-3205d0ece2e2",
+  "analyzed_at": "2026-09-06T10:53:03.709034",
+  "source_filename": "amina_otieno_cv.txt",
+  "candidate_name": "Amina Otieno",
+  "skills": [
+    "aws",
+    "django",
+    "docker",
+    "fastapi",
+    "kubernetes",
+    "postgresql",
+    "python",
+    "redis",
+    "rest",
+    "terraform"
+  ],
+  "years_experience": 4,
+  "education": [
+    "Associate Degree"
+  ],
+  "certifications": [
+    "Kubernetes Certification",
+    "AWS Certification"
+  ],
+  "seniority_level": "Mid-Level",
+  "predicted_tech_category": "Software Development",
+  "prediction_confidence": 0.33124959255574127,
+  "top_category_probabilities": {
+    "Software Development": 0.33124959255574127,
+    "DevOps & Cloud": 0.191291562232061,
+    "Other Tech": 0.12838709681565555
+  },
+  "saved_path": null
+}
