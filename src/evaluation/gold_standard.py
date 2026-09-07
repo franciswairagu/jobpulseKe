@@ -98,34 +98,98 @@ def _infer_gold_employment(title: str, description: str) -> Optional[str]:
     return None
 
 
+def _skill_appears_in_text(skill: str, text: str) -> bool:
+    """Check if a skill genuinely appears in text using word boundaries.
+
+    Uses the same boundary logic as the extractor to avoid false positives
+    from short skills matching inside unrelated words.
+    """
+    import re
+    text_lower = text.lower()
+    escaped = re.escape(skill)
+    if len(skill) <= 3:
+        pattern = re.compile(rf'\b{escaped}\b', re.IGNORECASE)
+    else:
+        pattern = re.compile(rf'(?<![a-z0-9]){escaped}(?![a-z0-9])', re.IGNORECASE)
+    return bool(pattern.search(text_lower))
+
+
+# Short skills that need additional context to count as real skill mentions.
+# Without context, a single letter like "r" or a word like "go" is more
+# likely common English than a skill reference.
+SHORT_SKILLS_NEEDING_CONTEXT = {"r", "go", "api", "rest", "git", "sql"}
+
+_CONTEXT_KEYWORDS = [
+    "using", "with", "knowledge", "experience", "require", "proficien",
+    "familiar", "skill", "expert", "understand", "know", "learn", "program",
+    "language", "develop", "backend", "frontend", "full stack",
+    "developer", "architect", "data scien", "machine learn", "devops",
+    "cloud", "database", "server", "deploy", "build", "code",
+]
+
+# Phrases that indicate "go" is Go-To-Market, not Go language
+_GO_FALSE_POSITIVES = ["go-to-market", "go to market", "gtm", "go-live", "go live"]
+
+
+def _has_technical_context(skill: str, text: str) -> bool:
+    """Check if a short skill appears in a technical context."""
+    text_lower = text.lower()
+    # Reject known false-positive phrases
+    if skill == "go":
+        for fp in _GO_FALSE_POSITIVES:
+            if fp in text_lower:
+                return False
+    # Find where the skill appears and check nearby words
+    skill_lower = skill.lower()
+    idx = text_lower.find(skill_lower)
+    if idx == -1:
+        return False
+    # Check a window of 80 chars around the skill
+    window_start = max(0, idx - 40)
+    window_end = min(len(text_lower), idx + len(skill_lower) + 40)
+    window = text_lower[window_start:window_end]
+    return any(kw in window for kw in _CONTEXT_KEYWORDS)
+
+
 def _validate_skills(
     extracted_flat: set, text: str, taxonomy: dict
 ) -> tuple[set, set]:
     """Validate extracted skills against text.
 
-    Returns (validated_skills, likely_false_positives).
     A skill is considered validated if it literally appears in the text
-    (case-insensitive). Skills not found in text are flagged as potential FPs.
+    using proper word boundaries (matching the extractor's own logic).
+    Short skills additionally require technical context to avoid false
+    positives from common English words.
+
+    Returns (validated_skills, likely_false_positives).
     """
-    text_lower = text.lower()
     validated = set()
     likely_fp = set()
     for skill in extracted_flat:
-        if skill in text_lower:
-            validated.add(skill)
-        else:
+        if not _skill_appears_in_text(skill, text):
             likely_fp.add(skill)
+        elif skill in SHORT_SKILLS_NEEDING_CONTEXT and not _has_technical_context(skill, text):
+            likely_fp.add(skill)
+        else:
+            validated.add(skill)
     return validated, likely_fp
 
 
 def _scan_for_misses(text: str, taxonomy: dict, found_skills: set) -> set:
-    """Scan the taxonomy for skills that appear in text but weren't extracted."""
-    text_lower = text.lower()
+    """Scan the taxonomy for skills that appear in text but weren't extracted.
+
+    Uses word-boundary matching and requires technical context for short
+    skills — the same logic the extractor uses — to avoid false gold labels.
+    """
     misses = set()
     for skill in taxonomy:
         if skill not in found_skills:
-            if skill in text_lower:
-                misses.add(skill)
+            if _skill_appears_in_text(skill, text):
+                if skill in SHORT_SKILLS_NEEDING_CONTEXT:
+                    if _has_technical_context(skill, text):
+                        misses.add(skill)
+                else:
+                    misses.add(skill)
     return misses
 
 
