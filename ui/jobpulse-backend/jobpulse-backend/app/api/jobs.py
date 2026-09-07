@@ -2,15 +2,17 @@ import uuid
 
 import pandas as pd
 from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, status
-from sqlalchemy.orm import Session
+from sqlalchemy import func
+from sqlalchemy.orm import Session, joinedload
 
 from app.api.deps import get_current_user
 from app.core.config import get_settings
 from app.database import get_db
 from app.models.enums import JobStatus
-from app.models.job import Job
+from app.models.job import Job, JobSkill
+from app.models.skill import Skill
 from app.models.user import User
-from app.schemas.job import JobListOut, JobOut, JobStatusHistoryOut, JobStatusUpdate
+from app.schemas.job import JobListOut, JobOut, JobStatusHistoryOut, JobStatusUpdate, SkillDemandOut, SkillDemandResponse
 from app.services import job_service
 
 router = APIRouter(prefix="/api/jobs", tags=["jobs"])
@@ -44,7 +46,7 @@ def list_jobs(
     status_filter: JobStatus = Query(JobStatus.AVAILABLE, alias="status"),
     skills: list[str] | None = Query(None),
     page: int = Query(1, ge=1),
-    limit: int = Query(20, ge=1, le=100),
+    limit: int = Query(20, ge=1, le=500),
     db: Session = Depends(get_db),
 ):
     jobs, total = job_service.search_jobs(
@@ -123,3 +125,54 @@ async def ingest_jobs(
 def mark_stale(cutoff_days: int = 30, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     count = job_service.mark_stale_jobs_removed(db, cutoff_days=cutoff_days)
     return {"marked_removed": count}
+
+
+@router.get("/skills/demand", response_model=SkillDemandResponse)
+def skill_demand(
+    country: str | None = None,
+    limit: int = Query(50, ge=1, le=200),
+    db: Session = Depends(get_db),
+):
+    total_available = db.query(Job).filter(Job.status == JobStatus.AVAILABLE).count() or 1
+
+    q = (
+        db.query(
+            Skill.name.label("skill_name"),
+            func.count(JobSkill.id).label("demand"),
+            func.count(func.distinct(Job.id)).label("job_count"),
+            func.coalesce(func.avg(Job.salary_min), 0).label("avg_salary"),
+        )
+        .join(JobSkill, JobSkill.skill_id == Skill.id)
+        .join(Job, Job.id == JobSkill.job_id)
+        .filter(Job.status == JobStatus.AVAILABLE)
+    )
+    if country and country != "All countries":
+        q = q.filter(func.lower(Job.country) == country.lower())
+
+    rows = (
+        q.group_by(Skill.name)
+        .order_by(func.count(JobSkill.id).desc())
+        .limit(limit)
+        .all()
+    )
+
+    skills = []
+    for row in rows:
+        demand_pct = round((row.demand / total_available) * 100)
+        avg_sal = round(row.avg_salary) if row.avg_salary else 0
+        status_label = "Growing" if demand_pct >= 10 else "Stable"
+        skills.append(SkillDemandOut(
+            skill=row.skill_name,
+            demand=demand_pct,
+            jobs=row.job_count,
+            avgSalary=avg_sal,
+            role=row.skill_name,
+            growth=0,
+            status=status_label,
+        ))
+
+    return SkillDemandResponse(
+        skills=skills,
+        total=len(skills),
+        dataSource={"source": "JobPulseKE database", "collectedAt": __import__("datetime").date.today().isoformat()},
+    )

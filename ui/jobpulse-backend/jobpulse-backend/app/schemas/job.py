@@ -52,3 +52,19 @@ class JobStatusUpdate(BaseModel):
     source: str | None = None
     confidence: float | None = None
     note: str | None = None
+
+
+class SkillDemandOut(BaseModel):
+    skill: str
+    demand: int
+    jobs: int
+    avgSalary: float = 0
+    role: str = ""
+    growth: int = 0
+    status: str = "Stable"
+
+
+class SkillDemandResponse(BaseModel):
+    skills: list[SkillDemandOut]
+    total: int
+    dataSource: dict
