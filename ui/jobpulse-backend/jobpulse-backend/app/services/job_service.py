@@ -43,63 +43,67 @@ def ingest_jobs_from_dataframe(db: Session, df: pd.DataFrame, source_default: st
     date_posted, ...) onto the backend's Job/JobSkill tables.
     """
     extractor = get_extractor()
-    created, updated = 0, 0
+    created, updated, skipped = 0, 0, 0
 
-    for _, row in df.iterrows():
-        source = str(row.get("source") or source_default).strip() or source_default
-        source_job_id = str(row.get("source_job_id") or row.get("job_id") or "").strip()
-        if not source_job_id:
+    for idx, row in df.iterrows():
+        try:
+            source = str(row.get("source") or source_default).strip() or source_default
+            source_job_id = str(row.get("source_job_id") or row.get("job_id") or "").strip()
+            if not source_job_id:
+                continue
+
+            job = (
+                db.query(Job)
+                .filter(Job.source == source, Job.source_job_id == source_job_id)
+                .first()
+            )
+            is_new = job is None
+            if is_new:
+                job = Job(source=source, source_job_id=source_job_id, status=JobStatus.UNKNOWN)
+
+            description = str(row.get("job_description") or "")
+            salary_min, salary_max, currency, reliable = parse_salary(row.get("salary"), row.get("currency"))
+
+            job.title = str(row.get("job_title") or job.title or "").strip()[:255]
+            job.company = str(row.get("company") or "").strip()[:255] or None
+            job.description = description[:65535] or None
+            job.country = str(row.get("country") or "").strip()[:100] or None
+            job.city = str(row.get("location") or "").strip()[:100] or None
+            job.remote = bool(row.get("remote_eligible")) if row.get("remote_eligible") not in (None, "") else False
+            job.work_mode = str(row.get("work_mode") or "").strip()[:50] or None
+            job.employment_type = str(row.get("employment_type") or "").strip()[:50] or None
+            job.salary_min = salary_min
+            job.salary_max = salary_max
+            job.currency = currency
+            job.salary_reliable = reliable
+            job.source_url = str(row.get("vacancy_url") or "").strip()[:1000] or None
+            job.posted_at = _parse_date(row.get("date_posted"))
+            job.expires_at = _parse_date(row.get("application_deadline"))
+
+            if job.status == JobStatus.UNKNOWN:
+                job.status = JobStatus.AVAILABLE
+
+            db.add(job)
+            db.flush()
+
+            db.query(JobStatusHistory).filter(
+                JobStatusHistory.job_id == job.id,
+                JobStatusHistory.source == "ingestion",
+                JobStatusHistory.status == job.status,
+            )
+            db.add(JobStatusHistory(job_id=job.id, status=job.status, source="ingestion", confidence=1.0))
+
+            extracted = extractor.extract_skills(description)
+            found_skills = {s for group in extracted.values() for s in group}
+            existing_links = {link.skill.name for link in job.skill_links if link.skill}
+            for skill_name in found_skills - existing_links:
+                skill = _get_or_create_skill(db, skill_name)
+                db.add(JobSkill(job_id=job.id, skill_id=skill.id, is_preferred=False))
+
+        except Exception:
+            db.rollback()
+            skipped += 1
             continue
-
-        job = (
-            db.query(Job)
-            .filter(Job.source == source, Job.source_job_id == source_job_id)
-            .first()
-        )
-        is_new = job is None
-        if is_new:
-            job = Job(source=source, source_job_id=source_job_id, status=JobStatus.UNKNOWN)
-
-        description = str(row.get("job_description") or "")
-        salary_min, salary_max, currency, reliable = parse_salary(row.get("salary"), row.get("currency"))
-
-        job.title = str(row.get("job_title") or job.title or "").strip()
-        job.company = str(row.get("company") or "").strip() or None
-        job.description = description or None
-        job.country = str(row.get("country") or "").strip() or None
-        job.city = str(row.get("location") or "").strip() or None
-        job.remote = bool(row.get("remote_eligible")) if row.get("remote_eligible") not in (None, "") else False
-        job.work_mode = str(row.get("work_mode") or "").strip() or None
-        job.employment_type = str(row.get("employment_type") or "").strip() or None
-        job.salary_min = salary_min
-        job.salary_max = salary_max
-        job.currency = currency
-        job.salary_reliable = reliable
-        job.source_url = str(row.get("vacancy_url") or "").strip() or None
-        job.posted_at = _parse_date(row.get("date_posted"))
-        job.expires_at = _parse_date(row.get("application_deadline"))
-
-        if job.status == JobStatus.UNKNOWN:
-            # A freshly-seen posting with a real source URL is presumed
-            # available until an ingestion run fails to see it again.
-            job.status = JobStatus.AVAILABLE
-
-        db.add(job)
-        db.flush()
-
-        db.query(JobStatusHistory).filter(
-            JobStatusHistory.job_id == job.id,
-            JobStatusHistory.source == "ingestion",
-            JobStatusHistory.status == job.status,
-        )
-        db.add(JobStatusHistory(job_id=job.id, status=job.status, source="ingestion", confidence=1.0))
-
-        extracted = extractor.extract_skills(description)
-        found_skills = {s for group in extracted.values() for s in group}
-        existing_links = {link.skill.name for link in job.skill_links if link.skill}
-        for skill_name in found_skills - existing_links:
-            skill = _get_or_create_skill(db, skill_name)
-            db.add(JobSkill(job_id=job.id, skill_id=skill.id, is_preferred=False))
 
         if is_new:
             created += 1
@@ -107,7 +111,7 @@ def ingest_jobs_from_dataframe(db: Session, df: pd.DataFrame, source_default: st
             updated += 1
 
     db.commit()
-    return {"created": created, "updated": updated, "total_processed": created + updated}
+    return {"created": created, "updated": updated, "skipped": skipped, "total_processed": created + updated}
 
 
 def mark_stale_jobs_removed(db: Session, cutoff_days: int = 30) -> int:
@@ -185,6 +189,8 @@ def market_insights(db: Session) -> dict:
         .count()
     )
     total_available = db.query(Job).filter(Job.status == JobStatus.AVAILABLE).count()
+    remote_count = db.query(Job).filter(Job.status == JobStatus.AVAILABLE, Job.remote.is_(True)).count()
+    remote_pct = round((remote_count / total_available) * 100) if total_available else 0
 
     top_countries = (
         db.query(Job.country, func.count(Job.id).label("cnt"))
@@ -209,6 +215,8 @@ def market_insights(db: Session) -> dict:
         "jobs_added_this_week": jobs_added,
         "jobs_removed_this_week": jobs_removed,
         "total_available_jobs": total_available,
+        "remote_count": remote_count,
+        "remote_pct": remote_pct,
         "top_countries": [{"country": c, "count": n} for c, n in top_countries],
         "top_skills": [{"skill": s, "count": n} for s, n in top_skills],
     }
