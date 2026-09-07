@@ -1,0 +1,30 @@
+model,metric,value,detail
+skill_extractor,precision,1.0,
+skill_extractor,recall,0.306,
+skill_extractor,f1,0.469,
+skill_extractor,f1_programming_language,1.0,"p=1.0, r=1.0"
+skill_extractor,f1_data_platform,1.0,"p=1.0, r=1.0"
+skill_extractor,f1_analytics,1.0,"p=1.0, r=1.0"
+skill_extractor,f1_web_framework,1.0,"p=1.0, r=1.0"
+skill_extractor,f1_cloud_platform,1.0,"p=1.0, r=1.0"
+skill_extractor,f1_devops,1.0,"p=1.0, r=1.0"
+skill_extractor,f1_database,1.0,"p=1.0, r=1.0"
+skill_extractor,f1_frontend,1.0,"p=1.0, r=1.0"
+skill_extractor,f1_ai_ml,1.0,"p=1.0, r=1.0"
+skill_extractor,f1_architecture,1.0,"p=1.0, r=1.0"
+skill_extractor,f1_testing,1.0,"p=1.0, r=1.0"
+skill_extractor,f1_methodology,1.0,"p=1.0, r=1.0"
+metadata_extractor,seniority_accuracy,0.96,n=50
+metadata_extractor,work_mode_accuracy,1.0,n=15
+metadata_extractor,employment_type_accuracy,1.0,n=13
+job_recommender,top1_accuracy,1.0,
+job_recommender,mean_rank_of_best,1.0,
+rag_retrieval,avg_precision_at_3,0.8,
+rag_retrieval,avg_precision_at_5,0.8,
+rag_retrieval,avg_recall_at_5,0.466,
+rag_retrieval,avg_mrr,0.894,
+rag_retrieval,low_confidence_rate,0.0,
+skill_normalizer,accuracy,1.0,26/26
+skill_normalizer,batch_normalize_correct,1,
+skill_matcher,match_accuracy,1.0,
+skill_matcher,score_accuracy,1.0,
