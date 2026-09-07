@@ -10,12 +10,14 @@ DATA_DIR = PROJECT_ROOT / "data"
 RAW_DATA_DIR = DATA_DIR / "raw"
 PROCESSED_DATA_DIR = DATA_DIR / "processed"
 ANALYTICS_DATA_DIR = DATA_DIR / "analytics"
+NLP_DATA_DIR = DATA_DIR / "nlp"
+RAG_DATA_DIR = DATA_DIR / "rag"
 EXPORTS_DATA_DIR = DATA_DIR / "exports"
 REPORTS_DIR = PROJECT_ROOT / "reports"
 MODELS_DIR = PROJECT_ROOT / "src" / "models"
 
 # Ensure directories exist
-for d in [RAW_DATA_DIR, PROCESSED_DATA_DIR, ANALYTICS_DATA_DIR, EXPORTS_DATA_DIR, REPORTS_DIR, MODELS_DIR]:
+for d in [RAW_DATA_DIR, PROCESSED_DATA_DIR, ANALYTICS_DATA_DIR, NLP_DATA_DIR, RAG_DATA_DIR, EXPORTS_DATA_DIR, REPORTS_DIR, MODELS_DIR]:
     d.mkdir(parents=True, exist_ok=True)
 
 # Schema definition for ingested records
