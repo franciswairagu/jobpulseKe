@@ -8,61 +8,60 @@ from bs4 import BeautifulSoup
 from src.collectors.base_scraper import BaseScraper
 from src.utils.helpers import build_record
 from src.utils.parsing import select_first_nonempty, anchor_based_cards, text_or_none
-from src.scraping_config import BROAD_TECH_SEARCH_TERMS
-
 BASE_URL = "https://www.pnet.co.za"
-SEARCH_TERMS = BROAD_TECH_SEARCH_TERMS
+# PNet's IT & Telecommunications facet. Using this avoids the slow keyword
+# endpoint that timed out once per search term during the last refresh.
+IT_CATEGORY_PARAMS = {"action": "facet_selected;categories;1000000", "fu": "1000000"}
 
 CARD_SELECTOR_CANDIDATES = [
     "article[data-at='job-item']",
     "div.job-item",
     "li[class*='job']",
 ]
-JOB_LINK_PATTERNS = [r"/job-\d+", r"/jobs/[a-z0-9-]+"]
+JOB_LINK_PATTERNS = [r"/jobs--.+--\d+-inline\.html", r"/job-\d+"]
 
 
 class PNetScraper(BaseScraper):
     source_name = "pnet"
 
-    def scrape(self, max_pages=15, search_terms=None, **kwargs):
-        search_terms = search_terms or SEARCH_TERMS
+    def __init__(self, **kwargs):
+        super().__init__(timeout=45, **kwargs)
+
+    def scrape(self, max_pages=15, **kwargs):
         records = []
         seen_urls = set()
 
-        for term in search_terms:
-            for page in range(1, max_pages + 1):
-                url = f"{BASE_URL}/jobs"
-                params = {"q": term, "page": page, "sort": "date"}
-                try:
-                    resp = self.get(url, params=params)
-                except Exception as e:
-                    self.logger.warning(f"'{term}' page {page} failed: {e}")
-                    break
+        for page in range(1, max_pages + 1):
+            try:
+                resp = self.get(f"{BASE_URL}/jobs", params={**IT_CATEGORY_PARAMS, "page": page})
+            except Exception as e:
+                self.logger.warning(f"IT category page {page} failed: {e}")
+                break
 
-                soup = BeautifulSoup(resp.text, "lxml")
-                cards, matched_sel = select_first_nonempty(soup, CARD_SELECTOR_CANDIDATES)
+            soup = BeautifulSoup(resp.text, "lxml")
+            cards, matched_sel = select_first_nonempty(soup, CARD_SELECTOR_CANDIDATES)
 
-                parsed_this_page = 0
-                if cards:
-                    for card in cards:
-                        rec = self._parse_card(card)
-                        if rec and rec["vacancy_url"] not in seen_urls:
-                            seen_urls.add(rec["vacancy_url"])
-                            records.append(rec)
-                            parsed_this_page += 1
-                else:
-                    for a, container in anchor_based_cards(soup, JOB_LINK_PATTERNS):
-                        rec = self._parse_anchor(a, container)
-                        if rec and rec["vacancy_url"] not in seen_urls:
-                            seen_urls.add(rec["vacancy_url"])
-                            records.append(rec)
-                            parsed_this_page += 1
+            parsed_this_page = 0
+            if cards:
+                for card in cards:
+                    rec = self._parse_card(card)
+                    if rec and rec["vacancy_url"] not in seen_urls:
+                        seen_urls.add(rec["vacancy_url"])
+                        records.append(rec)
+                        parsed_this_page += 1
+            else:
+                for a, container in anchor_based_cards(soup, JOB_LINK_PATTERNS):
+                    rec = self._parse_anchor(a, container)
+                    if rec and rec["vacancy_url"] not in seen_urls:
+                        seen_urls.add(rec["vacancy_url"])
+                        records.append(rec)
+                        parsed_this_page += 1
 
-                if parsed_this_page == 0:
-                    self.debug_dump(resp.text, tag=f"{term}_p{page}")
-                    break
+            if parsed_this_page == 0:
+                self.debug_dump(resp.text, tag=f"it_category_p{page}")
+                break
 
-                self.polite_sleep()
+            self.polite_sleep()
         return records
 
     def _parse_card(self, card):
