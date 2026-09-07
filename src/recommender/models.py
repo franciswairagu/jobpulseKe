@@ -86,6 +86,7 @@ class LearningRecommendation:
     url: str
     reason: str
     priority: float
+    duration: str = ""
 
 
 @dataclass(frozen=True)
@@ -97,6 +98,7 @@ class InterviewPracticeRecommendation:
     provider: str
     url: str
     reason: str
+    duration: str = ""
 
 
 @dataclass
