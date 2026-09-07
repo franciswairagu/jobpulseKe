@@ -1,0 +1,1009 @@
+{
+  "timestamp": "20260907_124148",
+  "gold_set_size": 30,
+  "skill_extractor": {
+    "model": "skill_extractor",
+    "n_examples": 30,
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1": 1.0,
+    "total_tp": 23,
+    "total_fp": 0,
+    "total_fn": 0,
+    "top_missed_skills": [],
+    "top_spurious_skills": [],
+    "category_f1": {
+      "mobile": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 1
+      },
+      "data_platform": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 1
+      },
+      "programming_language": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 5
+      },
+      "web_framework": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 5
+      },
+      "cloud_platform": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 2
+      },
+      "devops": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 3
+      },
+      "database": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 1
+      },
+      "frontend": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 2
+      },
+      "methodology": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 2
+      },
+      "architecture": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 1
+      }
+    },
+    "per_example": [
+      {
+        "job_title": "Coffee Buyer - | Lukaaya/Miwula | UGX 1M Gross + Negotiable",
+        "expected_count": 0,
+        "extracted_count": 0,
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "skills_missed": [],
+        "skills_spurious": []
+      },
+      {
+        "job_title": "Senior Social Entrepreneur & Project Development Lead \u2013 Africa",
+        "expected_count": 0,
+        "extracted_count": 0,
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "skills_missed": [],
+        "skills_spurious": []
+      },
+      {
+        "job_title": "Business Development Executive at OneVERIFY Limited (2 Openings)",
+        "expected_count": 0,
+        "extracted_count": 0,
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "skills_missed": [],
+        "skills_spurious": []
+      },
+      {
+        "job_title": "Customer Relationship Manager Intern at Mercatura Online Technology",
+        "expected_count": 0,
+        "extracted_count": 0,
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "skills_missed": [],
+        "skills_spurious": []
+      },
+      {
+        "job_title": "Customer Success Account Management Manager at Microsoft Ngeria",
+        "expected_count": 0,
+        "extracted_count": 0,
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "skills_missed": [],
+        "skills_spurious": []
+      },
+      {
+        "job_title": "Business Operations Manager at WootLab Innovations",
+        "expected_count": 0,
+        "extracted_count": 0,
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "skills_missed": [],
+        "skills_spurious": []
+      },
+      {
+        "job_title": "Soft Intelligent Machines Limited Job Recruitment (5 Positions)",
+        "expected_count": 0,
+        "extracted_count": 0,
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "skills_missed": [],
+        "skills_spurious": []
+      },
+      {
+        "job_title": "International Audio/Video Remote Armenian Interpreter",
+        "expected_count": 0,
+        "extracted_count": 0,
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "skills_missed": [],
+        "skills_spurious": []
+      },
+      {
+        "job_title": "Senior Software Engineer, Frontend",
+        "expected_count": 0,
+        "extracted_count": 0,
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "skills_missed": [],
+        "skills_spurious": []
+      },
+      {
+        "job_title": "GTM Engineer (Mexico Only - Remote)",
+        "expected_count": 0,
+        "extracted_count": 0,
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "skills_missed": [],
+        "skills_spurious": []
+      },
+      {
+        "job_title": "International Audio/Video Remote Arabic Interpreters",
+        "expected_count": 0,
+        "extracted_count": 0,
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "skills_missed": [],
+        "skills_spurious": []
+      },
+      {
+        "job_title": "Senior Director, Community",
+        "expected_count": 0,
+        "extracted_count": 0,
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "skills_missed": [],
+        "skills_spurious": []
+      },
+      {
+        "job_title": "Health Records \u2013 Trainer at Bondo Technical and Vocational College",
+        "expected_count": 0,
+        "extracted_count": 0,
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "skills_missed": [],
+        "skills_spurious": []
+      },
+      {
+        "job_title": "Lead, Partnerships - Smartcash PSB",
+        "expected_count": 0,
+        "extracted_count": 0,
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "skills_missed": [],
+        "skills_spurious": []
+      },
+      {
+        "job_title": "Solar Sales Executive at Toyomax Energy Solution Enterprise",
+        "expected_count": 0,
+        "extracted_count": 0,
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "skills_missed": [],
+        "skills_spurious": []
+      },
+      {
+        "job_title": "Environment, Health & Safety (EHS) Manager",
+        "expected_count": 0,
+        "extracted_count": 0,
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "skills_missed": [],
+        "skills_spurious": []
+      },
+      {
+        "job_title": "VIP Driver at Delicto Holdings",
+        "expected_count": 0,
+        "extracted_count": 0,
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "skills_missed": [],
+        "skills_spurious": []
+      },
+      {
+        "job_title": "People Director",
+        "expected_count": 1,
+        "extracted_count": 1,
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "skills_missed": [],
+        "skills_spurious": []
+      },
+      {
+        "job_title": "Kitchen Porter W Edinburgh",
+        "expected_count": 1,
+        "extracted_count": 1,
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "skills_missed": [],
+        "skills_spurious": []
+      },
+      {
+        "job_title": "Car Wash Attendant",
+        "expected_count": 0,
+        "extracted_count": 0,
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "skills_missed": [],
+        "skills_spurious": []
+      },
+      {
+        "job_title": "MOT Tester",
+        "expected_count": 0,
+        "extracted_count": 0,
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "skills_missed": [],
+        "skills_spurious": []
+      },
+      {
+        "job_title": "Regional Sales Manager",
+        "expected_count": 0,
+        "extracted_count": 0,
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "skills_missed": [],
+        "skills_spurious": []
+      },
+      {
+        "job_title": "Staff Software Engineer, Time and Scheduling",
+        "expected_count": 5,
+        "extracted_count": 5,
+        "tp": 5,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "skills_missed": [],
+        "skills_spurious": []
+      },
+      {
+        "job_title": "Junior Product Manager*in (alle Identit\u00e4ten)",
+        "expected_count": 0,
+        "extracted_count": 0,
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "skills_missed": [],
+        "skills_spurious": []
+      },
+      {
+        "job_title": "Staff / Principal Product Manager",
+        "expected_count": 1,
+        "extracted_count": 1,
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "skills_missed": [],
+        "skills_spurious": []
+      },
+      {
+        "job_title": "Senior Backend Developer (Python)",
+        "expected_count": 9,
+        "extracted_count": 9,
+        "tp": 9,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "skills_missed": [],
+        "skills_spurious": []
+      },
+      {
+        "job_title": "Product Owner (m/w/d) Tools & Systeme Customer Service // remote m\u00f6glich",
+        "expected_count": 1,
+        "extracted_count": 1,
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "skills_missed": [],
+        "skills_spurious": []
+      },
+      {
+        "job_title": "Technical Product Manager",
+        "expected_count": 5,
+        "extracted_count": 5,
+        "tp": 5,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "skills_missed": [],
+        "skills_spurious": []
+      },
+      {
+        "job_title": "Atutechs C Limited Job Recruitment (3 Positions)",
+        "expected_count": 0,
+        "extracted_count": 0,
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "skills_missed": [],
+        "skills_spurious": []
+      },
+      {
+        "job_title": "Associate Civil Engineer at Independent Project Monitoring Company Limited (IPMC)",
+        "expected_count": 0,
+        "extracted_count": 0,
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "skills_missed": [],
+        "skills_spurious": []
+      }
+    ]
+  },
+  "metadata_extractor": {
+    "model": "metadata_extractor",
+    "n_examples": 30,
+    "seniority": {
+      "accuracy": 0.933,
+      "correct": 28,
+      "total": 30,
+      "confusion": {
+        "Mid-Level->Mid-Level": 7,
+        "Senior->Senior": 5,
+        "Mid-Level->Executive": 2,
+        "Intern->Intern": 6,
+        "Lead->Lead": 7,
+        "Executive->Executive": 2,
+        "Entry Level->Entry Level": 1
+      }
+    },
+    "work_mode": {
+      "accuracy": 1.0,
+      "correct": 7,
+      "total": 7,
+      "confusion": {
+        "Remote->Remote": 7
+      }
+    },
+    "employment_type": {
+      "accuracy": 1.0,
+      "correct": 7,
+      "total": 7,
+      "confusion": {
+        "Contract->Contract": 2,
+        "Full-Time->Full-Time": 5
+      }
+    },
+    "per_example": [
+      {
+        "job_title": "Coffee Buyer - | Lukaaya/Miwula | UGX 1M Gross + Negotiable",
+        "seniority_expected": "Mid-Level",
+        "seniority_actual": "Mid-Level",
+        "seniority_correct": true,
+        "work_mode_expected": null,
+        "work_mode_actual": null,
+        "work_mode_correct": null,
+        "employment_expected": null,
+        "employment_actual": null,
+        "employment_correct": null
+      },
+      {
+        "job_title": "Senior Social Entrepreneur & Project Development Lead \u2013 Africa",
+        "seniority_expected": "Senior",
+        "seniority_actual": "Senior",
+        "seniority_correct": true,
+        "work_mode_expected": null,
+        "work_mode_actual": null,
+        "work_mode_correct": null,
+        "employment_expected": null,
+        "employment_actual": null,
+        "employment_correct": null
+      },
+      {
+        "job_title": "Business Development Executive at OneVERIFY Limited (2 Openings)",
+        "seniority_expected": "Mid-Level",
+        "seniority_actual": "Executive",
+        "seniority_correct": false,
+        "work_mode_expected": null,
+        "work_mode_actual": null,
+        "work_mode_correct": null,
+        "employment_expected": null,
+        "employment_actual": null,
+        "employment_correct": null
+      },
+      {
+        "job_title": "Customer Relationship Manager Intern at Mercatura Online Technology",
+        "seniority_expected": "Intern",
+        "seniority_actual": "Intern",
+        "seniority_correct": true,
+        "work_mode_expected": null,
+        "work_mode_actual": null,
+        "work_mode_correct": null,
+        "employment_expected": null,
+        "employment_actual": null,
+        "employment_correct": null
+      },
+      {
+        "job_title": "Customer Success Account Management Manager at Microsoft Ngeria",
+        "seniority_expected": "Lead",
+        "seniority_actual": "Lead",
+        "seniority_correct": true,
+        "work_mode_expected": null,
+        "work_mode_actual": null,
+        "work_mode_correct": null,
+        "employment_expected": null,
+        "employment_actual": null,
+        "employment_correct": null
+      },
+      {
+        "job_title": "Business Operations Manager at WootLab Innovations",
+        "seniority_expected": "Lead",
+        "seniority_actual": "Lead",
+        "seniority_correct": true,
+        "work_mode_expected": null,
+        "work_mode_actual": null,
+        "work_mode_correct": null,
+        "employment_expected": null,
+        "employment_actual": null,
+        "employment_correct": null
+      },
+      {
+        "job_title": "Soft Intelligent Machines Limited Job Recruitment (5 Positions)",
+        "seniority_expected": "Mid-Level",
+        "seniority_actual": "Mid-Level",
+        "seniority_correct": true,
+        "work_mode_expected": null,
+        "work_mode_actual": null,
+        "work_mode_correct": null,
+        "employment_expected": null,
+        "employment_actual": null,
+        "employment_correct": null
+      },
+      {
+        "job_title": "International Audio/Video Remote Armenian Interpreter",
+        "seniority_expected": "Intern",
+        "seniority_actual": "Intern",
+        "seniority_correct": true,
+        "work_mode_expected": null,
+        "work_mode_actual": "Remote",
+        "work_mode_correct": null,
+        "employment_expected": "Contract",
+        "employment_actual": "Contract",
+        "employment_correct": true
+      },
+      {
+        "job_title": "Senior Software Engineer, Frontend",
+        "seniority_expected": "Senior",
+        "seniority_actual": "Senior",
+        "seniority_correct": true,
+        "work_mode_expected": null,
+        "work_mode_actual": null,
+        "work_mode_correct": null,
+        "employment_expected": null,
+        "employment_actual": null,
+        "employment_correct": null
+      },
+      {
+        "job_title": "GTM Engineer (Mexico Only - Remote)",
+        "seniority_expected": "Lead",
+        "seniority_actual": "Lead",
+        "seniority_correct": true,
+        "work_mode_expected": null,
+        "work_mode_actual": "Remote",
+        "work_mode_correct": null,
+        "employment_expected": null,
+        "employment_actual": null,
+        "employment_correct": null
+      },
+      {
+        "job_title": "International Audio/Video Remote Arabic Interpreters",
+        "seniority_expected": "Intern",
+        "seniority_actual": "Intern",
+        "seniority_correct": true,
+        "work_mode_expected": null,
+        "work_mode_actual": "Remote",
+        "work_mode_correct": null,
+        "employment_expected": "Contract",
+        "employment_actual": "Contract",
+        "employment_correct": true
+      },
+      {
+        "job_title": "Senior Director, Community",
+        "seniority_expected": "Senior",
+        "seniority_actual": "Senior",
+        "seniority_correct": true,
+        "work_mode_expected": null,
+        "work_mode_actual": null,
+        "work_mode_correct": null,
+        "employment_expected": null,
+        "employment_actual": null,
+        "employment_correct": null
+      },
+      {
+        "job_title": "Health Records \u2013 Trainer at Bondo Technical and Vocational College",
+        "seniority_expected": "Mid-Level",
+        "seniority_actual": "Mid-Level",
+        "seniority_correct": true,
+        "work_mode_expected": null,
+        "work_mode_actual": null,
+        "work_mode_correct": null,
+        "employment_expected": null,
+        "employment_actual": null,
+        "employment_correct": null
+      },
+      {
+        "job_title": "Lead, Partnerships - Smartcash PSB",
+        "seniority_expected": "Lead",
+        "seniority_actual": "Lead",
+        "seniority_correct": true,
+        "work_mode_expected": null,
+        "work_mode_actual": null,
+        "work_mode_correct": null,
+        "employment_expected": null,
+        "employment_actual": null,
+        "employment_correct": null
+      },
+      {
+        "job_title": "Solar Sales Executive at Toyomax Energy Solution Enterprise",
+        "seniority_expected": "Mid-Level",
+        "seniority_actual": "Executive",
+        "seniority_correct": false,
+        "work_mode_expected": null,
+        "work_mode_actual": null,
+        "work_mode_correct": null,
+        "employment_expected": null,
+        "employment_actual": null,
+        "employment_correct": null
+      },
+      {
+        "job_title": "Environment, Health & Safety (EHS) Manager",
+        "seniority_expected": "Lead",
+        "seniority_actual": "Lead",
+        "seniority_correct": true,
+        "work_mode_expected": null,
+        "work_mode_actual": null,
+        "work_mode_correct": null,
+        "employment_expected": null,
+        "employment_actual": null,
+        "employment_correct": null
+      },
+      {
+        "job_title": "VIP Driver at Delicto Holdings",
+        "seniority_expected": "Executive",
+        "seniority_actual": "Executive",
+        "seniority_correct": true,
+        "work_mode_expected": null,
+        "work_mode_actual": null,
+        "work_mode_correct": null,
+        "employment_expected": null,
+        "employment_actual": null,
+        "employment_correct": null
+      },
+      {
+        "job_title": "People Director",
+        "seniority_expected": "Executive",
+        "seniority_actual": "Executive",
+        "seniority_correct": true,
+        "work_mode_expected": null,
+        "work_mode_actual": null,
+        "work_mode_correct": null,
+        "employment_expected": null,
+        "employment_actual": null,
+        "employment_correct": null
+      },
+      {
+        "job_title": "Kitchen Porter W Edinburgh",
+        "seniority_expected": "Intern",
+        "seniority_actual": "Intern",
+        "seniority_correct": true,
+        "work_mode_expected": "Remote",
+        "work_mode_actual": "Remote",
+        "work_mode_correct": true,
+        "employment_expected": "Full-Time",
+        "employment_actual": "Full-Time",
+        "employment_correct": true
+      },
+      {
+        "job_title": "Car Wash Attendant",
+        "seniority_expected": "Mid-Level",
+        "seniority_actual": "Mid-Level",
+        "seniority_correct": true,
+        "work_mode_expected": null,
+        "work_mode_actual": null,
+        "work_mode_correct": null,
+        "employment_expected": "Full-Time",
+        "employment_actual": "Full-Time",
+        "employment_correct": true
+      },
+      {
+        "job_title": "MOT Tester",
+        "seniority_expected": "Mid-Level",
+        "seniority_actual": "Mid-Level",
+        "seniority_correct": true,
+        "work_mode_expected": null,
+        "work_mode_actual": null,
+        "work_mode_correct": null,
+        "employment_expected": null,
+        "employment_actual": null,
+        "employment_correct": null
+      },
+      {
+        "job_title": "Regional Sales Manager",
+        "seniority_expected": "Lead",
+        "seniority_actual": "Lead",
+        "seniority_correct": true,
+        "work_mode_expected": null,
+        "work_mode_actual": null,
+        "work_mode_correct": null,
+        "employment_expected": null,
+        "employment_actual": null,
+        "employment_correct": null
+      },
+      {
+        "job_title": "Staff Software Engineer, Time and Scheduling",
+        "seniority_expected": "Intern",
+        "seniority_actual": "Intern",
+        "seniority_correct": true,
+        "work_mode_expected": "Remote",
+        "work_mode_actual": "Remote",
+        "work_mode_correct": true,
+        "employment_expected": "Full-Time",
+        "employment_actual": "Full-Time",
+        "employment_correct": true
+      },
+      {
+        "job_title": "Junior Product Manager*in (alle Identit\u00e4ten)",
+        "seniority_expected": "Entry Level",
+        "seniority_actual": "Entry Level",
+        "seniority_correct": true,
+        "work_mode_expected": "Remote",
+        "work_mode_actual": "Remote",
+        "work_mode_correct": true,
+        "employment_expected": null,
+        "employment_actual": null,
+        "employment_correct": null
+      },
+      {
+        "job_title": "Staff / Principal Product Manager",
+        "seniority_expected": "Senior",
+        "seniority_actual": "Senior",
+        "seniority_correct": true,
+        "work_mode_expected": "Remote",
+        "work_mode_actual": "Remote",
+        "work_mode_correct": true,
+        "employment_expected": "Full-Time",
+        "employment_actual": "Full-Time",
+        "employment_correct": true
+      },
+      {
+        "job_title": "Senior Backend Developer (Python)",
+        "seniority_expected": "Senior",
+        "seniority_actual": "Senior",
+        "seniority_correct": true,
+        "work_mode_expected": "Remote",
+        "work_mode_actual": "Remote",
+        "work_mode_correct": true,
+        "employment_expected": "Full-Time",
+        "employment_actual": "Full-Time",
+        "employment_correct": true
+      },
+      {
+        "job_title": "Product Owner (m/w/d) Tools & Systeme Customer Service // remote m\u00f6glich",
+        "seniority_expected": "Intern",
+        "seniority_actual": "Intern",
+        "seniority_correct": true,
+        "work_mode_expected": "Remote",
+        "work_mode_actual": "Remote",
+        "work_mode_correct": true,
+        "employment_expected": null,
+        "employment_actual": null,
+        "employment_correct": null
+      },
+      {
+        "job_title": "Technical Product Manager",
+        "seniority_expected": "Lead",
+        "seniority_actual": "Lead",
+        "seniority_correct": true,
+        "work_mode_expected": "Remote",
+        "work_mode_actual": "Remote",
+        "work_mode_correct": true,
+        "employment_expected": null,
+        "employment_actual": null,
+        "employment_correct": null
+      },
+      {
+        "job_title": "Atutechs C Limited Job Recruitment (3 Positions)",
+        "seniority_expected": "Mid-Level",
+        "seniority_actual": "Mid-Level",
+        "seniority_correct": true,
+        "work_mode_expected": null,
+        "work_mode_actual": null,
+        "work_mode_correct": null,
+        "employment_expected": null,
+        "employment_actual": null,
+        "employment_correct": null
+      },
+      {
+        "job_title": "Associate Civil Engineer at Independent Project Monitoring Company Limited (IPMC)",
+        "seniority_expected": "Mid-Level",
+        "seniority_actual": "Mid-Level",
+        "seniority_correct": true,
+        "work_mode_expected": null,
+        "work_mode_actual": null,
+        "work_mode_correct": null,
+        "employment_expected": null,
+        "employment_actual": null,
+        "employment_correct": null
+      }
+    ]
+  },
+  "job_recommender": {
+    "model": "job_recommender",
+    "n_candidates": 5,
+    "n_jobs": 8,
+    "top1_accuracy": 1.0,
+    "mean_rank_of_best": 1.0,
+    "top1_correct": 5,
+    "component_coverage": {
+      "required_skills": 15,
+      "preferred_skills": 0,
+      "experience": 15,
+      "location_work_mode": 15
+    },
+    "per_candidate": [
+      {
+        "candidate": "Python Backend Dev",
+        "expected_best_job": "j1",
+        "actual_rank_of_best": 1,
+        "top3_jobs": [
+          {
+            "job_id": "j1",
+            "title": "Senior Python Developer",
+            "score": 1.0
+          },
+          {
+            "job_id": "j6",
+            "title": "Backend Go Developer",
+            "score": 0.588
+          },
+          {
+            "job_id": "j4",
+            "title": "ML Engineer",
+            "score": 0.541
+          }
+        ],
+        "top1_score": 1.0,
+        "score_range": [
+          0.206,
+          1.0
+        ]
+      },
+      {
+        "candidate": "Frontend React Dev",
+        "expected_best_job": "j2",
+        "actual_rank_of_best": 1,
+        "top3_jobs": [
+          {
+            "job_id": "j2",
+            "title": "React Frontend Developer",
+            "score": 1.0
+          },
+          {
+            "job_id": "j5",
+            "title": "Junior JavaScript Developer",
+            "score": 0.941
+          },
+          {
+            "job_id": "j7",
+            "title": "Data Analyst",
+            "score": 0.176
+          }
+        ],
+        "top1_score": 1.0,
+        "score_range": [
+          0.088,
+          1.0
+        ]
+      },
+      {
+        "candidate": "DevOps Engineer",
+        "expected_best_job": "j3",
+        "actual_rank_of_best": 1,
+        "top3_jobs": [
+          {
+            "job_id": "j3",
+            "title": "DevOps Lead",
+            "score": 0.971
+          },
+          {
+            "job_id": "j8",
+            "title": "Senior Cloud Architect",
+            "score": 0.765
+          },
+          {
+            "job_id": "j4",
+            "title": "ML Engineer",
+            "score": 0.512
+          }
+        ],
+        "top1_score": 0.971,
+        "score_range": [
+          0.206,
+          0.971
+        ]
+      },
+      {
+        "candidate": "Data Scientist",
+        "expected_best_job": "j4",
+        "actual_rank_of_best": 1,
+        "top3_jobs": [
+          {
+            "job_id": "j4",
+            "title": "ML Engineer",
+            "score": 0.847
+          },
+          {
+            "job_id": "j7",
+            "title": "Data Analyst",
+            "score": 0.588
+          },
+          {
+            "job_id": "j1",
+            "title": "Senior Python Developer",
+            "score": 0.324
+          }
+        ],
+        "top1_score": 0.847,
+        "score_range": [
+          0.1,
+          0.847
+        ]
+      },
+      {
+        "candidate": "Junior Full Stack",
+        "expected_best_job": "j5",
+        "actual_rank_of_best": 1,
+        "top3_jobs": [
+          {
+            "job_id": "j5",
+            "title": "Junior JavaScript Developer",
+            "score": 1.0
+          },
+          {
+            "job_id": "j2",
+            "title": "React Frontend Developer",
+            "score": 0.632
+          },
+          {
+            "job_id": "j7",
+            "title": "Data Analyst",
+            "score": 0.118
+          }
+        ],
+        "top1_score": 1.0,
+        "score_range": [
+          0.018,
+          1.0
+        ]
+      }
+    ]
+  },
+  "rag_retrieval": {
+    "status": "skipped"
+  },
+  "skill_normalizer": {
+    "model": "skill_normalizer",
+    "accuracy": 1.0,
+    "correct": 26,
+    "total": 26,
+    "batch_normalize_correct": true,
+    "failures": [],
+    "alias_count": 13
+  },
+  "skill_matcher": {
+    "model": "skill_matcher",
+    "match_accuracy": 1.0,
+    "score_accuracy": 1.0,
+    "correct_matches": 8,
+    "correct_scores": 8,
+    "total": 8,
+    "failures": []
+  }
+}
