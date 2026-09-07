@@ -8,6 +8,8 @@ class MarketInsights(BaseModel):
     jobs_added_this_week: int
     jobs_removed_this_week: int
     total_available_jobs: int
+    remote_count: int = 0
+    remote_pct: int = 0
     top_countries: list[dict]
     top_skills: list[dict]
     note: str = "Computed from real database aggregates. No forecasting/prediction is performed."
