@@ -69,4 +69,9 @@ def logout():
 
 @router.get("/me", response_model=UserOut)
 def me(current_user: User = Depends(get_current_user)):
-    return current_user
+    return {
+        "id": current_user.id,
+        "email": current_user.email,
+        "is_active": current_user.is_active,
+        "name": current_user.profile.name if current_user.profile else None,
+    }

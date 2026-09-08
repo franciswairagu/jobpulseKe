@@ -15,13 +15,13 @@ import {
 } from "lucide-react";
 import { COLORS, FONTS } from "../../lib/theme";
 import { useAppState } from "../../state/AppContext";
-import { useAuthActions } from "../../state/AuthContext";
+import { useAuth, useAuthActions } from "../../state/AuthContext";
 
 const NAV_ITEMS = [
   { key: "dashboard", label: "Dashboard", icon: LayoutDashboard },
   { key: "cv-analyzer", label: "CV Analyzer", icon: FileSearch },
   { key: "skill-demand", label: "Skill Demand", icon: TrendingUp },
-  { key: "career-insights", label: "Career Insights", icon: Compass, comingSoon: true },
+  { key: "career-insights", label: "Career Insights", icon: Compass },
   { key: "ai-assistant", label: "AI Assistant", icon: Sparkles },
 ];
 
@@ -66,7 +66,12 @@ function NavList({ activeKey, onNavigate, onItemClick }) {
 export default function AppShell({ activeKey, onNavigate, title, subtitle, children }) {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const { profile } = useAppState();
+  const { user } = useAuth();
   const { logout } = useAuthActions();
+
+  // Use actual user name from AuthContext, fallback to profile from AppContext
+  const userName = user?.name || profile?.name || "User";
+  const greeting = profile?.greeting || "Hello";
 
   return (
     <div className="flex min-h-screen w-full" style={{ background: COLORS.pageBg, fontFamily: FONTS.body }}>
@@ -121,7 +126,7 @@ export default function AppShell({ activeKey, onNavigate, title, subtitle, child
             </button>
             <div>
               <p className="text-base font-semibold sm:text-lg" style={{ color: COLORS.textDark, fontFamily: FONTS.display }}>
-                {title ?? `${profile.greeting}, ${profile.name}`}
+                {title ?? `${greeting}, ${userName}`}
               </p>
               {subtitle && <p className="hidden text-xs sm:block" style={{ color: COLORS.textSecondary }}>{subtitle}</p>}
             </div>
@@ -138,7 +143,7 @@ export default function AppShell({ activeKey, onNavigate, title, subtitle, child
               <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full" style={{ background: COLORS.warning }} />
             </button>
             <div className="flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold text-white" style={{ background: COLORS.deepBlue, fontFamily: FONTS.display }}>
-              {profile.name?.[0] ?? "U"}
+              {userName?.[0]?.toUpperCase() ?? "U"}
             </div>
           </div>
         </header>

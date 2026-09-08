@@ -6,7 +6,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from app.api import auth, cv, dashboard, jobs, rag, recommendations, system
+from app.api import auth, career_insights, cv, dashboard, jobs, rag, recommendations, system
 from app.core.config import get_settings
 from app.database import SessionLocal, init_db
 from app.ml.registry.registry import build_registry
@@ -128,3 +128,4 @@ app.include_router(recommendations.router)
 app.include_router(jobs.router)
 app.include_router(dashboard.router)
 app.include_router(rag.router)
+app.include_router(career_insights.router)

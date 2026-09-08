@@ -123,43 +123,140 @@ INTERVIEW_RESOURCES = {
     "default_coding": ("Coding Interview Practice", "Pramp", "https://www.pramp.com/", "45 min per session", "Peer mock interview"),
     "default_system_design": ("System Design Interview Prep", "Interviewing.io", "https://interviewing.io/", "60 min per session", "Anonymous mock interview"),
     "default_behavioral": ("Behavioral Interview Prep", "Interviewing.io", "https://interviewing.io/", "30 min per session", "Mock behavioral interview"),
+    "leetcode": ("LeetCode Problems", "LeetCode", "https://leetcode.com/problemset/all/", "Self-paced", "Solo coding practice"),
+    "hackerrank": ("HackerRank Challenges", "HackerRank", "https://www.hackerrank.com/domains", "Self-paced", "Solo coding practice"),
+    "codesignal": ("CodeSignal Practice", "CodeSignal", "https://codesignal.com/", "Self-paced", "Solo coding practice"),
+    "educative": ("System Design Courses", "Educative", "https://www.educative.io/courses/grokking-the-system-design-interview", "10 hours", "Guided course"),
+    "neetcode": ("NeetCode Roadmap", "NeetCode", "https://neetcode.io/roadmap", "Self-paced", "Curated problem sets"),
+    "stratascratch": ("Data Science Interviews", "StrataScratch", "https://www.stratascratch.com/", "Self-paced", "SQL & Python problems"),
+    "datalemur": ("SQL Interview Practice", "DataLemur", "https://datalemur.com/", "Self-paced", "SQL case studies"),
+    " interviewingio_anon": ("Anonymous Mock Interviews", "Interviewing.io", "https://interviewing.io/", "60 min per session", "Anonymous mock interview"),
+    "pramp_peer": ("Peer Mock Interviews", "Pramp", "https://www.pramp.com/", "45 min per session", "Peer mock interview"),
+    "candor": ("Salary Negotiation Prep", "Candor", "https://www.candor.co/", "Self-paced", "Negotiation coaching"),
+    "levels_fyi": ("Salary & Comp Data", "Levels.fyi", "https://www.levels.fyi/", "Self-paced", "Compensation research"),
+    "glassdoor": ("Interview Reviews", "Glassdoor", "https://www.glassdoor.com/Interview/", "Self-paced", "Company interview insights"),
 }
 
 
-def interview_practice_for_skill(skill: str) -> InterviewPracticeRecommendation:
+def interview_practice_for_skill(skill: str) -> list[InterviewPracticeRecommendation]:
+    """Return a list of interview practice resources for the given skill."""
     key = skill.lower()
+    results = []
+
     if key in {"python", "java", "javascript", "typescript", "c++", "c#", "go", "golang", "ruby", "php", "swift", "kotlin"}:
-        return InterviewPracticeRecommendation(
-            skill, f"Practice {skill} coding interviews", "Pramp",
+        results.append(InterviewPracticeRecommendation(
+            skill, f"Grind " + skill + " coding problems", "LeetCode",
+            "https://leetcode.com/problemset/all/", "Solve " + skill + " problems on LeetCode organized by difficulty and frequency.",
+            "Self-paced", "Solo practice",
+        ))
+        results.append(InterviewPracticeRecommendation(
+            skill, f"Peer mock " + skill + " interviews", "Pramp",
             "https://www.pramp.com/", "Schedule a timed peer mock interview focusing on data structures and algorithms in " + skill + ".",
             "45 min per session", "Peer mock interview",
-        )
-    if key in {"sql", "mysql", "postgresql", "mongodb", "redis"}:
-        return InterviewPracticeRecommendation(
-            skill, f"Practice {skill} query interviews", "Pramp",
-            "https://www.pramp.com/", "Solve SQL/database interview problems with a peer, then discuss optimal solutions.",
+        ))
+        results.append(InterviewPracticeRecommendation(
+            skill, f"Practice " + skill + " on HackerRank", "HackerRank",
+            "https://www.hackerrank.com/domains", "Complete " + skill + " algorithmic challenges and earn badges.",
+            "Self-paced", "Solo practice",
+        ))
+
+    elif key in {"sql", "mysql", "postgresql", "mongodb", "redis"}:
+        results.append(InterviewPracticeRecommendation(
+            skill, f"Solve " + skill + " case studies", "DataLemur",
+            "https://datalemur.com/", "Work through real-world SQL case studies from top tech companies.",
+            "Self-paced", "Solo practice",
+        ))
+        results.append(InterviewPracticeRecommendation(
+            skill, f"Practice " + skill + " interview questions", "StrataScratch",
+            "https://www.stratascratch.com/", "Solve SQL and database questions sourced from actual FAANG interviews.",
+            "Self-paced", "Solo practice",
+        ))
+        results.append(InterviewPracticeRecommendation(
+            skill, f"Peer mock " + skill + " interviews", "Pramp",
+            "https://www.pramp.com/", "Practice SQL query problems with a peer and discuss optimal solutions.",
             "30 min per session", "Peer mock interview",
-        )
-    if key in {"aws", "azure", "gcp", "docker", "kubernetes", "terraform", "ansible"}:
-        return InterviewPracticeRecommendation(
-            skill, f"Prepare for {skill} system design interviews", "Interviewing.io",
-            "https://interviewing.io/", "Book a system design mock interview and practice explaining architecture trade-offs.",
+        ))
+
+    elif key in {"aws", "azure", "gcp", "docker", "kubernetes", "terraform", "ansible"}:
+        results.append(InterviewPracticeRecommendation(
+            skill, f"Grok " + skill + " system design", "Educative",
+            "https://www.educative.io/courses/grokking-the-system-design-interview", "Take the Grokking System Design course covering cloud architecture patterns.",
+            "10 hours", "Guided course",
+        ))
+        results.append(InterviewPracticeRecommendation(
+            skill, f"Anonymous " + skill + " mock interviews", "Interviewing.io",
+            "https://interviewing.io/", "Book an anonymous system design mock interview and practice explaining architecture trade-offs.",
             "60 min per session", "Anonymous mock interview",
-        )
-    if key in {"react", "vue", "angular", "next.js", "nextjs", "django", "flask", "fastapi", "spring boot", "node.js", "nodejs"}:
-        return InterviewPracticeRecommendation(
-            skill, f"Practice {skill} project-based interviews", "Interviewing.io",
+        ))
+        results.append(InterviewPracticeRecommendation(
+            skill, f"Study " + skill + " interview prep", "Educative",
+            "https://www.educative.io/courses/grokking-the-system-design-interview", "Complete the " + skill + " specific modules on cloud architecture and infrastructure.",
+            "5-8 hours", "Self-paced course",
+        ))
+
+    elif key in {"react", "vue", "angular", "next.js", "nextjs", "django", "flask", "fastapi", "spring boot", "node.js", "nodejs"}:
+        results.append(InterviewPracticeRecommendation(
+            skill, f"Mock " + skill + " project interviews", "Interviewing.io",
             "https://interviewing.io/", "Walk through a " + skill + " project and explain design decisions in a mock interview.",
             "45 min per session", "Anonymous mock interview",
-        )
-    if key in {"machine learning", "deep learning", "tensorflow", "pytorch", "data science"}:
-        return InterviewPracticeRecommendation(
-            skill, f"Practice {skill} interview problems", "Pramp",
-            "https://www.pramp.com/", "Solve ML/coding problems and explain model selection reasoning with a peer.",
+        ))
+        results.append(InterviewPracticeRecommendation(
+            skill, f"Peer code review for " + skill, "Pramp",
+            "https://www.pramp.com/", "Practice live coding and code review sessions focused on " + skill + " projects.",
             "45 min per session", "Peer mock interview",
-        )
-    return InterviewPracticeRecommendation(
-        skill, f"Practice explaining {skill} in interviews", "Interviewing.io",
-        "https://interviewing.io/", "Book a mock interview and prepare concrete project examples using " + skill + ".",
-        "30 min per session", "Anonymous mock interview",
-    )
+        ))
+
+    elif key in {"machine learning", "deep learning", "tensorflow", "pytorch", "data science"}:
+        results.append(InterviewPracticeRecommendation(
+            skill, f"Solve " + skill + " interview problems", "StrataScratch",
+            "https://www.stratascratch.com/", "Solve ML and data science questions sourced from actual tech company interviews.",
+            "Self-paced", "Solo practice",
+        ))
+        results.append(InterviewPracticeRecommendation(
+            skill, f"Practice " + skill + " coding rounds", "LeetCode",
+            "https://leetcode.com/problemset/all/", "Focus on LeetCode's ML and algorithm sections for data science roles.",
+            "Self-paced", "Solo practice",
+        ))
+        results.append(InterviewPracticeRecommendation(
+            skill, f"Mock " + skill + " interviews", "Pramp",
+            "https://www.pramp.com/", "Practice explaining ML concepts and model selection reasoning with a peer.",
+            "45 min per session", "Peer mock interview",
+        ))
+
+    elif key in {"tableau", "power bi", "powerbi", "excel", "data analysis", "data analytics"}:
+        results.append(InterviewPracticeRecommendation(
+            skill, f"Practice " + skill + " case interviews", "StrataScratch",
+            "https://www.stratascratch.com/", "Work through data analysis case studies and practice presenting findings clearly.",
+            "Self-paced", "Solo practice",
+        ))
+        results.append(InterviewPracticeRecommendation(
+            skill, f"Solve " + skill + " SQL problems", "DataLemur",
+            "https://datalemur.com/", "Complete SQL case studies that test data analysis and visualization skills.",
+            "Self-paced", "Solo practice",
+        ))
+
+    elif key in {"agile", "scrum", "kanban"}:
+        results.append(InterviewPracticeRecommendation(
+            skill, f"Review " + skill + " interview questions", "Glassdoor",
+            "https://www.glassdoor.com/Interview/", "Review " + skill + " interview questions on Glassdoor and practice STAR-format answers.",
+            "Self-paced", "Self-paced prep",
+        ))
+        results.append(InterviewPracticeRecommendation(
+            skill, f"Study " + skill + " certification prep", "Coursera",
+            "https://www.coursera.org/learn/agile-atlassian-jira", "Complete the Agile with Atlassian Jira course to validate your " + skill + " knowledge.",
+            "4 weeks", "Guided course",
+        ))
+
+    else:
+        results.append(InterviewPracticeRecommendation(
+            skill, f"Practice explaining " + skill + " in interviews", "Interviewing.io",
+            "https://interviewing.io/", "Book a mock interview and prepare concrete project examples using " + skill + ".",
+            "30 min per session", "Anonymous mock interview",
+        ))
+        results.append(InterviewPracticeRecommendation(
+            skill, f"Review " + skill + " interview questions", "Glassdoor",
+            "https://www.glassdoor.com/Interview/", "Search for " + skill + " interview questions and company reviews on Glassdoor.",
+            "Self-paced", "Self-paced prep",
+        ))
+
+    return results

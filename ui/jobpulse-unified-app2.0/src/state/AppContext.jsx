@@ -14,7 +14,7 @@ function loadInitialCV() {
 }
 
 const initialState = {
-  profile: { name: "Alvin", greeting: "Good morning" },
+  profile: { name: "", greeting: "Hello" },
   cvAnalysis: loadInitialCV(),
   savedJobIds: [],
   filters: { region: "All Africa", period: "Last 6 months" },
@@ -38,6 +38,8 @@ function reducer(state, action) {
     }
     case "SET_FILTERS":
       return { ...state, filters: { ...state.filters, ...action.payload } };
+    case "SET_PROFILE":
+      return { ...state, profile: { ...state.profile, ...action.payload } };
     default:
       return state;
   }
