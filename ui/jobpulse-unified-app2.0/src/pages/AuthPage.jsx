@@ -17,17 +17,17 @@ export default function AuthPage() {
     setError(null);
     setLoading(true);
     try {
+      let tokens;
       if (mode === "register") {
-        const tokens = await registerUser({ name, email, password });
-        login({ token: tokens.access_token, refreshToken: tokens.refresh_token });
+        tokens = await registerUser({ name, email, password });
       } else {
-        const tokens = await loginUser({ email, password });
-        login({ token: tokens.access_token, refreshToken: tokens.refresh_token });
+        tokens = await loginUser({ email, password });
       }
-      // Fetch user profile
+      login({ token: tokens.access_token, refreshToken: tokens.refresh_token });
+      // Fetch user profile using the token directly (not from localStorage)
       try {
         const me = await fetch("/api/auth/me", {
-          headers: { Authorization: `Bearer ${localStorage.getItem("jobpulse_auth") ? JSON.parse(localStorage.getItem("jobpulse_auth")).token : ""}` },
+          headers: { Authorization: `Bearer ${tokens.access_token}` },
         }).then((r) => r.json());
         setUser(me);
       } catch {}

@@ -93,6 +93,9 @@ def ingest_jobs_from_dataframe(db: Session, df: pd.DataFrame, source_default: st
             title = str(row.get("job_title") or job.title or "")
             title_skills = extractor.extract_skills(title)
             found_skills |= {s for group in title_skills.values() for s in group}
+            # Extract role-based skills from title (e.g. "Data Scientist" -> machine learning, data science)
+            title_role_skills = extractor.extract_title_skills(title)
+            found_skills |= {s for group in title_role_skills.values() for s in group}
             existing_links = {link.skill.name for link in job.skill_links if link.skill}
             for skill_name in found_skills - existing_links:
                 skill = _get_or_create_skill(db, skill_name)

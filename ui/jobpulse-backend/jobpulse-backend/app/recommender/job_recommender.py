@@ -120,7 +120,9 @@ class JobRecommender:
         for recommendation in recommendations:
             if recommendation.days_to_deadline is not None and 0 <= recommendation.days_to_deadline <= 7:
                 interview_skills.update(recommendation.matched_skills)
-        practice = [interview_practice_for_skill(skill) for skill in sorted(interview_skills)[:5]]
+        practice = []
+        for skill in sorted(interview_skills)[:5]:
+            practice.extend(interview_practice_for_skill(skill))
         return RecommendationResult(candidate, recommendations, courses[:5], practice)
 
     @staticmethod
