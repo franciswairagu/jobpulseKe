@@ -29,3 +29,11 @@ data/exports/
 # deliverables and are committed intentionally. If you also want to keep
 # the timestamped report CSVs out, uncomment the next line:
 # reports/*.csv
+
+# ---- Node dependencies ----
+node_modules/
+**/node_modules/
+
+# ---- Node dependencies ----
+node_modules/
+**/node_modules/
