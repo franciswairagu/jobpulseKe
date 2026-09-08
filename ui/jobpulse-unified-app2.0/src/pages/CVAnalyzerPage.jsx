@@ -8,6 +8,8 @@ import EmptyState from "../components/shared/EmptyState";
 import RecommendedJobsPanel from "../components/jobs/RecommendedJobsPanel";
 import CareerPathsPanel from "../components/career/CareerPathsPanel";
 import OpportunityUnlockCard from "../components/skills/OpportunityUnlockCard";
+import CourseRecommendations from "../components/recommendations/CourseRecommendations";
+import InterviewPrepPanel from "../components/recommendations/InterviewPrepPanel";
 
 const MAX_SIZE_MB = 10;
 const ACCEPTED_EXT = [".pdf", ".docx"];
@@ -112,6 +114,7 @@ const TABS = [
   { key: "overview", label: "Overview" },
   { key: "jobs", label: "Recommended Jobs" },
   { key: "gaps", label: "Skill Gaps" },
+  { key: "learn", label: "Courses & Prep" },
   { key: "careers", label: "Career Paths" },
 ];
 
@@ -154,7 +157,7 @@ function OverviewTab({ analysis, onGoToJobs, onGoToTab, onAddLearningGoal }) {
                   <span className="text-sm font-semibold" style={{ color: COLORS.textDark }}>{skill.name}</span>
                   <span className="rounded-full px-2 py-0.5 text-[10px] font-semibold" style={{ background: PRIORITY_STYLES[skill.priority].bg, color: PRIORITY_STYLES[skill.priority].fg }}>{skill.priority}</span>
                 </div>
-                <button onClick={() => onGoToTab("gaps")} className="text-xs font-semibold" style={{ color: COLORS.deepBlue }}>Details</button>
+                <button onClick={() => onGoToTab("learn")} className="text-xs font-semibold" style={{ color: COLORS.deepBlue }}>Find courses</button>
               </div>
             ))}
           </div>
@@ -166,7 +169,7 @@ function OverviewTab({ analysis, onGoToJobs, onGoToTab, onAddLearningGoal }) {
   );
 }
 
-function SkillGapsTab({ analysis, onAddLearningGoal }) {
+function SkillGapsTab({ analysis, onAddLearningGoal, onGoToTab }) {
   return (
     <div className="flex flex-col gap-6">
       <div className="rounded-2xl border p-5 sm:p-6 lg:col-span-3" style={{ borderColor: COLORS.border, background: "#fff" }}>
@@ -184,8 +187,8 @@ function SkillGapsTab({ analysis, onAddLearningGoal }) {
                   Demand {skill.demand}% · {skill.postings.toLocaleString()} postings · {skill.difficulty} difficulty
                 </p>
               </div>
-              <button onClick={() => onAddLearningGoal(skill)} className="rounded-lg border px-3.5 py-1.5 text-xs font-semibold" style={{ borderColor: COLORS.deepBlue, color: COLORS.deepBlue }}>
-                Add to learning goals
+              <button onClick={() => onGoToTab("learn")} className="rounded-lg border px-3.5 py-1.5 text-xs font-semibold" style={{ borderColor: COLORS.deepBlue, color: COLORS.deepBlue }}>
+                Find courses
               </button>
             </div>
           ))}
@@ -283,7 +286,13 @@ export default function CVAnalyzerPage() {
             {activeTab === "jobs" && (
               <RecommendedJobsPanel cvAnalysis={cvAnalysis} initialFocusSkill={jobSearchFocus} onAddLearningGoal={() => {}} />
             )}
-            {activeTab === "gaps" && <SkillGapsTab analysis={cvAnalysis} onAddLearningGoal={() => {}} />}
+            {activeTab === "gaps" && <SkillGapsTab analysis={cvAnalysis} onAddLearningGoal={() => {}} onGoToTab={goToTab} />}
+            {activeTab === "learn" && (
+              <div className="flex flex-col gap-6">
+                <CourseRecommendations missingSkills={cvAnalysis.missingSkills} />
+                <InterviewPrepPanel foundSkills={cvAnalysis.foundSkills} />
+              </div>
+            )}
             {activeTab === "careers" && <CareerPathsPanel cvAnalysis={cvAnalysis} />}
           </div>
         )}

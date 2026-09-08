@@ -59,7 +59,12 @@ export function computeJobMatch(job, jobSkillNames, cvAnalysis) {
   const overlap = jobSkillNames.filter((s) => foundSet.has(s));
   const missing = jobSkillNames.filter((s) => !foundSet.has(s));
 
-  const skillMatch = jobSkillNames.length ? Math.round((overlap.length / jobSkillNames.length) * 100) : 100;
+  let skillMatch;
+  if (jobSkillNames.length === 0) {
+    skillMatch = 0;
+  } else {
+    skillMatch = Math.round((overlap.length / jobSkillNames.length) * 100);
+  }
   // Deterministic stand-ins for experience/education/location match - a real
   // implementation compares the parsed CV profile against job requirements.
   const experienceMatch = Math.min(100, 60 + cvAnalysis.profile.yearsExperience * 6);

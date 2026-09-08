@@ -10,6 +10,8 @@ class RecommendationOut(BaseModel):
     url: str | None
     provider: str | None
     score: float | None
+    duration: str | None = None
+    difficulty: str | None = None
 
     class Config:
         from_attributes = True

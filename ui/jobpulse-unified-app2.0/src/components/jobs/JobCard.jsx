@@ -55,11 +55,6 @@ export default function JobCard({ job, saved, onToggleSave, onOpenDetails }) {
             );
           })}
         </div>
-
-        <p className="mt-4 text-sm font-semibold" style={{ color: COLORS.textDark, fontFamily: FONTS.display }}>
-          ${job.salaryMin.toLocaleString()} – ${job.salaryMax.toLocaleString()}
-          <span className="text-xs font-normal" style={{ color: COLORS.textSecondary }}> /month</span>
-        </p>
       </div>
 
       <div className="mt-5 flex gap-2">
