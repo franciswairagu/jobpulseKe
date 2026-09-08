@@ -13,10 +13,6 @@ class JobOut(BaseModel):
     remote: bool
     work_mode: str | None
     employment_type: str | None
-    salary_min: float | None
-    salary_max: float | None
-    currency: str | None
-    salary_reliable: bool
     source: str
     source_url: str | None
     posted_at: date | None
@@ -58,7 +54,6 @@ class SkillDemandOut(BaseModel):
     skill: str
     demand: int
     jobs: int
-    avgSalary: float = 0
     role: str = ""
     growth: int = 0
     status: str = "Stable"

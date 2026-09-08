@@ -12,7 +12,6 @@ def _sample_job_row(**overrides):
         "job_description": "Python, Django, PostgreSQL, AWS. 3 years experience required.",
         "location": "Nairobi", "country": "Kenya", "work_mode": "Hybrid",
         "remote_eligible": 0, "employment_type": "Full-time",
-        "salary": "KSh 120,000 - 180,000", "currency": "",
         "date_posted": "2026-08-20", "application_deadline": "2026-09-30",
         "vacancy_url": "https://example.com/job/1",
     }
@@ -20,15 +19,13 @@ def _sample_job_row(**overrides):
     return row
 
 
-def test_ingest_creates_job_with_parsed_salary_and_skills(db_session):
+def test_ingest_creates_job_with_skills(db_session):
     df = pd.DataFrame([_sample_job_row()])
     result = ingest_jobs_from_dataframe(db_session, df)
     assert result["created"] == 1
 
     job = db_session.query(Job).filter(Job.source_job_id == "mjm-1").first()
     assert job is not None
-    assert job.salary_min == 120000.0
-    assert job.salary_reliable is True
     assert job.status == JobStatus.AVAILABLE
     skill_names = {link.skill.name for link in job.skill_links}
     assert "python" in skill_names

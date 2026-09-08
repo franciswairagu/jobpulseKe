@@ -6,7 +6,6 @@ import Dropdown from "../shared/Dropdown";
 const SORT_OPTIONS = [
   { key: "match", label: "Best matches" },
   { key: "recent", label: "Most recent" },
-  { key: "salary", label: "Highest salary" },
   { key: "fewestGaps", label: "Fewest skill gaps" },
 ];
 

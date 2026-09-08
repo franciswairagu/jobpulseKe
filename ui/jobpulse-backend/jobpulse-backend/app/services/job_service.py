@@ -11,7 +11,6 @@ from app.ml.preprocessing.skill_extractor import get_extractor
 from app.models.enums import JobStatus
 from app.models.job import Job, JobSkill, JobStatusHistory
 from app.models.skill import Skill
-from app.services.salary_parser import parse_salary
 
 
 def _get_or_create_skill(db: Session, name: str) -> Skill:
@@ -39,8 +38,8 @@ def _parse_date(value) -> date | None:
 def ingest_jobs_from_dataframe(db: Session, df: pd.DataFrame, source_default: str = "pipeline_import") -> dict:
     """
     Maps the JobPulseKE pipeline's STANDARD_COLUMNS schema
-    (job_id, source, job_title, job_description, salary, currency,
-    date_posted, ...) onto the backend's Job/JobSkill tables.
+    (job_id, source, job_title, job_description, date_posted, ...)
+    onto the backend's Job/JobSkill tables.
     """
     extractor = get_extractor()
     created, updated, skipped = 0, 0, 0
@@ -62,7 +61,6 @@ def ingest_jobs_from_dataframe(db: Session, df: pd.DataFrame, source_default: st
                 job = Job(source=source, source_job_id=source_job_id, status=JobStatus.UNKNOWN)
 
             description = str(row.get("job_description") or "")
-            salary_min, salary_max, currency, reliable = parse_salary(row.get("salary"), row.get("currency"))
 
             job.title = str(row.get("job_title") or job.title or "").strip()[:255]
             job.company = str(row.get("company") or "").strip()[:255] or None
@@ -72,10 +70,6 @@ def ingest_jobs_from_dataframe(db: Session, df: pd.DataFrame, source_default: st
             job.remote = bool(row.get("remote_eligible")) if row.get("remote_eligible") not in (None, "") else False
             job.work_mode = str(row.get("work_mode") or "").strip()[:50] or None
             job.employment_type = str(row.get("employment_type") or "").strip()[:50] or None
-            job.salary_min = salary_min
-            job.salary_max = salary_max
-            job.currency = currency
-            job.salary_reliable = reliable
             job.source_url = str(row.get("vacancy_url") or "").strip()[:1000] or None
             job.posted_at = _parse_date(row.get("date_posted"))
             job.expires_at = _parse_date(row.get("application_deadline"))
@@ -95,6 +89,10 @@ def ingest_jobs_from_dataframe(db: Session, df: pd.DataFrame, source_default: st
 
             extracted = extractor.extract_skills(description)
             found_skills = {s for group in extracted.values() for s in group}
+            # Also extract from title (many descriptions are empty)
+            title = str(row.get("job_title") or job.title or "")
+            title_skills = extractor.extract_skills(title)
+            found_skills |= {s for group in title_skills.values() for s in group}
             existing_links = {link.skill.name for link in job.skill_links if link.skill}
             for skill_name in found_skills - existing_links:
                 skill = _get_or_create_skill(db, skill_name)

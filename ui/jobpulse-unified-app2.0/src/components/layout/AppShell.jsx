@@ -4,7 +4,6 @@ import {
   FileSearch,
   TrendingUp,
   Compass,
-  DollarSign,
   Sparkles,
   Settings,
   LogOut,
@@ -16,14 +15,14 @@ import {
 } from "lucide-react";
 import { COLORS, FONTS } from "../../lib/theme";
 import { useAppState } from "../../state/AppContext";
+import { useAuthActions } from "../../state/AuthContext";
 
 const NAV_ITEMS = [
   { key: "dashboard", label: "Dashboard", icon: LayoutDashboard },
   { key: "cv-analyzer", label: "CV Analyzer", icon: FileSearch },
   { key: "skill-demand", label: "Skill Demand", icon: TrendingUp },
   { key: "career-insights", label: "Career Insights", icon: Compass, comingSoon: true },
-  { key: "salary-insights", label: "Salary Insights", icon: DollarSign, comingSoon: true },
-  { key: "ai-assistant", label: "AI Assistant", icon: Sparkles, comingSoon: true },
+  { key: "ai-assistant", label: "AI Assistant", icon: Sparkles },
 ];
 
 function NavList({ activeKey, onNavigate, onItemClick }) {
@@ -67,6 +66,7 @@ function NavList({ activeKey, onNavigate, onItemClick }) {
 export default function AppShell({ activeKey, onNavigate, title, subtitle, children }) {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const { profile } = useAppState();
+  const { logout } = useAuthActions();
 
   return (
     <div className="flex min-h-screen w-full" style={{ background: COLORS.pageBg, fontFamily: FONTS.body }}>
@@ -87,8 +87,8 @@ export default function AppShell({ activeKey, onNavigate, title, subtitle, child
         </div>
 
         <div className="flex flex-col gap-1 border-t pt-4" style={{ borderColor: "rgba(255,255,255,0.1)" }}>
-          {[{ label: "Profile", icon: User }, { label: "Settings", icon: Settings }, { label: "Logout", icon: LogOut }].map(({ label, icon: Icon }) => (
-            <button key={label} className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm transition-colors" style={{ color: "rgba(234,243,250,0.65)" }}>
+          {[{ label: "Profile", icon: User }, { label: "Settings", icon: Settings }, { label: "Logout", icon: LogOut, onClick: logout }].map(({ label, icon: Icon, onClick }) => (
+            <button key={label} onClick={onClick} className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm transition-colors" style={{ color: "rgba(234,243,250,0.65)" }}>
               <Icon size={17} strokeWidth={2} />
               {label}
             </button>

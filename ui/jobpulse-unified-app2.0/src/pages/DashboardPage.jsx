@@ -101,12 +101,6 @@ export default function DashboardPage({ onNavigate }) {
             <ArrowUpRight size={13} /> +{snapshot.fastestGrowingSkill.growthRate}% this period
           </div>
         </div>
-        <div className="rounded-2xl border p-5" style={{ borderColor: COLORS.border, background: "#fff" }}>
-          <p className="text-xs font-medium" style={{ color: COLORS.textSecondary }}>Average tech salary</p>
-          <p className="mt-2 text-2xl font-semibold" style={{ color: COLORS.textDark, fontFamily: FONTS.display }}>
-            ${snapshot.avgSalary.toLocaleString()}<span className="text-sm font-medium" style={{ color: COLORS.textSecondary }}>/mo</span>
-          </p>
-        </div>
         <div className="rounded-2xl border p-5" style={{ borderColor: COLORS.border, background: COLORS.lightBlue }}>
           <p className="text-xs font-medium" style={{ color: COLORS.deepBlue }}>Remote opportunities</p>
           <p className="mt-2 text-2xl font-semibold" style={{ color: COLORS.textDark, fontFamily: FONTS.display }}>{snapshot.remotePct}%</p>
