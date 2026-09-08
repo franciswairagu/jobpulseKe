@@ -23,14 +23,6 @@ class Job(Base):
     work_mode: Mapped[str | None] = mapped_column(String(50), nullable=True)
     employment_type: Mapped[str | None] = mapped_column(String(50), nullable=True)
 
-    salary_min: Mapped[float | None] = mapped_column(Float, nullable=True)
-    salary_max: Mapped[float | None] = mapped_column(Float, nullable=True)
-    currency: Mapped[str | None] = mapped_column(String(10), nullable=True)
-    # KNOWN OPEN BUG (per pipeline notes): currency detection doesn't
-    # recognize African currency prefixes (Naira/KSh), so parsed salary
-    # values are flagged unreliable until that bug is fixed upstream.
-    salary_reliable: Mapped[bool] = mapped_column(Boolean, default=False)
-
     source: Mapped[str] = mapped_column(String(50), index=True)
     source_job_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
     source_url: Mapped[str | None] = mapped_column(String(1000), nullable=True)

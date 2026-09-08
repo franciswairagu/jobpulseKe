@@ -37,11 +37,6 @@ export default function JobDetailsModal({ job, onClose, onAddLearningGoal }) {
           <button onClick={onClose}><X size={18} style={{ color: COLORS.textSecondary }} /></button>
         </div>
 
-        <p className="mb-1 text-sm font-semibold" style={{ color: COLORS.textDark, fontFamily: FONTS.display }}>
-          ${job.salaryMin.toLocaleString()} – ${job.salaryMax.toLocaleString()}
-          <span className="text-xs font-normal" style={{ color: COLORS.textSecondary }}> /month</span>
-        </p>
-
         <div className="mt-3 flex flex-wrap gap-1.5">
           {job.skillNames.map((s) => (
             <span key={s} className="rounded-full px-2.5 py-1 text-[11px] font-medium" style={{ background: "#F1F4F9", color: COLORS.textDark }}>{s}</span>

@@ -23,6 +23,8 @@ def _to_out(rec: Recommendation) -> RecommendationOut:
         url=rec.url,
         provider=rec.provider,
         score=rec.score,
+        duration=rec.duration,
+        difficulty=rec.difficulty,
     )
 
 
