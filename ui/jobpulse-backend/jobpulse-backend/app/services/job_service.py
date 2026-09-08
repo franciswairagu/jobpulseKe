@@ -67,8 +67,17 @@ def ingest_jobs_from_dataframe(db: Session, df: pd.DataFrame, source_default: st
             job.description = description[:65535] or None
             job.country = str(row.get("country") or "").strip()[:100] or None
             job.city = str(row.get("location") or "").strip()[:100] or None
-            job.remote = bool(row.get("remote_eligible")) if row.get("remote_eligible") not in (None, "") else False
-            job.work_mode = str(row.get("work_mode") or "").strip()[:50] or None
+            
+            # Determine remote status from work_mode or remote_scope
+            work_mode = str(row.get("work_mode") or "").strip().lower()
+            remote_scope = str(row.get("remote_scope") or "").strip().lower()
+            job.remote = (
+                work_mode in ("remote", "hybrid") or 
+                remote_scope in ("global", "africa-wide") or
+                bool(row.get("remote_eligible"))
+            )
+            
+            job.work_mode = work_mode[:50] or None
             job.employment_type = str(row.get("employment_type") or "").strip()[:50] or None
             job.source_url = str(row.get("vacancy_url") or "").strip()[:1000] or None
             job.posted_at = _parse_date(row.get("date_posted"))

@@ -27,23 +27,33 @@ fi
 
 cd "$BACKEND_DIR"
 
-if [ ! -d "venv" ] && [ ! -d ".venv" ]; then
-  echo "  No virtualenv found. Installing dependencies..."
-  python3 -m venv venv
+# Use conda deepLearning env if available, otherwise use .venv
+if command -v conda &> /dev/null && conda env list | grep -q deepLearning; then
+  echo "  Using conda deepLearning environment"
+  eval "$(conda shell.bash hook)"
+  conda activate deepLearning
+elif [ -d ".venv" ]; then
+  echo "  Using .venv environment"
+  source .venv/bin/activate
+elif [ -d "venv" ]; then
+  echo "  Using venv environment"
   source venv/bin/activate
-  pip install -r requirements.txt --quiet
 else
-  VENV_DIR="venv"
-  [ -d ".venv" ] && VENV_DIR=".venv"
-  source "$VENV_DIR/bin/activate"
+  echo "  No virtualenv found. Creating .venv..."
+  python3 -m venv .venv
+  source .venv/bin/activate
+  pip install -r requirements.txt --quiet
 fi
 
 # Use SQLite by default if no DATABASE_URL is set
-export DATABASE_URL="${DATABASE_URL:-sqlite:///./dev.db}"
+export DATABASE_URL="${DATABASE_URL:-sqlite:///./jobpulse.db}"
 export SECRET_KEY="${SECRET_KEY:-dev-secret-change-in-production}"
 
 uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload &
 BACKEND_PID=$!
+
+# Wait for backend to start
+sleep 3
 
 # --- Frontend ---
 echo "[2/2] Starting frontend (React + Vite on :5173)..."
@@ -54,13 +64,16 @@ fi
 
 cd "$FRONTEND_DIR"
 
-if [ ! -d "node_modules" ]; then
-  echo "  No node_modules found. Installing dependencies..."
-  npm install --silent
+if [ ! -d "node_modules" ] || [ ! -f "node_modules/.package-lock.json" ]; then
+  echo "  Installing npm dependencies..."
+  npm install
 fi
 
 npm run dev &
 FRONTEND_PID=$!
+
+# Wait for frontend to start
+sleep 3
 
 echo ""
 echo "Services running:"
