@@ -10,7 +10,6 @@ def _job_row(**overrides):
         "job_description": "Python, Django, PostgreSQL, AWS required. 3 years experience.",
         "location": "Nairobi", "country": "Kenya", "work_mode": "Hybrid",
         "remote_eligible": 0, "employment_type": "Full-time",
-        "salary": "KSh 120,000 - 180,000", "currency": "",
         "date_posted": "2026-08-20", "application_deadline": "2026-09-30",
         "vacancy_url": "https://example.com/job/1",
     }

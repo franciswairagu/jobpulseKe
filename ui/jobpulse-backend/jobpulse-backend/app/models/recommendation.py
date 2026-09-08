@@ -24,6 +24,8 @@ class Recommendation(Base):
     related_skill: Mapped[str | None] = mapped_column(String(150), nullable=True)
     priority: Mapped[RecommendationPriority] = mapped_column(Enum(RecommendationPriority), default=RecommendationPriority.MEDIUM)
     score: Mapped[float | None] = mapped_column(Float, nullable=True)
+    duration: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    difficulty: Mapped[str | None] = mapped_column(String(50), nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
