@@ -1,0 +1,56 @@
+
+services:
+  backend:
+    build:
+      context: ./ui/jobpulse-backend/jobpulse-backend
+      dockerfile: Dockerfile
+    container_name: jobpulse-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=${DATABASE_URL:-sqlite:///./jobpulse.db}
+      - SECRET_KEY=${SECRET_KEY:-change-me-in-production}
+      - CORS_ORIGINS=${CORS_ORIGINS:-["http://localhost","http://localhost:80"]}
+      - ENVIRONMENT=${ENVIRONMENT:-production}
+    volumes:
+      - backend-data:/app/data
+      - backend-db:/app
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/docs')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    networks:
+      - jobpulse-network
+
+  frontend:
+    build:
+      context: ./ui/jobpulse-unified-app2.0
+      dockerfile: Dockerfile
+    container_name: jobpulse-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - jobpulse-network
+
+volumes:
+  backend-data:
+    driver: local
+  backend-db:
+    driver: local
+
+networks:
+  jobpulse-network:
+    driver: bridge
