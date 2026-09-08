@@ -30,7 +30,7 @@ export default function CareerPathsPanel({ cvAnalysis }) {
             </span>
           </div>
           <p className="mt-1 text-xs" style={{ color: COLORS.textSecondary }}>
-            {path.jobCount} open role{path.jobCount === 1 ? "" : "s"} · ${path.salaryMin.toLocaleString()}–${path.salaryMax.toLocaleString()}/mo
+            {path.jobCount} open role{path.jobCount === 1 ? "" : "s"}
           </p>
 
           <div className="mt-3">

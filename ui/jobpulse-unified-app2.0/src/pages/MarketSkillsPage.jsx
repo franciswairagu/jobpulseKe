@@ -69,7 +69,6 @@ export default function MarketSkillsPage() {
                     <th className="cursor-pointer px-5 py-3 text-xs font-medium" style={{ color: COLORS.textSecondary }} onClick={() => setSortKey("demand")}>Demand {sortKey === "demand" && "\u2193"}</th>
                     <th className="cursor-pointer px-5 py-3 text-xs font-medium" style={{ color: COLORS.textSecondary }} onClick={() => setSortKey("growth")}>Growth {sortKey === "growth" && "\u2193"}</th>
                     <th className="cursor-pointer px-5 py-3 text-xs font-medium" style={{ color: COLORS.textSecondary }} onClick={() => setSortKey("jobs")}>Jobs {sortKey === "jobs" && "\u2193"}</th>
-                    <th className="cursor-pointer px-5 py-3 text-xs font-medium" style={{ color: COLORS.textSecondary }} onClick={() => setSortKey("avgSalary")}>Avg salary {sortKey === "avgSalary" && "\u2193"}</th>
                     <th className="px-5 py-3 text-xs font-medium" style={{ color: COLORS.textSecondary }}>Popular role</th>
                     <th className="px-5 py-3 text-xs font-medium" style={{ color: COLORS.textSecondary }}>Trend</th>
                   </tr>
@@ -88,7 +87,6 @@ export default function MarketSkillsPage() {
                           </span>
                         </td>
                         <td className="px-5 py-4" style={{ color: COLORS.textDark }}>{row.jobs.toLocaleString()}</td>
-                        <td className="px-5 py-4" style={{ color: COLORS.textDark }}>${row.avgSalary.toLocaleString()}</td>
                         <td className="px-5 py-4" style={{ color: COLORS.textSecondary }}>{row.role}</td>
                         <td className="px-5 py-4">
                           <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium" style={{ background: bg, color: fg }}>
@@ -99,7 +97,7 @@ export default function MarketSkillsPage() {
                     );
                   })}
                   {data.skills.length === 0 && (
-                    <tr><td colSpan={7} className="px-5 py-10 text-center text-sm" style={{ color: COLORS.textSecondary }}>No skills match "{query}".</td></tr>
+                    <tr><td colSpan={6} className="px-5 py-10 text-center text-sm" style={{ color: COLORS.textSecondary }}>No skills match "{query}".</td></tr>
                   )}
                 </tbody>
               </table>

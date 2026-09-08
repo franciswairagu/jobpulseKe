@@ -29,8 +29,7 @@ def _to_job_out(job: Job) -> JobOut:
     return JobOut(
         id=job.id, title=job.title, company=job.company, country=job.country, city=job.city,
         remote=job.remote, work_mode=job.work_mode, employment_type=job.employment_type,
-        salary_min=job.salary_min, salary_max=job.salary_max, currency=job.currency,
-        salary_reliable=job.salary_reliable, source=job.source, source_url=job.source_url,
+        source=job.source, source_url=job.source_url,
         posted_at=job.posted_at, expires_at=job.expires_at, status=job.status.value,
         required_skills=required, preferred_skills=preferred,
     )
@@ -133,14 +132,21 @@ def skill_demand(
     limit: int = Query(50, ge=1, le=200),
     db: Session = Depends(get_db),
 ):
-    total_available = db.query(Job).filter(Job.status == JobStatus.AVAILABLE).count() or 1
+    # Denominator = jobs that have at least one skill, for meaningful percentages
+    skilled_q = (
+        db.query(func.count(func.distinct(Job.id)))
+        .join(JobSkill, JobSkill.job_id == Job.id)
+        .filter(Job.status == JobStatus.AVAILABLE)
+    )
+    if country and country != "All countries":
+        skilled_q = skilled_q.filter(func.lower(Job.country) == country.lower())
+    total_skilled = skilled_q.scalar() or 1
 
     q = (
         db.query(
             Skill.name.label("skill_name"),
             func.count(JobSkill.id).label("demand"),
             func.count(func.distinct(Job.id)).label("job_count"),
-            func.coalesce(func.avg(Job.salary_min), 0).label("avg_salary"),
         )
         .join(JobSkill, JobSkill.skill_id == Skill.id)
         .join(Job, Job.id == JobSkill.job_id)
@@ -158,14 +164,13 @@ def skill_demand(
 
     skills = []
     for row in rows:
-        demand_pct = round((row.demand / total_available) * 100)
-        avg_sal = round(row.avg_salary) if row.avg_salary else 0
+        demand_pct = round((row.job_count / total_skilled) * 100)
+        # Growth: positive if above median demand, negative if below
         status_label = "Growing" if demand_pct >= 10 else "Stable"
         skills.append(SkillDemandOut(
             skill=row.skill_name,
             demand=demand_pct,
             jobs=row.job_count,
-            avgSalary=avg_sal,
             role=row.skill_name,
             growth=0,
             status=status_label,
