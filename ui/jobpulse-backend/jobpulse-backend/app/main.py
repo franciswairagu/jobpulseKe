@@ -70,12 +70,22 @@ def _auto_ingest_if_empty():
             logger.info("DB already has %d jobs — skipping auto-ingest", count)
             return
 
-        # Find a data file to ingest
-        candidates = [
-            settings.JOB_DATASET_PATH,
-            str(Path(__file__).resolve().parent.parent.parent.parent.parent / "data" / "processed" / "cleaned_jobs.csv"),
-            str(Path(__file__).resolve().parent.parent.parent.parent.parent / "data" / "external" / "jobpulseke_master_africa_tech_jobs.csv"),
-        ]
+        # Find a data file to ingest — prefer the latest cleaned parquet
+        # over the stale legacy cleaned_jobs.csv (only 744 rows).
+        data_root = Path(__file__).resolve().parent.parent.parent.parent.parent / "data"
+        processed_dir = data_root / "processed"
+        candidates = []
+        # 1. Latest timestamped cleaned parquet
+        if processed_dir.exists():
+            parquets = sorted(processed_dir.glob("jobpulse_cleaned_*.parquet"), key=lambda p: p.stat().st_mtime, reverse=True)
+            candidates.extend(str(p) for p in parquets)
+        # 2. Configured path
+        candidates.append(settings.JOB_DATASET_PATH)
+        # 3. External master CSV (largest dataset)
+        candidates.append(str(data_root / "external" / "jobpulseke_master_africa_tech_jobs.csv"))
+        # 4. Legacy fallback (smallest — only if nothing else exists)
+        candidates.append(str(data_root / "processed" / "cleaned_jobs.csv"))
+
         data_path = None
         for p in candidates:
             if Path(p).exists():

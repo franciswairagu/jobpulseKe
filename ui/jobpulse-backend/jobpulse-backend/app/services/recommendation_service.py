@@ -96,6 +96,8 @@ def generate_recommendations(db: Session, user: User, resume_analysis: ResumeAna
             related_skill=course.skill,
             priority=priority,
             score=round(course.priority, 3),
+            duration=course.duration,
+            difficulty=course.difficulty,
         )
         db.add(rec)
         persisted.append(rec)
@@ -112,6 +114,8 @@ def generate_recommendations(db: Session, user: User, resume_analysis: ResumeAna
             related_skill=practice.skill,
             priority=RecommendationPriority.MEDIUM,
             score=None,
+            duration=practice.duration,
+            difficulty=practice.format,
         )
         db.add(rec)
         persisted.append(rec)
