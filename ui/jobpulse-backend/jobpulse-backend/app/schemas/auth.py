@@ -28,6 +28,7 @@ class UserOut(BaseModel):
     id: uuid.UUID
     email: EmailStr
     is_active: bool
+    name: str | None = None
 
     class Config:
         from_attributes = True

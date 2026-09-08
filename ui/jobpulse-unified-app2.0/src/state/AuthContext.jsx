@@ -36,7 +36,7 @@ export function AuthProvider({ children }) {
     if (state.token) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     }
-  }, [state]);
+  }, [state.token, state.user]);
 
   return (
     <AuthContext.Provider value={state}>
