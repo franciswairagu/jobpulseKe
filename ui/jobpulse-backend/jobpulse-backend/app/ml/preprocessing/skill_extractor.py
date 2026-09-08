@@ -147,6 +147,74 @@ SKILL_TAXONOMY: Dict[str, str] = {
     'vector database': 'ai_ml',
     'pinecone': 'ai_ml',
     'chromadb': 'ai_ml',
+    'machine learning': 'ai_ml',
+    'deep learning': 'ai_ml',
+    'data science': 'ai_ml',
+    'data scientist': 'ai_ml',
+    'data analysis': 'ai_ml',
+    'data analytics': 'ai_ml',
+    'data engineering': 'data_platform',
+    'data engineer': 'data_platform',
+    'data pipeline': 'data_platform',
+    'etl': 'data_platform',
+    'elt': 'data_platform',
+    'statistical modeling': 'ai_ml',
+    'statistics': 'ai_ml',
+    'neural network': 'ai_ml',
+    'neural networks': 'ai_ml',
+    'natural language processing': 'ai_ml',
+    'nlp': 'ai_ml',
+    'computer vision': 'ai_ml',
+    'time series': 'ai_ml',
+    'predictive modeling': 'ai_ml',
+    'predictive analytics': 'ai_ml',
+    'reinforcement learning': 'ai_ml',
+    'model training': 'ai_ml',
+    'model deployment': 'ai_ml',
+    'mlops': 'ai_ml',
+    'feature engineering': 'ai_ml',
+    'a/b testing': 'analytics',
+    'ab testing': 'analytics',
+    'regression': 'ai_ml',
+    'classification': 'ai_ml',
+    'clustering': 'ai_ml',
+    'forecasting': 'ai_ml',
+    'data mining': 'ai_ml',
+    'big data': 'data_platform',
+    'data warehouse': 'data_platform',
+    'data lake': 'data_platform',
+    'data lakehouse': 'data_platform',
+    'business intelligence': 'analytics',
+    'bi': 'analytics',
+    'reporting': 'analytics',
+    'dashboard': 'analytics',
+    'scipy': 'ai_ml',
+    'lightgbm': 'ai_ml',
+    'catboost': 'ai_ml',
+    'onnx': 'ai_ml',
+    'tensorrt': 'ai_ml',
+    'ray': 'ai_ml',
+    'dask': 'ai_ml',
+    'polars': 'data_platform',
+    'pyarrow': 'data_platform',
+    'great expectations': 'data_platform',
+    'dbt': 'data_platform',
+    'data quality': 'data_platform',
+    'data governance': 'data_platform',
+    'data modeling': 'data_platform',
+    'dimensional modeling': 'data_platform',
+    'star schema': 'data_platform',
+    'olap': 'data_platform',
+    'oltp': 'data_platform',
+    'powerbi': 'analytics',
+    'metabase': 'analytics',
+    'superset': 'analytics',
+    'looker': 'analytics',
+    'quicksight': 'analytics',
+    'redash': 'analytics',
+    'jupyter lab': 'ai_ml',
+    'colab': 'ai_ml',
+    'google colab': 'ai_ml',
 
     # DevOps & Infrastructure
     'docker': 'devops',
@@ -308,6 +376,46 @@ CONTEXT_PATTERNS: Dict[str, list[str]] = {
 # Known false-positive phrases
 SKILL_FALSE_POSITIVES: Dict[str, list[str]] = {
     'go': ['go-to-market', 'go to market', 'gtm', 'go-live', 'go live'],
+    'bi': ['big', 'bid', 'billion', 'bi-weekly', 'bi-monthly'],
+}
+
+# Role title -> inferred skills mapping
+# When a job title contains a role keyword, these skills are automatically assigned
+TITLE_ROLE_SKILLS: Dict[str, list[str]] = {
+    'data scientist': ['data science', 'machine learning', 'python', 'statistics', 'data analysis'],
+    'data science': ['data science', 'machine learning', 'python', 'statistics'],
+    'machine learning': ['machine learning', 'deep learning', 'python', 'tensorflow', 'pytorch'],
+    'ml engineer': ['machine learning', 'deep learning', 'python', 'mlops', 'model deployment'],
+    'ml ': ['machine learning', 'python'],
+    'deep learning': ['deep learning', 'neural networks', 'python', 'tensorflow', 'pytorch'],
+    'ai engineer': ['machine learning', 'python', 'deep learning'],
+    'ai ': ['machine learning', 'python'],
+    'data engineer': ['data engineering', 'etl', 'python', 'sql', 'airflow'],
+    'data engineering': ['data engineering', 'etl', 'python', 'sql', 'airflow'],
+    'data analyst': ['data analysis', 'sql', 'python', 'excel', 'tableau'],
+    'data analytics': ['data analysis', 'sql', 'python', 'excel'],
+    'analytics engineer': ['data engineering', 'dbt', 'sql', 'python'],
+    'business intelligence': ['business intelligence', 'sql', 'tableau', 'power bi'],
+    'bi developer': ['business intelligence', 'sql', 'tableau', 'power bi'],
+    'nlp': ['nlp', 'natural language processing', 'python', 'transformers'],
+    'natural language': ['nlp', 'natural language processing', 'python'],
+    'computer vision': ['computer vision', 'opencv', 'python', 'deep learning'],
+    'cv ': ['computer vision', 'opencv', 'python'],
+    'etl': ['etl', 'data pipeline', 'python', 'sql'],
+    'data pipeline': ['data pipeline', 'etl', 'python', 'airflow'],
+    'mlops': ['mlops', 'model deployment', 'docker', 'kubernetes', 'python'],
+    'devops mlops': ['mlops', 'docker', 'kubernetes', 'terraform', 'ci/cd'],
+    'cloud': ['aws', 'azure', 'gcp'],
+    'backend': ['python', 'rest api', 'postgresql', 'docker'],
+    'frontend': ['javascript', 'react', 'html', 'css'],
+    'full stack': ['javascript', 'react', 'python', 'postgresql', 'docker'],
+    'fullstack': ['javascript', 'react', 'python', 'postgresql', 'docker'],
+    'software engineer': ['python', 'git', 'rest api', 'docker'],
+    'devops': ['docker', 'kubernetes', 'ci/cd', 'terraform'],
+    'site reliability': ['linux', 'docker', 'kubernetes', 'monitoring'],
+    'sre': ['linux', 'docker', 'kubernetes', 'monitoring'],
+    'security': ['owasp', 'penetration testing', 'oauth', 'jwt'],
+    'cybersecurity': ['owasp', 'penetration testing', 'oauth', 'ssl', 'tls'],
 }
 
 
@@ -376,6 +484,24 @@ class SkillExtractor:
     def __init__(self, taxonomy: Dict[str, str] | None = None):
         self.taxonomy = taxonomy or SKILL_TAXONOMY
         self._patterns = _build_patterns(self.taxonomy)
+
+    def extract_title_skills(self, title: str) -> Dict[str, Set[str]]:
+        """Extract skills inferred from job title role keywords.
+
+        When a title contains 'Data Scientist', 'ML Engineer', etc.,
+        the corresponding domain skills are returned even if the
+        description is empty.
+        """
+        if not title or not isinstance(title, str):
+            return {}
+        lowered = title.lower()
+        results: Dict[str, Set[str]] = {}
+        for role_keyword, skills in TITLE_ROLE_SKILLS.items():
+            if role_keyword in lowered:
+                for skill in skills:
+                    category = self.taxonomy.get(skill, 'ai_ml')
+                    results.setdefault(category, set()).add(skill)
+        return results
 
     def extract_skills(self, text: str) -> Dict[str, Set[str]]:
         """Return {category: {skills found}} for the given free text."""

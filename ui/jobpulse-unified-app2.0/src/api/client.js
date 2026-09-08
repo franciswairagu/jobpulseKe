@@ -428,6 +428,14 @@ export async function getCareerPaths(cvAnalysis) {
 }
 
 // ---------------------------------------------------------------------------
+// Career insights (analytics data + user profile)
+// ---------------------------------------------------------------------------
+
+export async function getCareerInsights() {
+  return apiFetch("/api/career-insights");
+}
+
+// ---------------------------------------------------------------------------
 // Sync skill insight lookup
 // ---------------------------------------------------------------------------
 

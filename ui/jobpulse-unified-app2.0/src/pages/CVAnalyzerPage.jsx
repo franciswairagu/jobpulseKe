@@ -215,13 +215,13 @@ function SkillGapsTab({ analysis, onAddLearningGoal, onGoToTab }) {
 }
 
 export default function CVAnalyzerPage() {
-  const [stage, setStage] = useState("upload"); // upload | loading | results | error
+  const { cvAnalysis } = useAppState();
+  const { setCVAnalysis } = useCVAnalysisActions();
+  const [stage, setStage] = useState(() => (cvAnalysis ? "results" : "upload")); // upload | loading | results | error
   const [analysisStage, setAnalysisStage] = useState(null);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState("overview");
   const [jobSearchFocus, setJobSearchFocus] = useState(undefined);
-  const { cvAnalysis } = useAppState();
-  const { setCVAnalysis } = useCVAnalysisActions();
 
   const handleFile = async (file) => {
     setStage("loading");

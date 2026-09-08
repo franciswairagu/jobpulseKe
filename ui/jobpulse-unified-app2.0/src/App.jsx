@@ -3,17 +3,16 @@ import AppShell from "./components/layout/AppShell";
 import DashboardPage from "./pages/DashboardPage";
 import CVAnalyzerPage from "./pages/CVAnalyzerPage";
 import MarketSkillsPage from "./pages/MarketSkillsPage";
+import CareerInsightsPage from "./pages/CareerInsightsPage";
 import AssistantPage from "./pages/AssistantPage";
 import AuthPage from "./pages/AuthPage";
 import { useAuth } from "./state/AuthContext";
 
-// Job Market is no longer a standalone screen - its search/filter/card
-// components now live inside CV Analyzer's "Recommended Jobs" tab, so the
-// only routes left are the ones in the (trimmed) sidebar.
 const PAGE_META = {
   dashboard: { title: null, subtitle: null },
   "cv-analyzer": { title: "CV Analyzer", subtitle: "Your personal career-to-job matching engine" },
   "skill-demand": { title: "Skill Demand", subtitle: "African tech skills intelligence" },
+  "career-insights": { title: "Career Insights", subtitle: "Career progression, skill distribution & opportunities" },
   "ai-assistant": { title: "AI Assistant", subtitle: "Ask questions about the African tech job market" },
 };
 
@@ -29,6 +28,7 @@ export default function App() {
       {activeKey === "dashboard" && <DashboardPage onNavigate={setActiveKey} />}
       {activeKey === "cv-analyzer" && <CVAnalyzerPage />}
       {activeKey === "skill-demand" && <MarketSkillsPage />}
+      {activeKey === "career-insights" && <CareerInsightsPage />}
       {activeKey === "ai-assistant" && <AssistantPage />}
     </AppShell>
   );
