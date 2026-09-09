@@ -47,10 +47,12 @@ jobpulse/
 │   ├── nlp/                     # Stage 3: Skill & Metadata Extraction
 │   ├── analytics/               # Stage 4: Feature Engineering & Aggregations
 │   ├── pipeline/                # Orchestration scripts for Kenya-specific collectors
-│   └── rag/                     # RAG assistant (vector search + answer composition)
-│       ├── assistant.py         # Question type detection + grounded answer composition
+│   └── rag/                     # RAG assistant (retrieval + LLM generation)
+│       ├── llm.py               # Ollama wrapper, system prompt, prompt builder
+│       ├── assistant.py         # Question detection + LLM/template answer composition
 │       ├── retriever.py         # TF-IDF / sentence-transformers retrieval
 │       ├── vector_store.py      # numpy-based vector store
+│       ├── embeddings.py        # Dual embedder (SentenceTransformer + TF-IDF)
 │       └── validation.py        # Query validation
 ├── ui/
 │   ├── jobpulse-backend/        # FastAPI backend
@@ -243,15 +245,64 @@ python scripts/run_full_pipeline.py
 
 ## 🤖 RAG Assistant
 
-The AI assistant uses **question type detection** to provide relevant answers:
+The AI assistant combines **retrieval-augmented generation** with a local LLM for grounded, natural-language answers.
 
-| Question Type | Example | Response |
-|---------------|---------|----------|
-| Market Intelligence | "What are the most in-demand skills in Kenya?" | Ranked skill list with job counts and percentages |
-| Role Demand | "What are the most needed roles in Nigeria?" | Top job titles with posting counts |
-| Skill Inquiry | "What skills do I need for machine learning?" | Relevant skills, locations, learning recommendations |
-| Job Search | "Find remote Python developer jobs" | Structured job listings with companies and locations |
-| Career Advice | "How do I become a senior data engineer?" | Career levels, key skills, next steps |
+### How It Works
+
+```
+User question
+    │
+    ▼
+Question type detection (regex-based)
+    │
+    ▼
+Retrieve top-k relevant job postings (TF-IDF / sentence-transformers)
+    │
+    ├── Market intelligence ──▶ SQL aggregation + template answer
+    │
+    └── Qualitative questions ──▶ LLM available?
+                                    ├── Yes ──▶ qwen2.5:1.5b via Ollama
+                                    └── No  ──▶ Template fallback
+```
+
+### Question Types
+
+| Question Type | Example | Response Method |
+|---------------|---------|-----------------|
+| Market Intelligence | "What are the most in-demand skills in Kenya?" | SQL + template (LLMs are bad at counting) |
+| Role Demand | "What are the most needed roles in Nigeria?" | SQL + template |
+| Skill Inquiry | "What skills do I need for machine learning?" | LLM / template with role-skill inference |
+| Job Search | "Find remote Python developer jobs" | LLM / template |
+| Career Advice | "How do I become a senior data engineer?" | LLM / template |
+
+### LLM Integration (Ollama + qwen2.5:1.5b)
+
+- **Model**: `qwen2.5:1.5b` (~1GB, runs locally via Ollama)
+- **Fallback**: Template-based answers when Ollama is unavailable
+- **System prompt**: Grounded in retrieved context, no hallucination
+- **Config**: Temperature 0.3, top_p 0.9, 4K context window
+
+```bash
+# Install Ollama
+curl -fsSL https://ollama.com/install.sh | sh
+
+# Pull the model
+ollama pull qwen2.5:1.5b
+
+# Start Ollama (listens on all interfaces for Docker)
+OLLAMA_HOST=0.0.0.0 ollama serve &
+```
+
+### Architecture Files
+
+| File | Purpose |
+|------|---------|
+| `src/rag/llm.py` | Ollama wrapper, system prompt, prompt builder |
+| `src/rag/assistant.py` | Question detection, LLM + template answer composition |
+| `src/rag/retriever.py` | TF-IDF / sentence-transformers retrieval |
+| `src/rag/vector_store.py` | numpy-based vector store (brute-force cosine similarity) |
+| `src/rag/embeddings.py` | Dual embedder (SentenceTransformer + TF-IDF fallback) |
+| `src/rag/validation.py` | Query input validation |
 
 ---
 
@@ -260,14 +311,16 @@ The AI assistant uses **question type detection** to provide relevant answers:
 | Layer | Technology |
 |-------|-----------|
 | **Scraping** | Python, BeautifulSoup4, Cloudscraper, Tenacity |
-| **Data Processing** | Pandas, Polars, PyArrow |
-| **NLP** | SpaCy, Sentence-Transformers, TF-IDF, Regex |
+| **Data Processing** | Pandas, Polars, PyArrow, NumPy, SciPy |
+| **NLP** | Custom regex-based SkillExtractor (600+ skills, 15 categories), MetadataExtractor |
 | **ML** | Scikit-learn (LogisticRegression for tech category classification) |
-| **Backend** | FastAPI, SQLAlchemy, SQLite (production: PostgreSQL) |
+| **Embeddings** | Sentence-Transformers (`all-MiniLM-L6-v2`) with TF-IDF fallback |
+| **Vector Store** | Custom numpy brute-force cosine similarity (~10k docs, sub-ms search) |
+| **LLM** | Ollama + `qwen2.5:1.5b` (local, ~1GB RAM, fallback to templates) |
+| **Backend** | FastAPI, SQLAlchemy 2.0, SQLite (dev) / PostgreSQL (prod) |
 | **Auth** | JWT (python-jose), bcrypt password hashing |
-| **Frontend** | React 19, Vite 8, TailwindCSS 4, React Router 7 |
-| **RAG** | TF-IDF / Sentence-Transformers, cosine similarity |
-| **Deployment** | Uvicorn, npm, `start.sh` launcher |
+| **Frontend** | React 19, Vite 8, TailwindCSS 4, React Router 7, Recharts |
+| **Deployment** | Docker Compose, `start.sh` launcher |
 
 ---
 

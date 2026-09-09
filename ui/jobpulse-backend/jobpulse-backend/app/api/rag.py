@@ -1,7 +1,7 @@
 """
 RAG Assistant endpoint — answers job-market questions using the
-JobPulse retrieval system. No LLM required; the assistant composes
-grounded answers from retrieved records alone.
+JobPulse retrieval system. Uses a local LLM (Ollama) for generation
+when available; falls back to template-based answers otherwise.
 """
 from __future__ import annotations
 
@@ -144,16 +144,22 @@ def _get_role_demand_data(db: Session, country: str | None = None) -> dict:
 # Lazy-loaded RAG assistant singleton
 # ---------------------------------------------------------------------------
 _assistant = None
+_rag_available = None  # None = untested, True/False after first attempt
 
 
 def _get_assistant():
-    global _assistant
+    global _assistant, _rag_available
     if _assistant is not None:
         return _assistant
 
-    # Ensure the project root (containing src/) is on sys.path so we can
-    # import src.rag.* from the backend process.
+    # Find the project root containing src/ — works locally and in Docker.
     project_root = str(Path(__file__).resolve().parent.parent.parent.parent.parent.parent)
+
+    # Docker: src/ is mounted at /app/src, so project root is /app
+    docker_app = "/app"
+    if Path(docker_app, "src", "rag").exists():
+        project_root = docker_app
+
     if project_root not in sys.path:
         sys.path.insert(0, project_root)
 
@@ -171,11 +177,13 @@ def _get_assistant():
             from src.config import RAG_DATA_DIR
             _assistant.rag = JobPulseRAG(index_dir=Path(RAG_DATA_DIR) / "tfidf")
             _assistant.rag.ensure_ready(embedder_prefer="tfidf")
+        _rag_available = True
         logger.info("RAG assistant loaded successfully")
         return _assistant
     except Exception as e:
-        logger.error("Failed to load RAG assistant: %s", e)
-        raise
+        logger.warning("RAG assistant unavailable: %s", e)
+        _rag_available = False
+        return None
 
 
 # ---------------------------------------------------------------------------
@@ -198,6 +206,7 @@ class RAGQueryResponse(BaseModel):
     answer: str
     confidence: str
     sources: list[RAGSource]
+    method: str = "template"  # "llm" or "template"
 
 
 # ---------------------------------------------------------------------------
@@ -209,8 +218,21 @@ def ask_rag(
     db: Session = Depends(get_db),
 ):
     """Ask a job-market question grounded in the indexed JobPulse dataset."""
+    assistant = _get_assistant()
+    if assistant is None:
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "error": {
+                    "code": "RAG_UNAVAILABLE",
+                    "message": "RAG assistant is not available. The src/ module was not found. "
+                               "Run the backend from the project root or mount src/ into the container.",
+                    "details": {},
+                }
+            },
+        )
+
     try:
-        assistant = _get_assistant()
 
         # For market intelligence questions, fetch actual skill or role demand data
         market_data = None
@@ -228,10 +250,17 @@ def ask_rag(
                            country, len(market_data.get("skills", [])))
 
         result = assistant.ask(payload.question, top_k=payload.top_k, market_data=market_data)
+
+        # Detect whether LLM was used for generation
+        method = "template"
+        if assistant.llm and assistant.llm.available and result.confidence == "grounded":
+            method = "llm"
+
         return RAGQueryResponse(
             answer=result.answer,
             confidence=result.confidence,
             sources=[RAGSource(**s) for s in result.sources],
+            method=method,
         )
     except Exception as e:
         logger.exception("RAG query failed")
@@ -243,13 +272,32 @@ def ask_rag(
 
 @router.get("/health")
 def rag_health():
-    """Check if the RAG index is built and queryable."""
+    """Check if the RAG index is built, queryable, and LLM status."""
     try:
         assistant = _get_assistant()
+        if assistant is None:
+            return {
+                "status": "unavailable",
+                "assistant_loaded": False,
+                "llm": "unavailable",
+                "message": "RAG module (src/) not found in this environment",
+            }
+
+        ready = False
         if assistant.rag and assistant.rag.store:
             ready = assistant.rag.store.exists()
-        else:
-            ready = False
-        return {"status": "ready" if ready else "needs_build", "assistant_loaded": _assistant is not None}
+
+        llm_status = "unavailable"
+        if assistant.llm:
+            if assistant.llm.available:
+                llm_status = f"connected ({assistant.llm.config.model})"
+            else:
+                llm_status = "disconnected"
+
+        return {
+            "status": "ready" if ready else "needs_build",
+            "assistant_loaded": _assistant is not None,
+            "llm": llm_status,
+        }
     except Exception as e:
         return {"status": "error", "message": str(e)[:300]}

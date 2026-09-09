@@ -1,6 +1,12 @@
-"""RAG Retrieval evaluation — Precision@k, Recall@k, MRR with auto-generated relevance."""
+"""RAG Retrieval & Generation evaluation.
+
+Evaluates:
+  1. Retrieval quality: Precision@k, Recall@k, MRR
+  2. Generation quality: LLM answer grounding, coherence, helpfulness
+"""
 
 import logging
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import pandas as pd
@@ -73,7 +79,7 @@ def evaluate_rag_retrieval(
     """Evaluate RAG retrieval quality with auto-generated relevance labels.
 
     For each test query:
-      1. Query the RAG system
+      1. Query the RAG system (TF-IDF fallback if sentence-transformers fails)
       2. Auto-label relevance using keyword matching
       3. Compute Precision@k, Recall@k, MRR
 
@@ -81,11 +87,17 @@ def evaluate_rag_retrieval(
     """
     try:
         rag = JobPulseRAG()
-        if not rag.store.exists():
-            logger.warning("RAG index not found — attempting to build")
-            rag.build()
+        if rag.store.exists():
+            try:
+                rag.load()
+            except Exception:
+                logger.info("Default index load failed, falling back to TF-IDF")
+                rag = JobPulseRAG(index_dir=Path(RAG_DATA_DIR) / "tfidf")
+                rag.ensure_ready(embedder_prefer="tfidf")
         else:
-            rag.load()
+            logger.info("No default index, building with TF-IDF")
+            rag = JobPulseRAG(index_dir=Path(RAG_DATA_DIR) / "tfidf")
+            rag.ensure_ready(embedder_prefer="tfidf")
     except Exception as e:
         logger.error("Failed to load RAG index: %s", e)
         return {
@@ -163,5 +175,141 @@ def evaluate_rag_retrieval(
         "avg_recall_at_5": round(total_r5 / n_queries, 3) if n_queries else 0,
         "avg_mrr": round(total_mrr / n_queries, 3) if n_queries else 0,
         "low_confidence_rate": round(low_confidence_count / n_queries, 3) if n_queries else 0,
+        "per_query": per_query,
+    }
+
+
+# ---------------------------------------------------------------------------
+# LLM Generation evaluation
+# ---------------------------------------------------------------------------
+
+GENERATION_TEST_QUERIES = [
+    {
+        "query": "What skills do I need for a mid-level data scientist role?",
+        "type": "skill_inquiry",
+        "must_contain": ["python", "machine learning", "sql"],
+    },
+    {
+        "query": "Find remote frontend developer jobs",
+        "type": "job_search",
+        "must_contain": ["frontend", "developer"],
+    },
+    {
+        "query": "How do I become a senior DevOps engineer?",
+        "type": "career_advice",
+        "must_contain": ["devops", "engineer"],
+    },
+    {
+        "query": "What are the top skills in Kenya?",
+        "type": "market_intelligence",
+        "must_contain": ["skill", "kenya"],
+    },
+    {
+        "query": "Is Docker a good skill to learn?",
+        "type": "skill_inquiry",
+        "must_contain": ["docker"],
+    },
+]
+
+
+def evaluate_rag_generation(
+    use_llm: bool = False,
+    top_k: int = 5,
+) -> Dict[str, Any]:
+    """Evaluate RAG generation quality.
+
+    Tests both LLM-backed and template-based generation.
+
+    Metrics:
+      - answer_length: Average answer word count
+      - grounding_rate: % of answers that reference retrieved context
+      - coherence_score: Simple heuristic (has structure, not empty)
+      - method: "llm" or "template"
+    """
+    from src.rag.assistant import JobPulseAssistant, _detect_question_type
+    from src.rag.llm import OllamaLLM
+
+    try:
+        rag = JobPulseRAG(index_dir=Path(RAG_DATA_DIR) / "tfidf")
+        rag.ensure_ready(embedder_prefer="tfidf")
+    except Exception as e:
+        logger.error("Failed to load RAG index: %s", e)
+        return {"model": "rag_generation", "status": "error", "error": str(e)}
+
+    llm = OllamaLLM() if use_llm else None
+    assistant = JobPulseAssistant(rag=rag, llm=llm)
+
+    per_query = []
+    total_length = 0
+    total_grounding = 0
+    total_coherence = 0
+    n_queries = 0
+    methods_used = {"llm": 0, "template": 0}
+
+    for spec in GENERATION_TEST_QUERIES:
+        query = spec["query"]
+        expected_type = spec["type"]
+        must_contain = spec["must_contain"]
+
+        try:
+            result = assistant.ask(query, top_k=top_k)
+        except Exception as e:
+            logger.warning("Query '%s' failed: %s", query, e)
+            continue
+
+        answer = result.answer
+        words = answer.split()
+        word_count = len(words)
+
+        # Grounding: does the answer reference specific data?
+        grounding_keywords = ["posting", "job", "role", "skill", "company", "dataset", "found", "data"]
+        grounding = any(kw in answer.lower() for kw in grounding_keywords)
+
+        # Coherence: structural quality heuristic
+        has_structure = "**" in answer or "-" in answer or any(c.isdigit() for c in answer)
+        coherence = 1.0 if (word_count > 20 and has_structure) else 0.5 if word_count > 10 else 0.0
+
+        # Must-contain check
+        contains_expected = all(kw.lower() in answer.lower() for kw in must_contain)
+
+        # Detect actual question type
+        detected_type = _detect_question_type(query)
+        type_correct = detected_type == expected_type
+
+        method = "llm" if (llm and llm.available and result.method == "llm") else "template"
+        methods_used[method] += 1
+
+        total_length += word_count
+        total_grounding += int(grounding)
+        total_coherence += coherence
+        n_queries += 1
+
+        per_query.append({
+            "query": query,
+            "expected_type": expected_type,
+            "detected_type": detected_type,
+            "type_correct": type_correct,
+            "method": method,
+            "answer_length": word_count,
+            "grounded": grounding,
+            "coherence": round(coherence, 2),
+            "contains_expected_keywords": contains_expected,
+            "confidence": result.confidence,
+        })
+
+    avg_length = total_length / n_queries if n_queries else 0
+    grounding_rate = total_grounding / n_queries if n_queries else 0
+    avg_coherence = total_coherence / n_queries if n_queries else 0
+
+    return {
+        "model": "rag_generation",
+        "status": "ok",
+        "n_queries": n_queries,
+        "use_llm": use_llm,
+        "llm_available": llm.available if llm else False,
+        "methods_used": methods_used,
+        "avg_answer_length": round(avg_length, 1),
+        "grounding_rate": round(grounding_rate, 3),
+        "avg_coherence": round(avg_coherence, 3),
         "per_query": per_query,
     }
