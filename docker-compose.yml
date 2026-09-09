@@ -8,13 +8,16 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - DATABASE_URL=${DATABASE_URL:-sqlite:///./jobpulse.db}
+      - DATABASE_URL=${DATABASE_URL:-sqlite:///./data/jobpulse.db}
       - SECRET_KEY=${SECRET_KEY:-change-me-in-production}
       - CORS_ORIGINS=${CORS_ORIGINS:-["http://localhost","http://localhost:80"]}
       - ENVIRONMENT=${ENVIRONMENT:-production}
+      - OLLAMA_HOST=http://host.docker.internal:11434
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
-      - backend-data:/app/data
-      - backend-db:/app
+      - ./data:/app/data
+      - ./src:/app/src
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/docs')"]
@@ -44,12 +47,6 @@ services:
       start_period: 10s
     networks:
       - jobpulse-network
-
-volumes:
-  backend-data:
-    driver: local
-  backend-db:
-    driver: local
 
 networks:
   jobpulse-network:

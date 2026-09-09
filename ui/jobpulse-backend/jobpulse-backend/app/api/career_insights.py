@@ -13,10 +13,31 @@ from app.models.user import User
 
 router = APIRouter(prefix="/api/career-insights", tags=["career-insights"])
 
-ANALYTICS_DIR = (
-    Path(__file__).resolve().parent.parent.parent.parent.parent.parent
-    / "data" / "analytics"
-)
+
+def _find_analytics_dir() -> Path:
+    """Find the analytics directory, working both locally and in Docker."""
+    # Try relative to this file (works locally: 6 levels up to project root)
+    candidate = (
+        Path(__file__).resolve().parent.parent.parent.parent.parent.parent
+        / "data" / "analytics"
+    )
+    if candidate.exists():
+        return candidate
+
+    # Docker: src/ is mounted at /app/src, data/ is mounted at /app/data
+    docker_candidate = Path("/app/data/analytics")
+    if docker_candidate.exists():
+        return docker_candidate
+
+    # Fallback: check from project root env or CWD
+    cwd_candidate = Path.cwd() / "data" / "analytics"
+    if cwd_candidate.exists():
+        return cwd_candidate
+
+    return candidate  # return the default even if missing
+
+
+ANALYTICS_DIR = _find_analytics_dir()
 
 
 def _load_latest_analytics() -> dict:
