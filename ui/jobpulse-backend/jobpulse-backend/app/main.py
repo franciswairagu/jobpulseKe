@@ -72,7 +72,12 @@ def _auto_ingest_if_empty():
 
         # Find a data file to ingest — prefer the latest cleaned parquet
         # over the stale legacy cleaned_jobs.csv (only 744 rows).
-        data_root = Path(__file__).resolve().parent.parent.parent.parent.parent / "data"
+        # Check for Docker environment first, then fallback to relative path
+        docker_data = Path("/app/data")
+        if docker_data.exists():
+            data_root = docker_data
+        else:
+            data_root = Path(__file__).resolve().parent.parent.parent.parent.parent / "data"
         processed_dir = data_root / "processed"
         candidates = []
         # 1. Latest timestamped cleaned parquet

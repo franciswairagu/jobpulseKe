@@ -12,6 +12,9 @@ lightgbm>=4.0.0
 sentence-transformers>=2.2.0
 nltk>=3.8.1
 
+# LLM (local generation via Ollama)
+ollama>=0.4.0
+
 # Database & Vector Store
 sqlalchemy>=2.0.0
 psycopg2-binary>=2.9.0

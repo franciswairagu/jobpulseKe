@@ -1,7 +1,12 @@
 """Grounded answer layer over JobPulse retrieval results.
 
+Uses a local LLM (via Ollama) for natural-language generation when
+available, falling back to template-based answers when the LLM is
+unreachable or not installed.
+
 Improved version with:
 - Question type detection (skill inquiry, job search, career advice, etc.)
+- LLM-powered generation with grounded context
 - Natural language summaries tailored to each question type
 - Skill and course recommendations based on retrieved results
 - Market insights extracted from the result set
@@ -9,6 +14,7 @@ Improved version with:
 
 from __future__ import annotations
 
+import logging
 import re
 from collections import Counter
 from dataclasses import asdict, dataclass
@@ -17,6 +23,9 @@ from typing import Any
 import pandas as pd
 
 from .retriever import JobPulseRAG
+from .llm import OllamaLLM, LLMConfig, JOBPULSE_SYSTEM_PROMPT, build_rag_prompt
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -192,6 +201,41 @@ def _is_role_question(question: str) -> bool:
     return bool(re.search(role_keywords, question.lower()))
 
 
+# ---------------------------------------------------------------------------
+# Role-to-skills inference (fallback when retrieved results lack skill data)
+# ---------------------------------------------------------------------------
+
+_ROLE_SKILLS = {
+    "data scientist": ["Python", "R", "SQL", "Machine Learning", "TensorFlow/PyTorch", "Statistics", "Pandas/NumPy", "Data Visualization"],
+    "data science": ["Python", "R", "SQL", "Machine Learning", "TensorFlow/PyTorch", "Statistics", "Pandas/NumPy", "Data Visualization"],
+    "machine learning": ["Python", "TensorFlow", "PyTorch", "Scikit-learn", "SQL", "Docker", "MLOps", "Statistics"],
+    "frontend": ["JavaScript", "React", "HTML/CSS", "TypeScript", "Vue.js", "Angular", "Git", "Responsive Design"],
+    "backend": ["Python", "Java", "Node.js", "SQL", "REST APIs", "Docker", "Git", "PostgreSQL"],
+    "fullstack": ["JavaScript", "React", "Node.js", "SQL", "Python", "Docker", "Git", "REST APIs"],
+    "devops": ["Docker", "Kubernetes", "AWS/Azure/GCP", "Terraform", "CI/CD", "Linux", "Bash", "Jenkins"],
+    "cloud": ["AWS", "Azure", "GCP", "Docker", "Kubernetes", "Terraform", "Linux", "Networking"],
+    "mobile": ["React Native", "Flutter", "Swift", "Kotlin", "Dart", "Firebase", "Git", "REST APIs"],
+    "software engineer": ["Python", "Java", "Git", "SQL", "REST APIs", "Docker", "Testing", "CI/CD"],
+    "product manager": ["Agile/Scrum", "JIRA", "Data Analysis", "SQL", "Communication", "Roadmapping", "A/B Testing"],
+    "ux/ui": ["Figma", "Adobe XD", "User Research", "Wireframing", "Prototyping", "HTML/CSS", "Design Systems"],
+    "security": ["Network Security", "Penetration Testing", "SIEM", "Python", "Linux", "Compliance", "Cryptography"],
+    "blockchain": ["Solidity", "Ethereum", "Web3.js", "Smart Contracts", "Cryptography", "JavaScript", "Rust"],
+    "ai": ["Python", "TensorFlow", "PyTorch", "NLP", "Computer Vision", "LLMs", "MLOps", "Statistics"],
+    "analyst": ["SQL", "Python", "Excel", "Tableau/Power BI", "Statistics", "Data Visualization", "Pandas"],
+    "database": ["SQL", "PostgreSQL", "MySQL", "MongoDB", "Redis", "Backup/Recovery", "Performance Tuning"],
+    "linux": ["Bash", "Shell Scripting", "Networking", "Docker", "System Administration", "Security", "Monitoring"],
+}
+
+
+def _infer_skills_from_question(question: str) -> list[str]:
+    """Infer relevant skills from the question text using role keywords."""
+    lowered = question.lower()
+    for role, skills in _ROLE_SKILLS.items():
+        if role in lowered:
+            return skills
+    return []
+
+
 def _compose_market_intelligence_answer(question: str, results: pd.DataFrame, market_data: dict | None = None) -> str:
     """Answer market intelligence questions using actual skill or role demand data."""
     lines = []
@@ -273,6 +317,7 @@ def _compose_skill_answer(question: str, results: pd.DataFrame, mentioned_skills
     lines = []
     skill_counts = _aggregate_skills(results)
     locations = _aggregate_locations(results)
+    seniority = _aggregate_seniority(results)
 
     if mentioned_skills:
         skill_str = ", ".join(mentioned_skills)
@@ -282,17 +327,49 @@ def _compose_skill_answer(question: str, results: pd.DataFrame, mentioned_skills
 
     lines.append("")
 
+    # Show matching roles found
+    if not results.empty:
+        lines.append("**Matching roles found:**")
+        for i, (_, row) in enumerate(results.head(5).iterrows(), start=1):
+            title = _val(row.get("job_title"), "Untitled role")
+            company = _val(row.get("company"), "Unknown company")
+            location = _val(row.get("location"), _val(row.get("country"), ""))
+            detail = f"  {i}. **{title}**"
+            if company != "Unknown company":
+                detail += f" at {company}"
+            if location:
+                detail += f" — {location}"
+            lines.append(detail)
+        lines.append("")
+
     if skill_counts:
         top_skills = list(skill_counts.items())[:8]
         lines.append("**Most relevant skills in these roles:**")
         for skill, count in top_skills:
             lines.append(f"  - {skill} (appears in {count} posting{'s' if count > 1 else ''})")
         lines.append("")
+    else:
+        # No skills extracted from results — provide role-specific guidance
+        lines.append("**Key skills typically required for this type of role:**")
+        role_skills = _infer_skills_from_question(question)
+        if role_skills:
+            for skill in role_skills[:8]:
+                lines.append(f"  - {skill}")
+        else:
+            lines.append("  - Technical skills specific to the role (check individual job postings)")
+            lines.append("  - Communication and teamwork")
+            lines.append("  - Problem-solving and analytical thinking")
+        lines.append("")
 
     if locations:
         top_locs = list(locations.items())[:5]
         loc_str = ", ".join(f"{loc} ({n})" for loc, n in top_locs)
         lines.append(f"**Where these roles are located:** {loc_str}")
+        lines.append("")
+
+    if seniority:
+        levels = ", ".join(f"{lev} ({n})" for lev, n in list(seniority.items())[:3])
+        lines.append(f"**Seniority levels found:** {levels}")
         lines.append("")
 
     lines.append("**Recommendation:**")
@@ -302,12 +379,13 @@ def _compose_skill_answer(question: str, results: pd.DataFrame, mentioned_skills
         lines.append(f"  - Contributing to open-source projects using {skill_str}")
         lines.append(f"  - Earning relevant certifications if available")
     else:
-        top = [s for s, _ in top_skills[:3]] if skill_counts else []
+        top = [s for s, _ in list(skill_counts.items())[:3]] if skill_counts else []
         if top:
             lines.append(f"The most in-demand skills in these results are **{', '.join(top)}**. "
                         f"Consider prioritizing these if you're planning your learning path.")
         else:
-            lines.append("Focus on building a strong portfolio with practical project experience.")
+            lines.append("Upload your CV in the **CV Analyzer** tab to see how your current skills match these roles, "
+                        "and check the **Skill Demand** dashboard for full market intelligence.")
 
     return "\n".join(lines)
 
@@ -430,10 +508,20 @@ def _compose_general_answer(question: str, results: pd.DataFrame) -> str:
 # ---------------------------------------------------------------------------
 
 class JobPulseAssistant:
-    """Answer job-market questions using only retrieved JobPulse records."""
+    """Answer job-market questions using retrieved JobPulse records.
 
-    def __init__(self, rag: JobPulseRAG | None = None):
+    When an Ollama LLM is available, generates natural-language answers
+    grounded in the retrieved context. Falls back to template-based
+    answers when the LLM is unreachable.
+    """
+
+    def __init__(
+        self,
+        rag: JobPulseRAG | None = None,
+        llm: OllamaLLM | None = None,
+    ):
         self.rag = rag or JobPulseRAG()
+        self.llm = llm or OllamaLLM()
 
     def ask(self, question: str, top_k: int = 5, market_data: dict | None = None) -> AssistantAnswer:
         self.rag.ensure_ready()
@@ -443,11 +531,12 @@ class JobPulseAssistant:
 
         # For market intelligence questions, prioritize market data over RAG retrieval
         if question_type == "market_intelligence":
-            # Flag whether this is a role-based or skill-based question
             if market_data:
                 market_data["is_role_question"] = _is_role_question(question)
             results = self.rag.query(question, top_k=top_k)
             sources = [_source(row) for _, row in results.iterrows()]
+
+            # Market intelligence uses template (needs structured SQL data)
             answer = _compose_market_intelligence_answer(question, results, market_data)
             return AssistantAnswer(answer, "grounded", sources)
 
@@ -459,6 +548,12 @@ class JobPulseAssistant:
                 _compose_no_match_answer(question), "low", sources,
             )
 
+        # Try LLM generation first, fall back to templates
+        llm_answer = self._try_llm_generate(question, question_type, results)
+        if llm_answer is not None:
+            return AssistantAnswer(llm_answer, "grounded", sources)
+
+        # Template fallback when LLM is unavailable
         if question_type == "skill_inquiry":
             answer = _compose_skill_answer(question, results, mentioned_skills)
         elif question_type == "job_search":
@@ -469,6 +564,21 @@ class JobPulseAssistant:
             answer = _compose_general_answer(question, results)
 
         return AssistantAnswer(answer, "grounded", sources)
+
+    def _try_llm_generate(
+        self, question: str, question_type: str, results: pd.DataFrame,
+    ) -> str | None:
+        """Attempt LLM generation. Returns None if LLM is unavailable."""
+        if not self.llm.available:
+            return None
+
+        context = JobPulseRAG.format_context(results)
+        prompt = build_rag_prompt(question, question_type)
+        return self.llm.generate(
+            prompt=prompt,
+            context=context,
+            system=JOBPULSE_SYSTEM_PROMPT,
+        )
 
 
 def _compose_no_match_answer(question: str) -> str:
