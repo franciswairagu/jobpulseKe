@@ -175,8 +175,8 @@ def _get_assistant():
             _assistant.rag.store = None
             from src.rag.retriever import JobPulseRAG
             from src.config import RAG_DATA_DIR
-            _assistant.rag = JobPulseRAG(index_dir=Path(RAG_DATA_DIR) / "tfidf")
-            _assistant.rag.ensure_ready(embedder_prefer="tfidf")
+            _assistant.rag = JobPulseRAG(persist_dir=Path(RAG_DATA_DIR))
+            _assistant.rag.ensure_ready()
         _rag_available = True
         logger.info("RAG assistant loaded successfully")
         return _assistant

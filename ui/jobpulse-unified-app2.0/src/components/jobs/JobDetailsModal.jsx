@@ -1,5 +1,5 @@
 import React from "react";
-import { X, MapPin, Briefcase, Wifi, CheckCircle2, AlertTriangle } from "lucide-react";
+import { X, MapPin, Briefcase, Wifi, CheckCircle2, AlertTriangle, ExternalLink } from "lucide-react";
 import { COLORS, FONTS, PRIORITY_STYLES } from "../../lib/theme";
 import { getSkillInsight } from "../../api/client";
 
@@ -25,7 +25,14 @@ export default function JobDetailsModal({ job, onClose, onAddLearningGoal }) {
       <div className="max-h-[85vh] w-full max-w-xl overflow-y-auto rounded-2xl bg-white p-6" onClick={(e) => e.stopPropagation()}>
         <div className="mb-4 flex items-start justify-between">
           <div>
-            <h3 className="text-lg font-semibold" style={{ color: COLORS.textDark, fontFamily: FONTS.display }}>{job.title}</h3>
+            <div className="flex items-center gap-2">
+              <h3 className="text-lg font-semibold" style={{ color: COLORS.textDark, fontFamily: FONTS.display }}>{job.title}</h3>
+              {job.sourceUrl && (
+                <a href={job.sourceUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs font-semibold transition-colors hover:underline" style={{ color: COLORS.deepBlue }}>
+                  <ExternalLink size={13} /> View posting
+                </a>
+              )}
+            </div>
             <p className="text-sm" style={{ color: COLORS.textSecondary }}>{job.company}</p>
             <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs" style={{ color: COLORS.textSecondary }}>
               <MapPin size={13} /> {job.country}

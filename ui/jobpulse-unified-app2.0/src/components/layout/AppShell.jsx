@@ -12,6 +12,8 @@ import {
   Bell,
   Menu,
   X,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from "lucide-react";
 import { COLORS, FONTS } from "../../lib/theme";
 import { useAppState } from "../../state/AppContext";
@@ -25,7 +27,7 @@ const NAV_ITEMS = [
   { key: "ai-assistant", label: "AI Assistant", icon: Sparkles },
 ];
 
-function NavList({ activeKey, onNavigate, onItemClick }) {
+function NavList({ activeKey, onNavigate, onItemClick, collapsed }) {
   return (
     <nav className="flex flex-col gap-1">
       {NAV_ITEMS.map(({ key, label, icon: Icon, comingSoon }) => {
@@ -39,7 +41,8 @@ function NavList({ activeKey, onNavigate, onItemClick }) {
               onNavigate(key);
               onItemClick?.();
             }}
-            className="flex items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-left text-sm transition-colors"
+            title={collapsed ? label : undefined}
+            className={`flex items-center gap-3 rounded-lg py-2.5 text-left text-sm transition-all duration-200 ${collapsed ? "justify-center px-2" : "justify-between px-3"}`}
             style={{
               background: active ? "rgba(255,255,255,0.09)" : "transparent",
               color: comingSoon ? "rgba(234,243,250,0.35)" : active ? "#fff" : "rgba(234,243,250,0.65)",
@@ -49,9 +52,9 @@ function NavList({ activeKey, onNavigate, onItemClick }) {
           >
             <span className="flex items-center gap-3">
               <Icon size={17} strokeWidth={2} />
-              {label}
+              {!collapsed && label}
             </span>
-            {comingSoon && (
+            {!collapsed && comingSoon && (
               <span className="rounded-full px-1.5 py-0.5 text-[9px] font-semibold" style={{ background: "rgba(255,255,255,0.08)" }}>
                 SOON
               </span>
@@ -65,6 +68,7 @@ function NavList({ activeKey, onNavigate, onItemClick }) {
 
 export default function AppShell({ activeKey, onNavigate, title, subtitle, children }) {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const { profile } = useAppState();
   const { user } = useAuth();
   const { logout } = useAuthActions();
@@ -73,29 +77,52 @@ export default function AppShell({ activeKey, onNavigate, title, subtitle, child
   const userName = user?.name || profile?.name || "User";
   const greeting = profile?.greeting || "Hello";
 
+  const sidebarWidth = sidebarCollapsed ? "w-[68px]" : "w-64";
+  const sidebarPadding = sidebarCollapsed ? "px-3" : "px-5";
+
   return (
     <div className="flex min-h-screen w-full" style={{ background: COLORS.pageBg, fontFamily: FONTS.body }}>
       {/* Sidebar (desktop) */}
-      <aside className="hidden w-64 shrink-0 flex-col justify-between px-5 py-6 lg:flex" style={{ background: COLORS.navy }}>
+      <aside
+        className={`hidden ${sidebarWidth} shrink-0 flex-col justify-between py-6 transition-all duration-300 lg:flex ${sidebarPadding}`}
+        style={{ background: COLORS.navy }}
+      >
         <div>
-          <div className="mb-9 flex items-center gap-2 px-1">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg" style={{ background: "rgba(255,255,255,0.08)" }}>
+          <div className={`mb-9 flex items-center ${sidebarCollapsed ? "justify-center" : "gap-2 px-1"}`}>
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg" style={{ background: "rgba(255,255,255,0.08)" }}>
               <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
                 <polyline points="1,9 5,9 7,3 10,15 12,9 17,9" stroke={COLORS.lightBlue} strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round" fill="none" />
               </svg>
             </div>
-            <span className="text-lg font-semibold tracking-tight text-white" style={{ fontFamily: FONTS.display }}>
-              JobPulse
-            </span>
+            {!sidebarCollapsed && (
+              <span className="text-lg font-semibold tracking-tight text-white" style={{ fontFamily: FONTS.display }}>
+                JobPulse
+              </span>
+            )}
           </div>
-          <NavList activeKey={activeKey} onNavigate={onNavigate} />
+          <NavList activeKey={activeKey} onNavigate={onNavigate} collapsed={sidebarCollapsed} />
         </div>
 
         <div className="flex flex-col gap-1 border-t pt-4" style={{ borderColor: "rgba(255,255,255,0.1)" }}>
+          <button
+            onClick={() => setSidebarCollapsed((c) => !c)}
+            title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            className={`flex items-center gap-3 rounded-lg py-2.5 text-sm transition-all duration-200 ${sidebarCollapsed ? "justify-center px-2" : "px-3"}`}
+            style={{ color: "rgba(234,243,250,0.65)" }}
+          >
+            {sidebarCollapsed ? <PanelLeftOpen size={17} strokeWidth={2} /> : <PanelLeftClose size={17} strokeWidth={2} />}
+            {!sidebarCollapsed && <span>Collapse</span>}
+          </button>
           {[{ label: "Profile", icon: User }, { label: "Settings", icon: Settings }, { label: "Logout", icon: LogOut, onClick: logout }].map(({ label, icon: Icon, onClick }) => (
-            <button key={label} onClick={onClick} className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm transition-colors" style={{ color: "rgba(234,243,250,0.65)" }}>
+            <button
+              key={label}
+              onClick={onClick}
+              title={sidebarCollapsed ? label : undefined}
+              className={`flex items-center gap-3 rounded-lg py-2.5 text-sm transition-colors ${sidebarCollapsed ? "justify-center px-2" : "px-3"}`}
+              style={{ color: "rgba(234,243,250,0.65)" }}
+            >
               <Icon size={17} strokeWidth={2} />
-              {label}
+              {!sidebarCollapsed && label}
             </button>
           ))}
         </div>

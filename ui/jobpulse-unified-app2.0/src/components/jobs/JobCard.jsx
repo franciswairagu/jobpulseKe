@@ -1,5 +1,5 @@
 import React from "react";
-import { MapPin, Briefcase, Wifi, Bookmark, Sparkles } from "lucide-react";
+import { MapPin, Briefcase, Wifi, Bookmark, Sparkles, ExternalLink } from "lucide-react";
 import { COLORS, FONTS } from "../../lib/theme";
 
 // Reused (not recreated) from the original standalone JobMarket.jsx, per the
@@ -61,6 +61,11 @@ export default function JobCard({ job, saved, onToggleSave, onOpenDetails }) {
         <button onClick={(e) => { e.stopPropagation(); onOpenDetails(job); }} className="flex-1 rounded-lg px-4 py-2 text-sm font-semibold text-white" style={{ background: COLORS.navy }}>
           View job
         </button>
+        {job.sourceUrl && (
+          <a href={job.sourceUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm font-semibold transition-colors hover:bg-gray-50" style={{ borderColor: COLORS.border, color: COLORS.textDark }}>
+            <ExternalLink size={14} /> Apply
+          </a>
+        )}
       </div>
     </div>
   );

@@ -1,168 +1,273 @@
-"""
-Persistent vector store for the RAG system.
+"""ChromaDB-based vector store for the RAG system.
 
-Deliberately a small numpy-based store rather than chromadb: with ~10k
-jobs, brute-force cosine similarity (a single matrix-vector product) is
-sub-millisecond and this avoids chromadb's own dependency/startup weight
-for what is, at this scale, a solved problem. If the dataset grows into
-the hundreds of thousands+ of records, swap this class's `search()` for
-a chromadb/FAISS-backed one — the JobPulseRAG interface in retriever.py
-wouldn't need to change.
+Replaces the numpy brute-force approach with ChromaDB for:
+- Persistent vector storage
+- Metadata filtering
+- Incremental updates
+- Built-in similarity search
 
-Persists under data/rag/:
-  - vectors.npz (sparse, TF-IDF) or vectors.npy (dense, sentence-
-    transformer) — whichever backend built the index
-  - metadata.parquet   one row per doc: job_id, job_title, company,
-    location, country, source, vacancy_url, rag_document (for display)
-  - embedder.pkl   the fitted embedder (see embeddings.py), so queries
-    are embedded the same way the corpus was
+Uses sentence-transformers for embeddings to avoid ChromaDB's ONNX
+download issues.
 """
 import logging
 from pathlib import Path
-from typing import List, Optional, Union
+from typing import Any, Optional
 
 import numpy as np
 import pandas as pd
-import scipy.sparse as sp
-
-from src.rag.embeddings import BaseEmbedder, get_embedder, load_embedder
-from src.rag.validation import validate_query
 
 logger = logging.getLogger(__name__)
 
-# TF-IDF vectors stay sparse (see embeddings.py) and are saved as .npz;
-# sentence-transformer vectors are dense and saved as .npy. Exactly one
-# of the two exists in an index dir at a time.
-VECTORS_DENSE_FILENAME = "vectors.npy"
-VECTORS_SPARSE_FILENAME = "vectors.npz"
-METADATA_FILENAME = "metadata.parquet"
-EMBEDDER_FILENAME = "embedder.pkl"
+CHROMADB_DIR = Path(__file__).parent.parent.parent / "data" / "rag" / "chromadb"
+DEFAULT_COLLECTION = "jobpulse_jobs"
+CHUNK_COLLECTION = "jobpulse_chunks"
 
-# Columns kept alongside each vector for display/filtering at query time —
-# everything else in the enriched NLP dataset is available by re-joining
-# on job_id if needed, but doesn't need to ride along in the index itself.
 METADATA_COLUMNS = [
     "job_id", "job_title", "company", "location", "country", "source",
     "work_mode", "seniority_level", "skills", "vacancy_url", "rag_document",
 ]
 
 
+class SentenceTransformerEmbeddingFunction:
+    """Custom embedding function using sentence-transformers."""
+
+    def __init__(self, model_name: str = "all-MiniLM-L6-v2"):
+        from sentence_transformers import SentenceTransformer
+        self.model = SentenceTransformer(model_name)
+        self._model_name = model_name
+
+    def __call__(self, input: list[str]) -> list[list[float]]:
+        embeddings = self.model.encode(input, show_progress_bar=False)
+        return embeddings.tolist()
+
+    def name(self) -> str:
+        return f"sentence-transformers/{self._model_name}"
+
+
+def _get_embedding_function():
+    """Get the embedding function, trying sentence-transformers first, then ChromaDB default."""
+    try:
+        return SentenceTransformerEmbeddingFunction()
+    except Exception as e:
+        logger.warning("sentence-transformers unavailable (%s), using ChromaDB default", e)
+        from chromadb.utils.embedding_functions import DefaultEmbeddingFunction
+        return DefaultEmbeddingFunction()
+
+
 class JobVectorStore:
-    """Build, persist, and search a vector index over job postings."""
+    """ChromaDB-backed vector store for job postings."""
 
-    def __init__(self, index_dir: Path):
-        self.index_dir = Path(index_dir)
-        self.embedder: Optional[BaseEmbedder] = None
-        self.vectors: Optional[np.ndarray] = None
-        self.metadata: Optional[pd.DataFrame] = None
+    def __init__(
+        self,
+        persist_dir: Path | None = None,
+        collection_name: str = DEFAULT_COLLECTION,
+    ):
+        self.persist_dir = Path(persist_dir) if persist_dir else CHROMADB_DIR
+        self.collection_name = collection_name
+        self._client = None
+        self._collection = None
+        self._embedding_fn = None
 
-    # ------------------------------------------------------------------
-    # Build
-    # ------------------------------------------------------------------
-    def build(self, df: pd.DataFrame, embedder_prefer: str = "auto") -> None:
-        """Build the index from an enriched NLP dataframe (must have a
-        `rag_document` column — see src/nlp/nlpv2.py)."""
-        if "rag_document" not in df.columns:
+    def _get_client(self):
+        """Lazy-load ChromaDB client."""
+        if self._client is None:
+            import chromadb
+            self.persist_dir.mkdir(parents=True, exist_ok=True)
+            self._client = chromadb.PersistentClient(path=str(self.persist_dir))
+        return self._client
+
+    def _get_embedding_function(self):
+        """Get the embedding function."""
+        if self._embedding_fn is None:
+            self._embedding_fn = _get_embedding_function()
+        return self._embedding_fn
+
+    def _get_collection(self):
+        """Get or create the ChromaDB collection."""
+        if self._collection is None:
+            client = self._get_client()
+            ef = self._get_embedding_function()
+            self._collection = client.get_or_create_collection(
+                name=self.collection_name,
+                embedding_function=ef,
+                metadata={"hnsw:space": "cosine"},
+            )
+        return self._collection
+
+    def build(
+        self,
+        df: pd.DataFrame,
+        text_field: str = "rag_document",
+        batch_size: int = 100,
+    ) -> int:
+        """Build the index from a DataFrame."""
+        if text_field not in df.columns:
             raise ValueError(
-                "DataFrame is missing 'rag_document' — build it with "
-                "src.nlp.nlpv2.run_nlp_extraction_v2() first."
+                f"DataFrame is missing '{text_field}'. "
+                f"Run NLP enrichment first."
             )
 
-        documents = df["rag_document"].fillna("").tolist()
-        logger.info("Fitting embedder on %d documents...", len(documents))
+        collection = self._get_collection()
+        documents = df[text_field].fillna("").tolist()
 
-        self.embedder = get_embedder(prefer=embedder_prefer)
-        self.embedder.fit(documents)
-        self.vectors = self.embedder.embed(documents)
+        # Prepare metadata
+        ids = []
+        metadatas = []
+        valid_docs = []
 
-        available_cols = [c for c in METADATA_COLUMNS if c in df.columns]
-        self.metadata = df[available_cols].reset_index(drop=True)
+        for i, row in df.iterrows():
+            doc_id = str(row.get("job_id", f"doc_{i}"))
+            if not documents[i]:
+                continue
 
-        logger.info(
-            "Built index: %d vectors, dim=%d, backend=%s",
-            self.vectors.shape[0], self.vectors.shape[1], self.embedder.name,
-        )
+            metadata = {}
+            for col in METADATA_COLUMNS:
+                if col in row.index:
+                    val = row[col]
+                    # Handle numpy arrays and lists
+                    if hasattr(val, 'tolist'):
+                        val = val.tolist()
+                    if isinstance(val, (list, tuple)):
+                        val = ", ".join(str(v) for v in val)
+                    elif isinstance(val, float) and pd.isna(val):
+                        val = ""
+                    # Safely check truthiness (avoid numpy array ambiguity)
+                    try:
+                        is_empty = not val
+                    except (ValueError, TypeError):
+                        is_empty = False
+                    metadata[col] = str(val) if not is_empty and val is not None else ""
 
-    # ------------------------------------------------------------------
-    # Persist / load
-    # ------------------------------------------------------------------
-    def save(self) -> None:
-        if self.vectors is None or self.metadata is None or self.embedder is None:
-            raise RuntimeError("Nothing to save — call build() first")
-        self.index_dir.mkdir(parents=True, exist_ok=True)
+            ids.append(doc_id)
+            metadatas.append(metadata)
+            valid_docs.append(documents[i])
 
-        if sp.issparse(self.vectors):
-            sp.save_npz(self.index_dir / VECTORS_SPARSE_FILENAME, self.vectors)
-            # Remove a stale dense file from a previous build with a
-            # different backend, so load() doesn't pick up the wrong one.
-            (self.index_dir / VECTORS_DENSE_FILENAME).unlink(missing_ok=True)
-        else:
-            np.save(self.index_dir / VECTORS_DENSE_FILENAME, self.vectors)
-            (self.index_dir / VECTORS_SPARSE_FILENAME).unlink(missing_ok=True)
-
-        self.metadata.to_parquet(self.index_dir / METADATA_FILENAME, index=False)
-        self.embedder.save(self.index_dir / EMBEDDER_FILENAME)
-        logger.info("Saved index to %s", self.index_dir)
-
-    def load(self) -> None:
-        sparse_path = self.index_dir / VECTORS_SPARSE_FILENAME
-        dense_path = self.index_dir / VECTORS_DENSE_FILENAME
-        metadata_path = self.index_dir / METADATA_FILENAME
-        embedder_path = self.index_dir / EMBEDDER_FILENAME
-
-        if not ((sparse_path.exists() or dense_path.exists())
-                and metadata_path.exists() and embedder_path.exists()):
-            raise FileNotFoundError(
-                f"No saved index found in {self.index_dir}. "
-                f"Run scripts/build_rag_index.py first."
+        # Add in batches
+        for start in range(0, len(ids), batch_size):
+            end = min(start + batch_size, len(ids))
+            collection.add(
+                ids=ids[start:end],
+                documents=valid_docs[start:end],
+                metadatas=metadatas[start:end],
+            )
+            logger.info(
+                "Indexed batch %d-%d / %d",
+                start, end, len(ids),
             )
 
-        if sparse_path.exists():
-            self.vectors = sp.load_npz(sparse_path)
-        else:
-            self.vectors = np.load(dense_path)
-
-        self.metadata = pd.read_parquet(metadata_path)
-        self.embedder = load_embedder(embedder_path)
         logger.info(
-            "Loaded index: %d vectors, backend=%s", self.vectors.shape[0], self.embedder.name,
+            "Built ChromaDB index: %d documents in '%s'",
+            len(ids), self.collection_name,
         )
+        return len(ids)
+
+    def search(
+        self,
+        query: str,
+        top_k: int = 5,
+        where: dict | None = None,
+        where_document: dict | None = None,
+    ) -> pd.DataFrame:
+        """Search the vector store."""
+        collection = self._get_collection()
+
+        query_params = {
+            "query_texts": [query],
+            "n_results": min(top_k, collection.count()),
+        }
+        if where:
+            query_params["where"] = where
+        if where_document:
+            query_params["where_document"] = where_document
+
+        results = collection.query(**query_params)
+
+        # Convert to DataFrame
+        records = []
+        if results and results.get("ids") and results["ids"][0]:
+            for i, doc_id in enumerate(results["ids"][0]):
+                record = {
+                    "job_id": doc_id,
+                    "score": 1.0 - results["distances"][0][i] if results.get("distances") else 0.0,
+                }
+                if results.get("metadatas") and results["metadatas"][0]:
+                    metadata = results["metadatas"][0][i]
+                    record.update(metadata)
+
+                if results.get("documents") and results["documents"][0]:
+                    record["rag_document"] = results["documents"][0][i]
+
+                records.append(record)
+
+        return pd.DataFrame(records)
+
+    def add_documents(
+        self,
+        documents: list[str],
+        ids: list[str],
+        metadatas: list[dict] | None = None,
+    ) -> int:
+        """Add documents to the existing index."""
+        collection = self._get_collection()
+        collection.add(
+            ids=ids,
+            documents=documents,
+            metadatas=metadatas,
+        )
+        return len(ids)
+
+    def delete(self, ids: list[str]) -> None:
+        """Delete documents by ID."""
+        collection = self._get_collection()
+        collection.delete(ids=ids)
+
+    def count(self) -> int:
+        """Return the number of documents in the index."""
+        return self._get_collection().count()
 
     def exists(self) -> bool:
-        has_vectors = (self.index_dir / VECTORS_SPARSE_FILENAME).exists() or \
-            (self.index_dir / VECTORS_DENSE_FILENAME).exists()
-        return has_vectors and all(
-            (self.index_dir / f).exists()
-            for f in (METADATA_FILENAME, EMBEDDER_FILENAME)
-        )
+        """Check if the index has any documents."""
+        try:
+            return self.count() > 0
+        except Exception:
+            return False
 
-    # ------------------------------------------------------------------
-    # Search
-    # ------------------------------------------------------------------
-    def search(self, query: str, top_k: int = 5) -> pd.DataFrame:
-        if self.vectors is None or self.metadata is None or self.embedder is None:
-            raise RuntimeError("Index not loaded — call load() or build() first")
+    def clear(self) -> None:
+        """Clear all documents from the index."""
+        client = self._get_client()
+        try:
+            client.delete_collection(self.collection_name)
+            self._collection = None
+            logger.info("Cleared collection '%s'", self.collection_name)
+        except Exception:
+            pass
 
-        # Raises QueryValidationError with a user-facing message for bad
-        # input (empty, wrong type, no real content); silently clamps
-        # top_k into a sane range rather than erroring on that one.
-        query, top_k = validate_query(query, top_k)
+    def get_metadata_stats(self) -> dict[str, Any]:
+        """Get statistics about the stored data."""
+        collection = self._get_collection()
+        total = collection.count()
 
-        query_vector = self.embedder.embed([query])
-        # Vectors are L2-normalized at embed time, so a dot product IS
-        # cosine similarity. Sparse (TF-IDF) @ dense query -> dense 1D
-        # scores array either way.
-        if sp.issparse(query_vector):
-            query_vector = query_vector.toarray()
-        query_vector = np.asarray(query_vector).reshape(-1)
+        if total == 0:
+            return {"total_documents": 0}
 
-        scores = self.vectors @ query_vector
-        scores = np.asarray(scores).reshape(-1)
+        # Get all documents to compute accurate stats
+        all_data = collection.get(include=["metadatas"])
+        countries = set()
+        work_modes = set()
+        seniority_levels = set()
 
-        top_k = min(top_k, len(scores))
-        top_idx = np.argpartition(-scores, top_k - 1)[:top_k]
-        top_idx = top_idx[np.argsort(-scores[top_idx])]
+        if all_data.get("metadatas"):
+            for meta in all_data["metadatas"]:
+                if meta.get("country"):
+                    countries.add(meta["country"])
+                if meta.get("work_mode"):
+                    work_modes.add(meta["work_mode"])
+                if meta.get("seniority_level"):
+                    seniority_levels.add(meta["seniority_level"])
 
-        results = self.metadata.iloc[top_idx].copy()
-        results["score"] = scores[top_idx]
-        return results.reset_index(drop=True)
+        return {
+            "total_documents": total,
+            "countries": sorted(countries),
+            "work_modes": sorted(work_modes),
+            "seniority_levels": sorted(seniority_levels),
+        }
