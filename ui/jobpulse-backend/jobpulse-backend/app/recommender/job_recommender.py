@@ -116,6 +116,22 @@ class JobRecommender:
         courses = [course_for_skill(skill, priority, "Required by your best-matching jobs.") for skill, priority in gap_priority.items()]
         courses.sort(key=lambda item: (-item.priority, item.skill))
 
+        # Fallback: if no gap-based courses (e.g. no matching jobs or no
+        # missing skills), recommend courses for the most in-demand skills
+        # across ALL jobs so the user always sees learning suggestions.
+        if not courses:
+            skill_demand: dict[str, int] = defaultdict(int)
+            for job in jobs:
+                for skill in job.required_skills:
+                    normalized = skill.strip().lower()
+                    if normalized:
+                        skill_demand[normalized] += 1
+            top_skills = sorted(skill_demand.items(), key=lambda x: -x[1])[:5]
+            for skill, count in top_skills:
+                priority = min(1.0, count / max(len(jobs), 1))
+                courses.append(course_for_skill(skill, priority, "One of the most in-demand skills across available jobs."))
+            courses.sort(key=lambda item: -item.priority)
+
         interview_skills = self.skill_matcher.normalize_skills(candidate.skills)
         for recommendation in recommendations:
             if recommendation.days_to_deadline is not None and 0 <= recommendation.days_to_deadline <= 7:

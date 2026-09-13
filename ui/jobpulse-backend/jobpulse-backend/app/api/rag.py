@@ -8,9 +8,11 @@ from __future__ import annotations
 import logging
 import re
 import sys
+import time
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
@@ -145,6 +147,7 @@ def _get_role_demand_data(db: Session, country: str | None = None) -> dict:
 # ---------------------------------------------------------------------------
 _assistant = None
 _rag_available = None  # None = untested, True/False after first attempt
+_rag_lock = __import__("threading").Lock()
 
 
 def _get_assistant():
@@ -152,7 +155,12 @@ def _get_assistant():
     if _assistant is not None:
         return _assistant
 
-    # Find the project root containing src/ — works locally and in Docker.
+    with _rag_lock:
+        # Double-check after acquiring lock
+        if _assistant is not None:
+            return _assistant
+
+        # Find the project root containing src/ — works locally and in Docker.
     project_root = str(Path(__file__).resolve().parent.parent.parent.parent.parent.parent)
 
     # Docker: src/ is mounted at /app/src, so project root is /app
@@ -175,8 +183,8 @@ def _get_assistant():
             _assistant.rag.store = None
             from src.rag.retriever import JobPulseRAG
             from src.config import RAG_DATA_DIR
-            _assistant.rag = JobPulseRAG(persist_dir=Path(RAG_DATA_DIR))
-            _assistant.rag.ensure_ready()
+            _assistant.rag = JobPulseRAG(index_dir=Path(RAG_DATA_DIR) / "tfidf")
+            _assistant.rag.ensure_ready(embedder_prefer="tfidf")
         _rag_available = True
         logger.info("RAG assistant loaded successfully")
         return _assistant
@@ -191,7 +199,7 @@ def _get_assistant():
 # ---------------------------------------------------------------------------
 class RAGQueryRequest(BaseModel):
     question: str = Field(..., min_length=2, max_length=500, description="Free-text job market question")
-    top_k: int = Field(5, ge=1, le=20, description="Number of results to retrieve")
+    top_k: int = Field(3, ge=1, le=20, description="Number of results to retrieve")
 
 
 class RAGSource(BaseModel):
@@ -233,6 +241,7 @@ def ask_rag(
         )
 
     try:
+        start_time = time.time()
 
         # For market intelligence questions, fetch actual skill or role demand data
         market_data = None
@@ -250,6 +259,10 @@ def ask_rag(
                            country, len(market_data.get("skills", [])))
 
         result = assistant.ask(payload.question, top_k=payload.top_k, market_data=market_data)
+        
+        elapsed_time = time.time() - start_time
+        logger.info("RAG query completed in %.2f seconds, method=%s", elapsed_time, 
+                   "llm" if assistant.llm and assistant.llm.available else "template")
 
         # Detect whether LLM was used for generation
         method = "template"
@@ -268,6 +281,84 @@ def ask_rag(
             status_code=500,
             detail={"error": {"code": "RAG_ERROR", "message": str(e)[:500], "details": {}}},
         )
+
+
+# ---------------------------------------------------------------------------
+# Streaming endpoint (SSE)
+# ---------------------------------------------------------------------------
+def _sse_generator(question: str, top_k: int, market_data: dict | None, assistant):
+    """Server-Sent Events generator for token-by-token streaming."""
+    import json
+    try:
+        for event in assistant.ask_stream(question, top_k=top_k, market_data=market_data):
+            if isinstance(event, str):
+                # Token chunk
+                yield f"data: {json.dumps({'type': 'token', 'content': event})}\n\n"
+            else:
+                # Final metadata dict
+                sources = event.get("sources", [])
+                method = event.get("method", "template")
+                confidence = event.get("confidence", "grounded")
+                yield f"data: {json.dumps({'type': 'done', 'confidence': confidence, 'sources': sources, 'method': method})}\n\n"
+    except Exception as exc:
+        yield f"data: {json.dumps({'type': 'error', 'message': str(exc)[:500]})}\n\n"
+    finally:
+        yield "data: [DONE]\n\n"
+
+
+@router.post("/ask-stream")
+async def ask_rag_stream(
+    payload: RAGQueryRequest,
+    db: Session = Depends(get_db),
+):
+    """Stream a job-market answer token-by-token via Server-Sent Events.
+
+    SSE event types:
+      - `token`   — incremental text chunk (`content` field)
+      - `done`    — final metadata (`confidence`, `sources`, `method`)
+      - `error`   — error message
+    """
+    assistant = _get_assistant()
+    if assistant is None:
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "error": {
+                    "code": "RAG_UNAVAILABLE",
+                    "message": "RAG assistant is not available.",
+                    "details": {},
+                }
+            },
+        )
+
+    market_data = None
+    if _is_market_intelligence_question(payload.question):
+        country = _extract_country_filter(payload.question)
+        is_role = _is_role_question(payload.question)
+        if is_role:
+            market_data = _get_role_demand_data(db, country)
+        else:
+            market_data = _get_skill_demand_data(db, country)
+
+    return StreamingResponse(
+        _sse_generator(payload.question, payload.top_k, market_data, assistant),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )
+
+
+@router.post("/clear-history")
+def clear_history():
+    """Clear conversation history for fresh context."""
+    assistant = _get_assistant()
+    if assistant:
+        assistant.clear_history()
+        return {"status": "ok", "message": "Conversation history cleared"}
+    return {"status": "ok", "message": "No assistant loaded"}
 
 
 @router.get("/health")

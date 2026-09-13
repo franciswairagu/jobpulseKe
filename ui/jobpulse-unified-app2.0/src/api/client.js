@@ -180,12 +180,12 @@ export async function getDashboard({ region = "All Africa", period = "Last 6 mon
       collectedAt: new Date().toISOString().split("T")[0],
       sampleSize: totalJobs,
     },
-    // Pass through real data for personalization
-    _cvScore: data.cv_score,
-    _skills: data.skills,
-    _skillsToImprove: data.skills_to_improve,
-    _recommendations: data.recommendations,
-    _availableJobs: (data.available_jobs || []).map(adaptJob),
+    weeklyActivity: {
+      added: data.market_insights?.jobs_added_this_week ?? 0,
+      removed: data.market_insights?.jobs_removed_this_week ?? 0,
+    },
+    topCountries: (data.market_insights?.top_countries || []).slice(0, 5),
+    recentJobs: (data.available_jobs || []).map(adaptJob),
   };
 }
 
@@ -346,6 +346,7 @@ export async function analyzeCV(file, onStageChange) {
     overallMatch,
     biggestOpportunity: missingSkills[0] || null,
     analyzedAt: analysis.created_at,
+    nonTechDetected: analysis.non_tech_detected || foundSkills.length <= 2,
     // Pass through raw backend data for downstream use
     _raw: analysis,
     _resumeId: resumeId,
@@ -452,6 +453,67 @@ export async function askRAG(question, topK = 5) {
     method: "POST",
     body: JSON.stringify({ question, top_k: topK }),
   });
+}
+
+// ---------------------------------------------------------------------------
+// POST /api/rag/ask-stream — streaming RAG (SSE)
+// ---------------------------------------------------------------------------
+
+export async function* askRAGStream(question, topK = 5) {
+  const token = getAuthToken();
+  const headers = { "Content-Type": "application/json" };
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+
+  const res = await fetch("http://localhost:8000/api/rag/ask-stream", {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ question, top_k: topK }),
+  });
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body?.error?.message || `Streaming failed (${res.status})`);
+  }
+
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split("\n");
+    buffer = lines.pop(); // Keep incomplete line in buffer
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed || !trimmed.startsWith("data: ")) continue;
+      const payload = trimmed.slice(6);
+      if (payload === "[DONE]") return;
+      try {
+        const event = JSON.parse(payload);
+        yield event;
+      } catch {
+        // Ignore malformed SSE lines
+      }
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// GET /api/dashboard/skill-trend — time series for a skill
+// ---------------------------------------------------------------------------
+
+export async function getSkillTrend(skill, months = 12) {
+  const params = new URLSearchParams({ skill, months: String(months) });
+  const data = await apiFetch(`/api/dashboard/skill-trend?${params}`);
+  return {
+    skill: data.skill,
+    growthRate: data.growth_rate,
+    points: data.points || [],
+  };
 }
 
 // ---------------------------------------------------------------------------

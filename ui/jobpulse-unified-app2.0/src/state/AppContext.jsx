@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useReducer, useCallback, useEffect } from "react";
+import { useAuth } from "./AuthContext";
 
 const AppStateContext = createContext(null);
 const AppDispatchContext = createContext(null);
@@ -46,7 +47,18 @@ function reducer(state, action) {
 }
 
 export function AppProvider({ children }) {
+  const { token } = useAuth();
   const [state, dispatch] = useReducer(reducer, initialState);
+
+  // Clear CV analysis when auth state changes (login/logout)
+  const prevTokenRef = React.useRef(token);
+  useEffect(() => {
+    if (prevTokenRef.current !== token) {
+      prevTokenRef.current = token;
+      localStorage.removeItem(CV_STORAGE_KEY);
+      dispatch({ type: "CLEAR_CV_ANALYSIS" });
+    }
+  }, [token]);
 
   useEffect(() => {
     if (state.cvAnalysis) {

@@ -28,7 +28,9 @@ import scipy.sparse as sp
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_ST_MODEL = "all-MiniLM-L6-v2"
+DEFAULT_ST_MODEL = "all-MiniLM-L6-v2"  # Fast and efficient model
+# Alternative smaller model for even faster inference:
+# DEFAULT_ST_MODEL = "all-MiniLM-L12-v2"  # Slightly larger but still fast
 
 
 class BaseEmbedder:
@@ -100,13 +102,17 @@ class TfidfEmbedder(BaseEmbedder):
 
     name = "tfidf"
 
-    def __init__(self, max_features: int = 5000):
+    def __init__(self, max_features: int = 3000):  # Reduced for faster processing
         from sklearn.feature_extraction.text import TfidfVectorizer  # deferred import
         self.max_features = max_features
         self.vectorizer = TfidfVectorizer(
             max_features=max_features,
             stop_words="english",
-            ngram_range=(1, 2),
+            ngram_range=(1, 1),  # Unigrams only for faster processing
+            sublinear_tf=True,  # Apply sublinear TF scaling
+            norm='l2',
+            min_df=2,  # Ignore very rare terms
+            max_df=0.95,  # Ignore very common terms
         )
         self._fitted = False
 

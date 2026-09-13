@@ -48,18 +48,19 @@ jobpulse/
 │   ├── analytics/               # Stage 4: Feature Engineering & Aggregations
 │   ├── pipeline/                # Orchestration scripts for Kenya-specific collectors
 │   └── rag/                     # RAG assistant (retrieval + LLM generation)
-│       ├── llm.py               # Ollama wrapper, system prompt, prompt builder
-│       ├── assistant.py         # Question detection + LLM/template answer composition
+│       ├── llm.py               # Ollama wrapper, streaming generator
+│       ├── assistant.py         # Question detection + streaming answer composition
 │       ├── retriever.py         # TF-IDF / sentence-transformers retrieval
 │       ├── vector_store.py      # numpy-based vector store
 │       ├── embeddings.py        # Dual embedder (SentenceTransformer + TF-IDF)
+│       ├── config.py            # RAG optimization config
 │       └── validation.py        # Query validation
 ├── ui/
 │   ├── jobpulse-backend/        # FastAPI backend
 │   │   └── jobpulse-backend/
 │   │       ├── app/
 │   │       │   ├── main.py      # FastAPI app with all routers
-│   │       │   ├── api/         # API endpoints (auth, jobs, cv, rag, career-insights)
+│   │       │   ├── api/         # API endpoints (auth, jobs, cv, rag, dashboard, career-insights)
 │   │       │   ├── models/      # SQLAlchemy models (User, Job, Skill, Resume)
 │   │       │   ├── schemas/     # Pydantic request/response schemas
 │   │       │   ├── services/    # Business logic (job_service, cv_service, recommender)
@@ -215,11 +216,11 @@ python scripts/run_full_pipeline.py
 
 | Page | Route | Description |
 |------|-------|-------------|
-| Dashboard | `/` | Market overview with top skills, geographic demand, remote trends |
+| Dashboard | `/` | Market overview with top skills, geographic demand, skill demand trends, remote trends |
 | CV Analyzer | `/cv` | Upload CV, view extracted skills, skill gaps, job matches, courses, interview prep |
 | Skills Explorer | `/skills` | Searchable/filterable table of all skills with demand %, growth rate |
 | Career Insights | `/career-insights` | Career progression paths, skills by seniority, geographic demand, remote scores |
-| AI Assistant | `/assistant` | RAG-powered chatbot for market questions |
+| AI Assistant | `/assistant` | RAG-powered chatbot with streaming responses for market questions |
 | Auth | `/auth` | Login/Register with JWT |
 
 ---
@@ -238,8 +239,10 @@ python scripts/run_full_pipeline.py
 | `/api/jobs` | GET | Search and filter jobs |
 | `/api/jobs/skills/demand` | GET | Skill demand analytics |
 | `/api/dashboard` | GET | Market intelligence data |
+| `/api/dashboard/skill-trend` | GET | Skill demand time series (monthly) |
 | `/api/career-insights` | GET | Career progression & skill distribution |
 | `/api/rag/ask` | POST | Query the AI assistant |
+| `/api/rag/ask-stream` | POST | Stream AI assistant responses (SSE) |
 
 ---
 
@@ -261,7 +264,7 @@ Retrieve top-k relevant job postings (TF-IDF / sentence-transformers)
     ├── Market intelligence ──▶ SQL aggregation + template answer
     │
     └── Qualitative questions ──▶ LLM available?
-                                    ├── Yes ──▶ qwen2.5:1.5b via Ollama
+                                    ├── Yes ──▶ qwen2.5:0.5b via Ollama
                                     └── No  ──▶ Template fallback
 ```
 
@@ -275,19 +278,20 @@ Retrieve top-k relevant job postings (TF-IDF / sentence-transformers)
 | Job Search | "Find remote Python developer jobs" | LLM / template |
 | Career Advice | "How do I become a senior data engineer?" | LLM / template |
 
-### LLM Integration (Ollama + qwen2.5:1.5b)
+### LLM Integration (Ollama + qwen2.5:0.5b)
 
-- **Model**: `qwen2.5:1.5b` (~1GB, runs locally via Ollama)
+- **Model**: `qwen2.5:0.5b` (~300MB, runs locally via Ollama)
 - **Fallback**: Template-based answers when Ollama is unavailable
 - **System prompt**: Grounded in retrieved context, no hallucination
-- **Config**: Temperature 0.3, top_p 0.9, 4K context window
+- **Streaming**: SSE (Server-Sent Events) for progressive token rendering
+- **Config**: Temperature 0.3, top_p 0.9, 512 token context window, 80 max output tokens
 
 ```bash
 # Install Ollama
 curl -fsSL https://ollama.com/install.sh | sh
 
 # Pull the model
-ollama pull qwen2.5:1.5b
+ollama pull qwen2.5:0.5b
 
 # Start Ollama (listens on all interfaces for Docker)
 OLLAMA_HOST=0.0.0.0 ollama serve &
@@ -297,11 +301,12 @@ OLLAMA_HOST=0.0.0.0 ollama serve &
 
 | File | Purpose |
 |------|---------|
-| `src/rag/llm.py` | Ollama wrapper, system prompt, prompt builder |
-| `src/rag/assistant.py` | Question detection, LLM + template answer composition |
-| `src/rag/retriever.py` | TF-IDF / sentence-transformers retrieval |
+| `src/rag/llm.py` | Ollama wrapper, system prompt, streaming generator |
+| `src/rag/assistant.py` | Question detection, streaming answer composition |
+| `src/rag/retriever.py` | TF-IDF / sentence-transformers retrieval, threading lock |
 | `src/rag/vector_store.py` | numpy-based vector store (brute-force cosine similarity) |
 | `src/rag/embeddings.py` | Dual embedder (SentenceTransformer + TF-IDF fallback) |
+| `src/rag/config.py` | RAG optimization config (context size, token limits) |
 | `src/rag/validation.py` | Query input validation |
 
 ---
@@ -315,8 +320,8 @@ OLLAMA_HOST=0.0.0.0 ollama serve &
 | **NLP** | Custom regex-based SkillExtractor (600+ skills, 15 categories), MetadataExtractor |
 | **ML** | Scikit-learn (LogisticRegression for tech category classification) |
 | **Embeddings** | Sentence-Transformers (`all-MiniLM-L6-v2`) with TF-IDF fallback |
-| **Vector Store** | Custom numpy brute-force cosine similarity (~10k docs, sub-ms search) |
-| **LLM** | Ollama + `qwen2.5:1.5b` (local, ~1GB RAM, fallback to templates) |
+| **Vector Store** | Custom numpy brute-force cosine similarity (~13k docs, sub-ms search) |
+| **LLM** | Ollama + `qwen2.5:0.5b` (local, ~300MB RAM, fallback to templates) |
 | **Backend** | FastAPI, SQLAlchemy 2.0, SQLite (dev) / PostgreSQL (prod) |
 | **Auth** | JWT (python-jose), bcrypt password hashing |
 | **Frontend** | React 19, Vite 8, TailwindCSS 4, React Router 7, Recharts |
@@ -326,10 +331,11 @@ OLLAMA_HOST=0.0.0.0 ollama serve &
 
 ## 📊 Dataset Info
 
-- **Total Records**: 10,379 jobs (after merge), 9,549 (after cleaning)
+- **Total Records**: 12,992 jobs (after merge + cleaning)
 - **Schema**: 22 columns including `job_title`, `company`, `job_description`, `country`, `work_mode`, etc.
-- **Countries Covered**: 10 (Nigeria, Ghana, Kenya, South Africa, Egypt, Rwanda, Uganda, Morocco, Global Remote)
+- **Countries Covered**: 10+ (Nigeria, Ghana, Kenya, South Africa, Egypt, Rwanda, Uganda, Morocco, Global Remote)
 - **Skills Extracted**: 600+ across 8 categories
+- **Date Coverage**: ~27% of records have posting dates (used for skill demand time series)
 - **Analytics Files**: Pre-computed JSON under `data/analytics/` (career pathways, skill matrices, remote trends)
 
 ---
@@ -366,8 +372,9 @@ The CRISP-DM analysis notebook at `notebooks/notebook.ipynb` includes:
 
 - **Work mode data**: ~90% of records have `unknown` work mode (inferred from descriptions when available)
 - **Employment type**: Only ~5% of records have explicit employment type data
-- **Date coverage**: ~50% of records have posting dates (inconsistent formats across sources)
+- **Date coverage**: ~27% of records have posting dates (sparse historical data for time series)
 - **Skill taxonomy**: Some niche skills may not be captured in the 600+ taxonomy
+- **RAG preload**: Backend takes ~25s to start (loads sentence-transformers model + warms up Ollama)
 
 ---
 
@@ -378,6 +385,9 @@ The CRISP-DM analysis notebook at `notebooks/notebook.ipynb` includes:
 - **Performance Target**: Handle 100k+ records efficiently without memory overhead
 - **Backend Environment**: Uses Conda `deepLearning` env (not `.venv`) for ML dependencies
 - **Data Auto-Ingest**: Backend auto-ingests latest `jobpulse_cleaned_*.parquet` on startup
+- **Streaming SSE**: Assistant uses Server-Sent Events for progressive token rendering
+- **Startup ID**: Backend generates UUID on startup; frontend validates on mount for server restart detection
+- **Frontend Proxy Bypass**: `askRAGStream` fetches directly from `http://localhost:8000` to avoid Vite proxy buffering
 
 ---
 
