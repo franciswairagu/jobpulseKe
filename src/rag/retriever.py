@@ -35,7 +35,7 @@ logger = logging.getLogger(__name__)
 # user these are weak matches rather than presenting them as confident
 # hits. Threshold is conservative for TF-IDF (sparse keyword overlap
 # scores lower than dense semantic similarity even for good matches).
-LOW_CONFIDENCE_THRESHOLD = 0.15
+LOW_CONFIDENCE_THRESHOLD = 0.20
 
 
 class JobPulseRAG:
@@ -99,13 +99,17 @@ class JobPulseRAG:
 
     @staticmethod
     def has_strong_matches(results: pd.DataFrame, threshold: float = LOW_CONFIDENCE_THRESHOLD) -> bool:
-        """True if the top result clears the low-confidence bar. A valid,
-        well-formed query can still come back empty-handed if nothing in
-        the corpus is actually relevant — this is how a caller tells that
-        apart from a genuine match."""
+        """True if retrieval results are genuinely relevant. Checks that
+        the top result clears the threshold AND the average score of the
+        top 3 results is also reasonable."""
         if results.empty:
             return False
-        return bool(results["score"].iloc[0] >= threshold)
+        top_score = results["score"].iloc[0]
+        if top_score < threshold:
+            return False
+        # Also check that the average of top results is above a lower bar
+        avg_score = results["score"].head(3).mean()
+        return avg_score >= threshold * 0.8
 
     @staticmethod
     def format_context(results: pd.DataFrame) -> str:

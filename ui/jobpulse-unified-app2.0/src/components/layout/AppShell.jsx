@@ -340,7 +340,7 @@ export default function AppShell({ activeKey, onNavigate, title, subtitle, searc
         {/* Page content */}
         <main
           id="main-content"
-          className="flex-1 overflow-y-auto px-4 py-5 lg:px-6 lg:py-6"
+          className="flex-1 overflow-y-auto px-6 py-5 lg:px-10 lg:py-6"
         >
           <div className="page-enter" key={activeKey}>
             {children}

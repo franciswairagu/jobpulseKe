@@ -134,6 +134,10 @@ def generate_recommendations(db: Session, user: User, resume_analysis: ResumeAna
 
     db.commit()
 
+    # Refresh objects to ensure they're loaded from the database
+    for rec in persisted:
+        db.refresh(rec)
+
     return {
         "job_recommendations": plan.jobs,
         "courses": [r for r in persisted if r.type == RecommendationType.COURSE],

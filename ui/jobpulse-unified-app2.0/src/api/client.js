@@ -464,7 +464,7 @@ export async function* askRAGStream(question, topK = 5) {
   const headers = { "Content-Type": "application/json" };
   if (token) headers["Authorization"] = `Bearer ${token}`;
 
-  const res = await fetch("http://localhost:8000/api/rag/ask-stream", {
+  const res = await fetch("/api/rag/ask-stream", {
     method: "POST",
     headers,
     body: JSON.stringify({ question, top_k: topK }),

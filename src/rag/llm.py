@@ -114,9 +114,10 @@ class OllamaLLM:
             messages.extend(history[-4:])
         if context and len(context) > max_context_chars:
             context = context[:max_context_chars]
-        full_prompt = prompt
         if context:
-            full_prompt = f"{context}\n\n{prompt}"
+            full_prompt = f"Here are relevant job listings:\n\n{context}\n\n---\n\n{prompt}"
+        else:
+            full_prompt = f"No job listings were found for this query.\n\n---\n\n{prompt}"
         messages.append({"role": "user", "content": full_prompt})
         return messages
 
@@ -247,12 +248,20 @@ class OllamaLLM:
 # ---------------------------------------------------------------------------
 
 JOBPULSE_SYSTEM_PROMPT = """\
-You are JobPulse, a career assistant for the African tech job market. Be warm, concise (2-4 sentences), and conversational. Use contractions. Answer only from provided data — don't invent facts. End with a natural follow-up question."""
+You are JobPulse, a career assistant for the African tech job market. \
+You will receive relevant job listings as context. \
+Answer the user's question using ONLY the provided job listings. \
+If the listings don't contain enough information to answer, say so honestly — do not make up information. \
+Be warm, concise (2-4 sentences), and conversational. Use contractions. \
+Always reference specific jobs from the listings when possible. \
+End with a natural follow-up question."""
 
 
 def build_rag_prompt(question: str, question_type: str = "general") -> str:
-    """Build the user prompt for the LLM — conversational and minimal."""
-    return question
+    """Build the user prompt for the LLM — includes explicit context instructions."""
+    return f"""Based on the job listings provided above, answer this question: {question}
+
+If the listings don't match the question, say you couldn't find relevant results rather than making up an answer."""
 
 
 # ---------------------------------------------------------------------------

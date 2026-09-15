@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import AppShell from "./components/layout/AppShell";
 import DashboardPage from "./pages/DashboardPage";
 import CVAnalyzerPage from "./pages/CVAnalyzerPage";
@@ -27,13 +27,10 @@ export default function App() {
   const [authMode, setAuthMode] = useState("login");
   const [showAuth, setShowAuth] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [serverReady, setServerReady] = useState(false);
   const meta = PAGE_META[activeKey] ?? {};
 
-  useEffect(() => {
-    if (!token) {
-      setCheckingStartup(false);
-      return;
-    }
+  const checkStartup = useCallback((retries = 5, delay = 2000) => {
     fetch("/api/startup-id")
       .then((r) => r.json())
       .then((data) => {
@@ -43,15 +40,38 @@ export default function App() {
         } else {
           setStartupId(serverId);
         }
+        setServerReady(true);
+        setCheckingStartup(false);
       })
       .catch(() => {
-        // Server unreachable — force logout so user re-authenticates
-        logout();
-      })
-      .finally(() => setCheckingStartup(false));
+        if (retries > 0) {
+          setTimeout(() => checkStartup(retries - 1, delay * 1.5), delay);
+        } else {
+          setServerReady(true);
+          setCheckingStartup(false);
+        }
+      });
+  }, [startupId, logout, setStartupId]);
+
+  useEffect(() => {
+    if (!token) {
+      setCheckingStartup(false);
+      setServerReady(true);
+      return;
+    }
+    checkStartup();
   }, []); // Run once on mount
 
-  if (checkingStartup) return null;
+  if (checkingStartup) {
+    return (
+      <div className="flex min-h-screen items-center justify-center" style={{ background: "#FAFAFA" }}>
+        <div className="text-center">
+          <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-4 border-gray-200 border-t-[#FA510F]" />
+          <p className="text-sm text-gray-500">Connecting to server...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!token && !showAuth) {
     return <LandingPage onNavigateToAuth={(mode) => { setAuthMode(mode); setShowAuth(true); }} />;

@@ -121,13 +121,15 @@ def _auto_ingest_if_empty():
 
 @app.on_event("startup")
 def on_startup():
+    # Set startup_id FIRST so the /api/startup-id endpoint is available immediately
+    app.state.startup_id = str(uuid.uuid4())
+    logger.info("JobPulse backend starting (env=%s, startup_id=%s)", settings.ENVIRONMENT, app.state.startup_id)
+
     init_db()
     build_registry()
     _auto_ingest_if_empty()
-    app.state.startup_id = str(uuid.uuid4())
-    logger.info("JobPulse backend started (env=%s, startup_id=%s)", settings.ENVIRONMENT, app.state.startup_id)
 
-    # Preload RAG assistant and warm up Ollama model
+    # Preload RAG assistant and warm up Ollama model (non-blocking)
     try:
         from app.api.rag import _get_assistant
         assistant = _get_assistant()

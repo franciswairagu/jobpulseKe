@@ -161,37 +161,37 @@ def _get_assistant():
             return _assistant
 
         # Find the project root containing src/ — works locally and in Docker.
-    project_root = str(Path(__file__).resolve().parent.parent.parent.parent.parent.parent)
+        project_root = str(Path(__file__).resolve().parent.parent.parent.parent.parent.parent)
 
-    # Docker: src/ is mounted at /app/src, so project root is /app
-    docker_app = "/app"
-    if Path(docker_app, "src", "rag").exists():
-        project_root = docker_app
+        # Docker: src/ is mounted at /app/src, so project root is /app
+        docker_app = "/app"
+        if Path(docker_app, "src", "rag").exists():
+            project_root = docker_app
 
-    if project_root not in sys.path:
-        sys.path.insert(0, project_root)
+        if project_root not in sys.path:
+            sys.path.insert(0, project_root)
 
-    try:
-        from src.rag.assistant import JobPulseAssistant
-        _assistant = JobPulseAssistant()
-        # Try loading the existing index; if it fails (e.g. sentence-
-        # transformers not available), rebuild with TF-IDF.
         try:
-            _assistant.rag.ensure_ready()
+            from src.rag.assistant import JobPulseAssistant
+            _assistant = JobPulseAssistant()
+            # Try loading the existing index; if it fails (e.g. sentence-
+            # transformers not available), rebuild with TF-IDF.
+            try:
+                _assistant.rag.ensure_ready()
+            except Exception as e:
+                logger.warning("Existing RAG index load failed (%s), rebuilding with TF-IDF...", e)
+                _assistant.rag.store = None
+                from src.rag.retriever import JobPulseRAG
+                from src.config import RAG_DATA_DIR
+                _assistant.rag = JobPulseRAG(index_dir=Path(RAG_DATA_DIR) / "tfidf")
+                _assistant.rag.ensure_ready(embedder_prefer="tfidf")
+            _rag_available = True
+            logger.info("RAG assistant loaded successfully")
+            return _assistant
         except Exception as e:
-            logger.warning("Existing RAG index load failed (%s), rebuilding with TF-IDF...", e)
-            _assistant.rag.store = None
-            from src.rag.retriever import JobPulseRAG
-            from src.config import RAG_DATA_DIR
-            _assistant.rag = JobPulseRAG(index_dir=Path(RAG_DATA_DIR) / "tfidf")
-            _assistant.rag.ensure_ready(embedder_prefer="tfidf")
-        _rag_available = True
-        logger.info("RAG assistant loaded successfully")
-        return _assistant
-    except Exception as e:
-        logger.warning("RAG assistant unavailable: %s", e)
-        _rag_available = False
-        return None
+            logger.warning("RAG assistant unavailable: %s", e)
+            _rag_available = False
+            return None
 
 
 # ---------------------------------------------------------------------------

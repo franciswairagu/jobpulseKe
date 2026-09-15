@@ -13,9 +13,9 @@ class RAGOptimizationConfig:
     model: str = "qwen2.5:0.5b"  # Fast model for quick responses
     temperature: float = 0.3
     top_p: float = 0.85
-    num_ctx: int = 512
+    num_ctx: int = 1024
     repeat_penalty: float = 1.1
-    num_predict: int = 80
+    num_predict: int = 180
     
     # Timeout settings
     request_timeout: int = 15
@@ -26,7 +26,7 @@ class RAGOptimizationConfig:
     
     # Retrieval optimization
     min_score_threshold: float = 0.1
-    max_context_chars: int = 400
+    max_context_chars: int = 800
     default_top_k: int = 3
     
     # Embedding optimization
@@ -49,7 +49,7 @@ def get_optimization_config() -> RAGOptimizationConfig:
     
     Environment variables:
         RAG_MODEL           — Ollama model name (default: qwen2.5:0.5b)
-        RAG_TEMPERATURE     — Sampling temperature (default: 0.4)
+        RAG_TEMPERATURE     — Sampling temperature (default: 0.3)
         RAG_TOP_P           — Top-p nucleus sampling (default: 0.85)
         RAG_NUM_CTX         — Context window size (default: 1024)
         RAG_REPEAT_PENALTY  — Repetition penalty (default: 1.1)
