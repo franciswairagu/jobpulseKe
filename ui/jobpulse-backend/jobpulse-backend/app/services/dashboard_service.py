@@ -10,7 +10,7 @@ from app.models.user import User
 from app.services import job_service
 
 
-def get_dashboard(db: Session, user: User) -> dict:
+def get_dashboard(db: Session, user: User, country: str | None = None) -> dict:
     latest_resume = (
         db.query(Resume)
         .filter(Resume.user_id == user.id)
@@ -35,5 +35,5 @@ def get_dashboard(db: Session, user: User) -> dict:
         "skills_to_improve": analysis.missing_skills if analysis else [],
         "recommendations": recommendations,
         "available_jobs": available_jobs,
-        "market_insights": job_service.market_insights(db),
+        "market_insights": job_service.market_insights(db, country=country),
     }

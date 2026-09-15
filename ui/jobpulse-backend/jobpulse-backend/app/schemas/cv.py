@@ -37,6 +37,7 @@ class CVAnalysisOut(BaseModel):
     strengths: list[str]
     weaknesses: list[str]
     missing_skills: list[str]
+    non_tech_detected: bool = False
     created_at: datetime
 
     class Config:

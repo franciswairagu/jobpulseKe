@@ -118,10 +118,21 @@ def get_career_insights(
     skill_region = analytics.get("skill_region_matrix", {})
 
     SENIORITY_ORDER = ["Intern", "Entry Level", "Mid-Level", "Senior", "Lead", "Executive"]
-    current_idx = SENIORITY_ORDER.index(user_seniority) if user_seniority in SENIORITY_ORDER else 2
+
+    # Normalize seniority names to match SENIORITY_ORDER (handle "Mid Level" → "Mid-Level")
+    def _normalize_seniority(level: str) -> str:
+        if not level:
+            return level
+        normalized = level.strip()
+        if normalized == "Mid Level":
+            return "Mid-Level"
+        return normalized
+
+    normalized_seniority = _normalize_seniority(user_seniority)
+    current_idx = SENIORITY_ORDER.index(normalized_seniority) if normalized_seniority in SENIORITY_ORDER else 2
     next_level = SENIORITY_ORDER[current_idx + 1] if current_idx + 1 < len(SENIORITY_ORDER) else None
 
-    current_level_skills = skills_by_seniority.get(user_seniority, {})
+    current_level_skills = skills_by_seniority.get(normalized_seniority, {})
     next_level_skills = skills_by_seniority.get(next_level, {}) if next_level else {}
 
     skill_gaps_next = {}
@@ -131,7 +142,7 @@ def get_career_insights(
             skill_gaps_next[cat] = count - current_count
 
     remote_by_seniority = remote_trends.get("by_seniority", {})
-    user_remote = remote_by_seniority.get(user_seniority, {})
+    user_remote = remote_by_seniority.get(normalized_seniority, {})
 
     skill_demand_by_country = {}
     for skill_name in user_skills:
@@ -145,7 +156,7 @@ def get_career_insights(
     countries_with_demand.discard("Global Remote")
 
     return {
-        "user_seniority": user_seniority,
+        "user_seniority": _normalize_seniority(user_seniority),
         "user_skills": user_skills,
         "user_skill_categories": user_skill_categories,
         "seniority_progression": seniority_progression,
