@@ -87,7 +87,7 @@ jobpulse/
 - Python 3.12+ (Conda `deepLearning` env or venv)
 - Node.js 18+ (for frontend)
 
-### One-Command Launch
+### One-Command Launch (Linux/Mac)
 
 ```bash
 ./start.sh
@@ -95,33 +95,51 @@ jobpulse/
 
 This starts both backend (port 8000) and frontend (port 5173).
 
-### Manual Setup
+### Manual Setup (All Platforms)
 
-**Backend:**
+Use this method if `./start.sh` doesn't work (e.g. Windows, permission errors).
+
+You need **two separate terminals** running at the same time.
+
+#### Terminal 1 — Backend
 
 ```bash
 cd ui/jobpulse-backend/jobpulse-backend
+
+# Create and activate virtual environment
 python -m venv .venv
-source .venv/bin/activate
+source .venv/bin/activate        # Linux/Mac
+# .venv\Scripts\activate         # Windows (cmd)
+# .venv\Scripts\Activate.ps1     # Windows (PowerShell)
+
+# Install dependencies
 pip install -r requirements.txt
 
-# Create .env file
-cat > .env << EOF
-DATABASE_URL=sqlite:///./jobpulse.db
-SECRET_KEY=your-secret-key-here
-CORS_ORIGINS=["http://localhost:5173"]
-ALLOWED_HOSTS=["*"]
-EOF
+# Set environment variables (defaults work for local dev)
+export DATABASE_URL="sqlite:///./jobpulse.db"
+export SECRET_KEY="dev-secret-change-in-production"
 
-# Run backend
+# Start the backend server
 uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-**Frontend:**
+On **Windows cmd** (without bash), set env vars with:
+```cmd
+set DATABASE_URL=sqlite:///./jobpulse.db
+set SECRET_KEY=dev-secret-change-in-production
+```
+
+On **Windows PowerShell**:
+```powershell
+$env:DATABASE_URL="sqlite:///./jobpulse.db"
+$env:SECRET_KEY="dev-secret-change-in-production"
+```
+
+#### Terminal 2 — Frontend
 
 ```bash
 cd ui/jobpulse-unified-app2.0
-npm install
+npm install          # only needed on first run or if node_modules/ is missing
 npm run dev
 ```
 
