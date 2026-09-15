@@ -10,7 +10,7 @@ function loadInitialAuth() {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) return JSON.parse(raw);
   } catch {}
-  return { token: null, refreshToken: null, user: null };
+  return { token: null, refreshToken: null, user: null, startupId: null };
 }
 
 const initialState = loadInitialAuth();
@@ -18,12 +18,17 @@ const initialState = loadInitialAuth();
 function reducer(state, action) {
   switch (action.type) {
     case "LOGIN":
+      // Clear previous user's CV analysis on login
+      localStorage.removeItem("jobpulse_cv_analysis");
       return { ...state, ...action.payload };
     case "LOGOUT":
       localStorage.removeItem(STORAGE_KEY);
-      return { token: null, refreshToken: null, user: null };
+      localStorage.removeItem("jobpulse_cv_analysis");
+      return { token: null, refreshToken: null, user: null, startupId: null };
     case "SET_USER":
       return { ...state, user: action.payload };
+    case "SET_STARTUP_ID":
+      return { ...state, startupId: action.payload };
     default:
       return state;
   }
@@ -36,7 +41,7 @@ export function AuthProvider({ children }) {
     if (state.token) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     }
-  }, [state.token, state.user]);
+  }, [state.token, state.user, state.startupId]);
 
   return (
     <AuthContext.Provider value={state}>
@@ -62,5 +67,6 @@ export function useAuthActions() {
   const login = useCallback((payload) => dispatch({ type: "LOGIN", payload }), [dispatch]);
   const logout = useCallback(() => dispatch({ type: "LOGOUT" }), [dispatch]);
   const setUser = useCallback((user) => dispatch({ type: "SET_USER", payload: user }), [dispatch]);
-  return { login, logout, setUser };
+  const setStartupId = useCallback((id) => dispatch({ type: "SET_STARTUP_ID", payload: id }), [dispatch]);
+  return { login, logout, setUser, setStartupId };
 }
