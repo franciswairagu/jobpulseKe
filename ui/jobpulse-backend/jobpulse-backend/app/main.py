@@ -1,4 +1,5 @@
 import logging
+import uuid
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Request, status
@@ -120,10 +121,47 @@ def _auto_ingest_if_empty():
 
 @app.on_event("startup")
 def on_startup():
+    # Set startup_id FIRST so the /api/startup-id endpoint is available immediately
+    app.state.startup_id = str(uuid.uuid4())
+    logger.info("JobPulse backend starting (env=%s, startup_id=%s)", settings.ENVIRONMENT, app.state.startup_id)
+
     init_db()
     build_registry()
     _auto_ingest_if_empty()
-    logger.info("JobPulse backend started (env=%s)", settings.ENVIRONMENT)
+
+    # Preload RAG assistant and warm up Ollama model (non-blocking)
+    try:
+        from app.api.rag import _get_assistant
+        assistant = _get_assistant()
+        if assistant:
+            logger.info("RAG assistant preloaded successfully")
+            # Warm up Ollama model so first user query is instant
+            if assistant.llm and assistant.llm.available:
+                logger.info("Warming up Ollama model...")
+                assistant.llm.generate(
+                    prompt="hi",
+                    system="Reply with one word.",
+                )
+                logger.info("Ollama model warmed up")
+        else:
+            logger.warning("RAG assistant preload returned None")
+    except Exception as e:
+        logger.warning("RAG assistant preload failed: %s", e)
+
+
+@app.on_event("shutdown")
+def on_shutdown():
+    logger.info("JobPulse backend shutting down")
+
+
+@app.get("/api/startup-id")
+def get_startup_id():
+    """Return the unique ID for this server process.
+
+    The frontend stores this on login and compares it on each page load.
+    If it changes (server restarted), the frontend forces a logout.
+    """
+    return {"startup_id": app.state.startup_id}
 
 
 app.include_router(system.router)

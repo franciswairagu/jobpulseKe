@@ -18,6 +18,11 @@ trap cleanup EXIT INT TERM
 echo "=== JobPulse ==="
 echo ""
 
+# Kill any existing processes on our ports
+lsof -ti:8000 2>/dev/null | xargs kill -9 2>/dev/null || true
+lsof -ti:5173 2>/dev/null | xargs kill -9 2>/dev/null || true
+sleep 1
+
 # --- Backend ---
 echo "[1/2] Starting backend (FastAPI on :8000)..."
 if [ ! -d "$BACKEND_DIR" ]; then

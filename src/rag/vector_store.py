@@ -139,7 +139,7 @@ class JobVectorStore:
     # ------------------------------------------------------------------
     # Search
     # ------------------------------------------------------------------
-    def search(self, query: str, top_k: int = 5) -> pd.DataFrame:
+    def search(self, query: str, top_k: int = 5, min_score: float = 0.1) -> pd.DataFrame:
         if self.vectors is None or self.metadata is None or self.embedder is None:
             raise RuntimeError("Index not loaded — call load() or build() first")
 
@@ -159,9 +159,26 @@ class JobVectorStore:
         scores = self.vectors @ query_vector
         scores = np.asarray(scores).reshape(-1)
 
-        top_k = min(top_k, len(scores))
-        top_idx = np.argpartition(-scores, top_k - 1)[:top_k]
-        top_idx = top_idx[np.argsort(-scores[top_idx])]
+        # Filter by minimum score threshold for faster, higher-quality results
+        if min_score > 0:
+            high_score_mask = scores >= min_score
+            if not np.any(high_score_mask):
+                # No high-score results, fall back to top_k regardless of score
+                top_k = min(top_k, len(scores))
+                top_idx = np.argpartition(-scores, top_k - 1)[:top_k]
+                top_idx = top_idx[np.argsort(-scores[top_idx])]
+            else:
+                # Only consider high-score results
+                high_score_indices = np.where(high_score_mask)[0]
+                high_score_values = scores[high_score_indices]
+                top_k = min(top_k, len(high_score_indices))
+                top_local_idx = np.argpartition(-high_score_values, top_k - 1)[:top_k]
+                top_local_idx = top_local_idx[np.argsort(-high_score_values[top_local_idx])]
+                top_idx = high_score_indices[top_local_idx]
+        else:
+            top_k = min(top_k, len(scores))
+            top_idx = np.argpartition(-scores, top_k - 1)[:top_k]
+            top_idx = top_idx[np.argsort(-scores[top_idx])]
 
         results = self.metadata.iloc[top_idx].copy()
         results["score"] = scores[top_idx]

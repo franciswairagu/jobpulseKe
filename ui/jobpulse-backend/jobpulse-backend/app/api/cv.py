@@ -121,6 +121,7 @@ def get_analysis(cv_id: uuid.UUID, db: Session = Depends(get_db), current_user: 
     if not resume.analysis:
         raise _error("ANALYSIS_NOT_READY", "CV analysis is not complete yet.", status.HTTP_409_CONFLICT)
     analysis = resume.analysis
+    non_tech_detected = len(analysis.skills_found) <= 2
     return CVAnalysisOut(
         resume_id=resume.id,
         cv_score=analysis.cv_score,
@@ -136,5 +137,6 @@ def get_analysis(cv_id: uuid.UUID, db: Session = Depends(get_db), current_user: 
         strengths=analysis.strengths,
         weaknesses=analysis.weaknesses,
         missing_skills=analysis.missing_skills,
+        non_tech_detected=non_tech_detected,
         created_at=analysis.created_at,
     )

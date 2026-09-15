@@ -187,19 +187,25 @@ def search_jobs(
     return jobs, total
 
 
-def market_insights(db: Session) -> dict:
+def market_insights(db: Session, country: str | None = None) -> dict:
     """Real DB aggregates only - no forecasting, per product decision."""
     now = datetime.now(timezone.utc)
     week_ago = now - timedelta(days=7)
 
-    jobs_added = db.query(Job).filter(Job.created_at >= week_ago).count()
+    # Base filter for available jobs, optionally scoped to a country
+    avail_filters = [Job.status == JobStatus.AVAILABLE]
+    if country and country != "All Africa":
+        avail_filters.append(Job.country == country)
+
+    jobs_added = db.query(Job).filter(Job.created_at >= week_ago, *avail_filters[1:]).count()
     jobs_removed = (
         db.query(JobStatusHistory)
-        .filter(JobStatusHistory.status == JobStatus.REMOVED, JobStatusHistory.timestamp >= week_ago)
+        .join(Job, Job.id == JobStatusHistory.job_id)
+        .filter(JobStatusHistory.status == JobStatus.REMOVED, JobStatusHistory.timestamp >= week_ago, *avail_filters[1:])
         .count()
     )
-    total_available = db.query(Job).filter(Job.status == JobStatus.AVAILABLE).count()
-    remote_count = db.query(Job).filter(Job.status == JobStatus.AVAILABLE, Job.remote.is_(True)).count()
+    total_available = db.query(Job).filter(*avail_filters).count()
+    remote_count = db.query(Job).filter(*avail_filters, Job.remote.is_(True)).count()
     remote_pct = round((remote_count / total_available) * 100) if total_available else 0
 
     top_countries = (
@@ -214,7 +220,7 @@ def market_insights(db: Session) -> dict:
         db.query(Skill.name, func.count(JobSkill.id).label("cnt"))
         .join(JobSkill, JobSkill.skill_id == Skill.id)
         .join(Job, Job.id == JobSkill.job_id)
-        .filter(Job.status == JobStatus.AVAILABLE)
+        .filter(*avail_filters)
         .group_by(Skill.name)
         .order_by(func.count(JobSkill.id).desc())
         .limit(10)
