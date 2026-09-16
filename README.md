@@ -243,7 +243,7 @@ python scripts/run_full_pipeline.py
 
 ---
 
-## 🔌 API Endpoints
+## API Endpoints
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
