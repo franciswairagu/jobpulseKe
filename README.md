@@ -1,4 +1,4 @@
-# JobPulse — African Tech Job Market Intelligence Platform
+# JobPulse - African Tech Job Market Intelligence Platform
 
 **A full-stack data engineering & AI platform analyzing tech job postings across African markets.**
 
@@ -40,7 +40,7 @@ jobpulse/
 ├── src/                        # Core application logic
 │   ├── config.py               # Pipeline config (Stages 1–4): paths, schema, taxonomies
 │   ├── scraping_config.py      # Scraper-suite config: schema, crawl politeness, keywords
-│   ├── collectors/              # Site-specific scrapers (Stage 0 — data collection)
+│   ├── collectors/              # Site-specific scrapers (Stage 0 - data collection)
 │   ├── utils/                   # Shared helpers for collectors
 │   ├── ingestion/               # Stage 1: Data Loading & Ingestion
 │   ├── processing/              # Stage 2: Cleaning, Geo-Normalization & Deduplication
@@ -101,7 +101,7 @@ Use this method if `./start.sh` doesn't work (e.g. Windows, permission errors).
 
 You need **two separate terminals** running at the same time.
 
-#### Terminal 1 — Backend
+#### Terminal 1 - Backend
 
 ```bash
 cd ui/jobpulse-backend/jobpulse-backend
@@ -135,7 +135,7 @@ $env:DATABASE_URL="sqlite:///./jobpulse.db"
 $env:SECRET_KEY="dev-secret-change-in-production"
 ```
 
-#### Terminal 2 — Frontend
+#### Terminal 2 - Frontend
 
 ```bash
 cd ui/jobpulse-unified-app2.0
@@ -411,6 +411,6 @@ The CRISP-DM analysis notebook at `notebooks/notebook.ipynb` includes:
 
 ## License
 
-Proprietary — African Tech Jobs Intelligence Platform
+Proprietary - African Tech Jobs Intelligence Platform
 
 **Moringa School DSF-FT16 Capstone Project**
