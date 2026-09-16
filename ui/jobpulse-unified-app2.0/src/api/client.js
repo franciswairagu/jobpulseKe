@@ -22,6 +22,12 @@ function getAuthToken() {
   return null;
 }
 
+async function parseJSON(response) {
+  const text = await response.text();
+  if (!text) return null;
+  return JSON.parse(text);
+}
+
 async function apiFetch(path, options = {}) {
   const token = getAuthToken();
   const headers = { ...options.headers };
@@ -32,12 +38,12 @@ async function apiFetch(path, options = {}) {
 
   const res = await fetch(path, { ...options, headers });
   if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
+    const body = await parseJSON(res).catch(() => ({}));
     const msg = body?.error?.message || `Request failed (${res.status})`;
     throw new Error(msg);
   }
   if (res.status === 204) return null;
-  return res.json();
+  return parseJSON(res);
 }
 
 // ---------------------------------------------------------------------------
@@ -64,10 +70,10 @@ export async function loginUser({ email, password }) {
     body: form,
   });
   if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
+    const body = await parseJSON(res).catch(() => ({}));
     throw new Error(body?.error?.message || "Login failed");
   }
-  return res.json();
+  return parseJSON(res);
 }
 
 export async function fetchMe() {
@@ -474,7 +480,7 @@ export async function* askRAGStream(question, topK = 5) {
   });
 
   if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
+    const body = await parseJSON(res).catch(() => ({}));
     throw new Error(body?.error?.message || `Streaming failed (${res.status})`);
   }
 
