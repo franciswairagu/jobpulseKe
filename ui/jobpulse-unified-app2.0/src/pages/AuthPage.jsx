@@ -175,12 +175,12 @@ export default function AuthPage({ initialMode = "login", onBack }) {
                 <input
                   type="password"
                   required
-                  minLength={6}
+                  minLength={8}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full rounded-xl border border-border bg-white py-3 pl-10 pr-4 text-sm outline-none transition-all duration-200 focus:border-accent focus:shadow-glow-blue"
                   style={{ color: COLORS.textDark }}
-                  placeholder="Minimum 6 characters"
+                  placeholder="Minimum 8 characters"
                 />
               </div>
             </div>
