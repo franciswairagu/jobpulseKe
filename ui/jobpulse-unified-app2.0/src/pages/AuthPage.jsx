@@ -41,14 +41,16 @@ export default function AuthPage({ initialMode = "login", onBack }) {
       }
       login({ token: tokens.access_token, refreshToken: tokens.refresh_token });
       try {
-        const me = await fetch("/api/auth/me", {
+        const API_BASE = import.meta.env.VITE_API_BASE || "";
+        const me = await fetch(`${API_BASE}/api/auth/me`, {
           headers: { Authorization: `Bearer ${tokens.access_token}` },
         }).then((r) => r.json());
         setUser(me);
       } catch {}
       // Store the server's startup ID so we can detect restarts later
       try {
-        const res = await fetch("/api/startup-id").then((r) => r.json());
+        const API_BASE = import.meta.env.VITE_API_BASE || "";
+        const res = await fetch(`${API_BASE}/api/startup-id`).then((r) => r.json());
         if (res.startup_id) setStartupId(res.startup_id);
       } catch {}
     } catch (err) {
