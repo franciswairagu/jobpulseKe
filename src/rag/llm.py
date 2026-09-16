@@ -40,6 +40,9 @@ class LLMConfig:
     num_thread: int = field(default_factory=lambda: min(8, os.cpu_count() or 4))
 
 
+REPROBE_INTERVAL = 60  # seconds to wait before re-probing after a failure
+
+
 class OllamaLLM:
     """Generate natural-language answers via a local Ollama model.
 
@@ -47,12 +50,16 @@ class OllamaLLM:
     result so subsequent calls are fast. If Ollama is unreachable the
     ``available`` property returns False and ``generate`` returns None,
     letting callers fall back to template-based answers.
+
+    After a failed probe, the instance re-probes every REPROBE_INTERVAL
+    seconds so it automatically recovers when Ollama becomes available.
     """
 
     def __init__(self, config: LLMConfig | None = None):
         self.config = config or LLMConfig()
         self._client = None
         self._available: bool | None = None
+        self._last_probe_time: float = 0.0
 
     # ------------------------------------------------------------------
     # Connectivity
@@ -75,19 +82,27 @@ class OllamaLLM:
         """Check whether Ollama is reachable and the model is available."""
         self._ensure_client()
         if self._client is None:
+            self._last_probe_time = time.time()
             return False
         try:
             self._client.list()
             self._available = True
+            self._last_probe_time = time.time()
             return True
         except Exception as exc:
             logger.info("Ollama not reachable: %s", exc)
             self._available = False
+            self._last_probe_time = time.time()
             return False
 
     @property
     def available(self) -> bool:
         if self._available is None:
+            return self.probe()
+        # Re-probe periodically after a failure so we recover when Ollama
+        # comes back online without requiring a full backend restart.
+        if not self._available and (time.time() - self._last_probe_time) >= REPROBE_INTERVAL:
+            logger.info("Re-probing Ollama after %ds cooldown...", REPROBE_INTERVAL)
             return self.probe()
         return self._available
 
