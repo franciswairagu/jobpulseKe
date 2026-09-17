@@ -3,9 +3,13 @@
 //
 // Auth tokens are read from localStorage (set by AuthContext). The Vite dev
 // proxy forwards /api/* to http://localhost:8000 so no CORS issues in dev.
+// In production, set VITE_API_BASE to the backend URL if the nginx proxy
+// is not available (e.g. on Render with separate services).
 // ---------------------------------------------------------------------------
 
 import { scoreSkillPriority, computeJobMatch, matchLabel } from "../lib/scoring";
+
+const API_BASE = import.meta.env.VITE_API_BASE || "";
 
 // ---------------------------------------------------------------------------
 // Auth helpers
@@ -24,8 +28,10 @@ function getAuthToken() {
 
 async function parseJSON(response) {
   const text = await response.text();
-  if (!text) return null;
-  return JSON.parse(text);
+  if (!text) throw new Error("Server returned an empty response. Please check that the backend is running.");
+  const data = JSON.parse(text);
+  if (data === null || data === undefined) throw new Error("Server returned an empty response. Please check that the backend is running.");
+  return data;
 }
 
 async function apiFetch(path, options = {}) {
@@ -36,7 +42,7 @@ async function apiFetch(path, options = {}) {
     headers["Content-Type"] = "application/json";
   }
 
-  const res = await fetch(path, { ...options, headers });
+  const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
   if (!res.ok) {
     const body = await parseJSON(res).catch(() => ({}));
     const msg = body?.error?.message || `Request failed (${res.status})`;
@@ -64,7 +70,7 @@ export async function loginUser({ email, password }) {
   form.append("username", email);
   form.append("password", password);
 
-  const res = await fetch("/api/auth/login", {
+  const res = await fetch(`${API_BASE}/api/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: form,
@@ -473,7 +479,7 @@ export async function* askRAGStream(question, topK = 5) {
   const headers = { "Content-Type": "application/json" };
   if (token) headers["Authorization"] = `Bearer ${token}`;
 
-  const res = await fetch("/api/rag/ask-stream", {
+  const res = await fetch(`${API_BASE}/api/rag/ask-stream`, {
     method: "POST",
     headers,
     body: JSON.stringify({ question, top_k: topK }),
