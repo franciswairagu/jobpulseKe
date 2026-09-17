@@ -38,7 +38,7 @@ services:
     region: oregon
     plan: free
     dockerfilePath: ./ui/jobpulse-unified-app2.0/Dockerfile
-    dockerContext: ./ui/jobpulse-unified-app2.0
+    dockerContext: .
     healthCheckPath: /
     envVars:
       - key: BACKEND_URL
