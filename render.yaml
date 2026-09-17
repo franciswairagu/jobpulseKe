@@ -1,0 +1,49 @@
+services:
+  # --- PostgreSQL Database ---
+  - type: postgresql
+    name: jobpulse-db
+    databaseName: jobpulse
+    user: jobpulse
+    plan: free
+    ipAllowList: []
+
+  # --- Backend (FastAPI) ---
+  - type: web
+    name: jobpulse-api
+    runtime: image
+    region: oregon
+    plan: free
+    dockerfilePath: ./ui/jobpulse-backend/jobpulse-backend/Dockerfile
+    dockerContext: .
+    healthCheckPath: /docs
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: jobpulse-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: CORS_ORIGINS
+        value: '["http://localhost:5173","http://localhost:8000"]'
+        sync: false
+      - key: ENVIRONMENT
+        value: production
+      - key: JOB_DATASET_PATH
+        value: ./data/processed/jobpulse_cleaned.parquet
+
+  # --- Frontend (React + nginx) ---
+  - type: web
+    name: jobpulse-frontend
+    runtime: image
+    region: oregon
+    plan: free
+    dockerfilePath: ./ui/jobpulse-unified-app2.0/Dockerfile
+    dockerContext: ./ui/jobpulse-unified-app2.0
+    healthCheckPath: /
+    envVars:
+      - key: BACKEND_URL
+        fromService:
+          name: jobpulse-api
+          property: env
+          # We can't reference service URLs directly in render.yaml,
+          # so set this manually after deployment

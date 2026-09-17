@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 BACKEND_DIR="$SCRIPT_DIR/ui/jobpulse-backend/jobpulse-backend"
@@ -19,9 +18,14 @@ echo "=== JobPulse ==="
 echo ""
 
 # Kill any existing processes on our ports
-lsof -ti:8000 2>/dev/null | xargs kill -9 2>/dev/null || true
-lsof -ti:5173 2>/dev/null | xargs kill -9 2>/dev/null || true
-sleep 1
+for port in 8000 5173; do
+  pid=$(lsof -ti:$port 2>/dev/null || true)
+  if [ -n "$pid" ]; then
+    echo "Killing process on port $port (PID: $pid)"
+    kill -9 $pid 2>/dev/null || true
+  fi
+done
+sleep 2
 
 # --- Backend ---
 echo "[1/2] Starting backend (FastAPI on :8000)..."
@@ -57,8 +61,18 @@ export SECRET_KEY="${SECRET_KEY:-dev-secret-change-in-production}"
 uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload &
 BACKEND_PID=$!
 
-# Wait for backend to start
-sleep 3
+# Wait for backend to be ready (RAG model loading can take 15-30s)
+echo "  Waiting for backend to start (RAG model loading may take a moment)..."
+for i in $(seq 1 60); do
+  if curl -s http://localhost:8000/docs >/dev/null 2>&1; then
+    echo "  Backend is ready!"
+    break
+  fi
+  if [ $i -eq 60 ]; then
+    echo "  Backend timed out. Check logs for errors."
+  fi
+  sleep 1
+done
 
 # --- Frontend ---
 echo "[2/2] Starting frontend (React + Vite on :5173)..."
@@ -78,7 +92,12 @@ npm run dev &
 FRONTEND_PID=$!
 
 # Wait for frontend to start
-sleep 3
+for i in $(seq 1 30); do
+  if curl -s http://localhost:5173 >/dev/null 2>&1; then
+    break
+  fi
+  sleep 1
+done
 
 echo ""
 echo "Services running:"

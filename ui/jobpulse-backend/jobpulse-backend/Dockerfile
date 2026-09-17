@@ -3,26 +3,28 @@ FROM python:3.12-slim
 WORKDIR /app
 
 # Install system dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get install -y --no-cache-recommends \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements and install Python dependencies
-COPY requirements.txt .
+# Copy backend requirements and install Python dependencies
+COPY ui/jobpulse-backend/jobpulse-backend/requirements.txt .
 RUN pip install --no-cache-dir --retries 5 --timeout 120 -r requirements.txt
 
-# Copy application code
-COPY . .
+# Copy backend application code
+COPY ui/jobpulse-backend/jobpulse-backend/ .
 
-# Create necessary directories
-RUN mkdir -p /app/data /app/logs
+# Copy src/ for RAG assistant (sentence-transformers, retriever, etc.)
+COPY src/ /app/src/
 
-# Expose port
+# Copy data for auto-ingestion (backend loads this if DB is empty)
+RUN mkdir -p /app/data/processed /app/data/external /app/data/uploads /app/data/models /app/logs
+COPY data/external/jobpulseke_master_africa_tech_jobs.csv /app/data/external/
+COPY src/models/tech_category_classifier.joblib /app/data/models/
+
 EXPOSE 8000
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
     CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/docs')" || exit 1
 
-# Run the application
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
