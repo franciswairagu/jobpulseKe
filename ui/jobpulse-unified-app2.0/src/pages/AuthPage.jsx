@@ -39,6 +39,9 @@ export default function AuthPage({ initialMode = "login", onBack }) {
       } else {
         tokens = await loginUser({ email, password });
       }
+      if (!tokens || !tokens.access_token) {
+        throw new Error("Login failed. Please check that the backend server is running and accessible.");
+      }
       login({ token: tokens.access_token, refreshToken: tokens.refresh_token });
       try {
         const API_BASE = import.meta.env.VITE_API_BASE || "";

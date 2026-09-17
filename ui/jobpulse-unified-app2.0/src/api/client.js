@@ -29,7 +29,9 @@ function getAuthToken() {
 async function parseJSON(response) {
   const text = await response.text();
   if (!text) throw new Error("Server returned an empty response. Please check that the backend is running.");
-  return JSON.parse(text);
+  const data = JSON.parse(text);
+  if (data === null || data === undefined) throw new Error("Server returned an empty response. Please check that the backend is running.");
+  return data;
 }
 
 async function apiFetch(path, options = {}) {
