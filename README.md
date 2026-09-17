@@ -1,10 +1,10 @@
-# JobPulse — African Tech Job Market Intelligence Platform
+# JobPulse - African Tech Job Market Intelligence Platform
 
 **A full-stack data engineering & AI platform analyzing tech job postings across African markets.**
 
 ---
 
-## 🎯 Project Vision
+## Project Vision
 
 JobPulse is a comprehensive intelligence platform that collects, cleans, and analyzes African tech job market data to provide:
 
@@ -17,7 +17,7 @@ JobPulse is a comprehensive intelligence platform that collects, cleans, and ana
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ```
 jobpulse/
@@ -40,7 +40,7 @@ jobpulse/
 ├── src/                        # Core application logic
 │   ├── config.py               # Pipeline config (Stages 1–4): paths, schema, taxonomies
 │   ├── scraping_config.py      # Scraper-suite config: schema, crawl politeness, keywords
-│   ├── collectors/              # Site-specific scrapers (Stage 0 — data collection)
+│   ├── collectors/              # Site-specific scrapers (Stage 0 - data collection)
 │   ├── utils/                   # Shared helpers for collectors
 │   ├── ingestion/               # Stage 1: Data Loading & Ingestion
 │   ├── processing/              # Stage 2: Cleaning, Geo-Normalization & Deduplication
@@ -80,7 +80,7 @@ jobpulse/
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
@@ -101,7 +101,7 @@ Use this method if `./start.sh` doesn't work (e.g. Windows, permission errors).
 
 You need **two separate terminals** running at the same time.
 
-#### Terminal 1 — Backend
+#### Terminal 1 - Backend
 
 ```bash
 cd ui/jobpulse-backend/jobpulse-backend
@@ -135,7 +135,7 @@ $env:DATABASE_URL="sqlite:///./jobpulse.db"
 $env:SECRET_KEY="dev-secret-change-in-production"
 ```
 
-#### Terminal 2 — Frontend
+#### Terminal 2 - Frontend
 
 ```bash
 cd ui/jobpulse-unified-app2.0
@@ -154,7 +154,7 @@ npm run dev
 
 ---
 
-## 📋 Data Pipeline Stages
+## Data Pipeline Stages
 
 ### Stage 0: Data Collection (Scraping)
 
@@ -230,7 +230,7 @@ python scripts/run_full_pipeline.py
 
 ---
 
-## 🖥️ Frontend Pages
+## Frontend Pages
 
 | Page | Route | Description |
 |------|-------|-------------|
@@ -243,7 +243,7 @@ python scripts/run_full_pipeline.py
 
 ---
 
-## 🔌 API Endpoints
+## API Endpoints
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
@@ -264,7 +264,7 @@ python scripts/run_full_pipeline.py
 
 ---
 
-## 🤖 RAG Assistant
+## RAG Assistant
 
 The AI assistant combines **retrieval-augmented generation** with a local LLM for grounded, natural-language answers.
 
@@ -329,7 +329,7 @@ OLLAMA_HOST=0.0.0.0 ollama serve &
 
 ---
 
-## 🛠️ Technology Stack
+## Technology Stack
 
 | Layer | Technology |
 |-------|-----------|
@@ -347,7 +347,7 @@ OLLAMA_HOST=0.0.0.0 ollama serve &
 
 ---
 
-## 📊 Dataset Info
+## Dataset Info
 
 - **Total Records**: 12,992 jobs (after merge + cleaning)
 - **Schema**: 22 columns including `job_title`, `company`, `job_description`, `country`, `work_mode`, etc.
@@ -358,7 +358,7 @@ OLLAMA_HOST=0.0.0.0 ollama serve &
 
 ---
 
-## 📓 Notebook
+## Notebook
 
 The CRISP-DM analysis notebook at `notebooks/notebook.ipynb` includes:
 
@@ -386,7 +386,7 @@ The CRISP-DM analysis notebook at `notebooks/notebook.ipynb` includes:
 
 ---
 
-## ⚠️ Known Issues
+## Known Issues
 
 - **Work mode data**: ~90% of records have `unknown` work mode (inferred from descriptions when available)
 - **Employment type**: Only ~5% of records have explicit employment type data
@@ -396,7 +396,7 @@ The CRISP-DM analysis notebook at `notebooks/notebook.ipynb` includes:
 
 ---
 
-## 📝 Development Notes
+## Development Notes
 
 - **Step Gating Rule**: Each stage is designed to be completed and spot-checked before proceeding to the next
 - **Geographic Scope**: African countries + remote-eligible roles
@@ -409,8 +409,8 @@ The CRISP-DM analysis notebook at `notebooks/notebook.ipynb` includes:
 
 ---
 
-## 📄 License
+## License
 
-Proprietary — African Tech Jobs Intelligence Platform
+Proprietary - African Tech Jobs Intelligence Platform
 
 **Moringa School DSF-FT16 Capstone Project**
