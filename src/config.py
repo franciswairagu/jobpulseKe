@@ -13,6 +13,7 @@ ANALYTICS_DATA_DIR = DATA_DIR / "analytics"
 NLP_DATA_DIR = DATA_DIR / "nlp"
 RAG_DATA_DIR = DATA_DIR / "rag"
 EXPORTS_DATA_DIR = DATA_DIR / "exports"
+TECHMAP_DIR = DATA_DIR / "techmap"
 REPORTS_DIR = PROJECT_ROOT / "reports"
 MODELS_DIR = PROJECT_ROOT / "src" / "models"
 # Where analyzed CVs (extracted skills/metadata + predicted category, never
@@ -20,7 +21,7 @@ MODELS_DIR = PROJECT_ROOT / "src" / "models"
 ANALYZED_CV_DIR = NLP_DATA_DIR / "analyzed_cvs"
 
 # Ensure directories exist
-for d in [RAW_DATA_DIR, PROCESSED_DATA_DIR, ANALYTICS_DATA_DIR, NLP_DATA_DIR, RAG_DATA_DIR, EXPORTS_DATA_DIR, REPORTS_DIR, MODELS_DIR, ANALYZED_CV_DIR]:
+for d in [RAW_DATA_DIR, PROCESSED_DATA_DIR, ANALYTICS_DATA_DIR, NLP_DATA_DIR, RAG_DATA_DIR, EXPORTS_DATA_DIR, TECHMAP_DIR, REPORTS_DIR, MODELS_DIR, ANALYZED_CV_DIR]:
     d.mkdir(parents=True, exist_ok=True)
 
 # Schema definition for ingested records

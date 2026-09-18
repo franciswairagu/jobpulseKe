@@ -179,5 +179,5 @@ def skill_demand(
     return SkillDemandResponse(
         skills=skills,
         total=len(skills),
-        dataSource={"source": "JobPulseKE database", "collectedAt": __import__("datetime").date.today().isoformat()},
+        dataSource={"source": "JobPulseKE + TechMap database", "collectedAt": __import__("datetime").date.today().isoformat()},
     )
