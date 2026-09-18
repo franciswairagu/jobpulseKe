@@ -26,17 +26,19 @@ jobpulse/
 │   ├── processed/              # Ingested, cleaned & feature-engineered Parquet files
 │   ├── analytics/              # Pre-computed analytics JSON (career pathways, skill matrices)
 │   ├── external/               # Datasets pulled in from sibling projects
+│   ├── techmap/                # External TechMap Kenya job data (JSONL / gzipped JSONL)
 │   └── archive/                # Older/superseded master datasets
 ├── notebooks/                  # CRISP-DM analysis notebook with EDA visualizations
 ├── reports/                    # Historical run reports
 ├── scripts/                    # Command-line entry points
 │   ├── run_scrapers.py         # Scraper suite orchestrator
+│   ├── run_pipeline.py         # Full pipeline: TechMap merge + stages 1-4 (recommended)
+│   ├── merge_techmap.py        # Ingest TechMap JSONL into pipeline schema
 │   ├── merge_csvs.py           # Merge schema-conformant CSVs, dedup on job_id
 │   ├── merge_jobpulseke.py     # Merge in the sister jobpulseKe Kenya dataset
 │   ├── merge_public_datasets.py# Merge in public HuggingFace job datasets
 │   ├── run_stage1_ingestion.py # Stage 1: load + validate + filter -> Parquet
-│   ├── run_stage2_cleaning.py  # Stage 2: geo-normalize, dedupe -> Parquet
-│   └── run_full_pipeline.py    # Run all stages sequentially
+│   └── run_stage2_cleaning.py  # Stage 2: geo-normalize, dedupe -> Parquet
 ├── src/                        # Core application logic
 │   ├── config.py               # Pipeline config (Stages 1–4): paths, schema, taxonomies
 │   ├── scraping_config.py      # Scraper-suite config: schema, crawl politeness, keywords
@@ -176,6 +178,7 @@ Site-specific scrapers under `src/collectors/`, orchestrated by `scripts/run_scr
 | CareerJet | ~500 | Global aggregator |
 | Jobicy | ~300 | Remote jobs |
 | HuggingFace datasets | ~2,400 | Public datasets |
+| TechMap | ~1,400 | Kenya (27 portals: LinkedIn, BrighterMonday, Lever, etc.) |
 
 ### Stage 1: Data Loading & Ingestion
 
@@ -225,7 +228,14 @@ from src.analytics.stage4_orchestrator import run_stage_4_analytics
 ### Run Full Pipeline
 
 ```bash
-python scripts/run_full_pipeline.py
+# Full pipeline: scrapers + TechMap merge + stages 1-4
+python scripts/run_pipeline.py
+
+# Skip scrapers, just merge existing data + run stages 1-4
+python scripts/run_pipeline.py --no-scrape
+
+# Run scrapers only (no pipeline)
+python scripts/run_pipeline.py --scrape-only
 ```
 
 ---
@@ -349,9 +359,10 @@ OLLAMA_HOST=0.0.0.0 ollama serve &
 
 ## 📊 Dataset Info
 
-- **Total Records**: 12,992 jobs (after merge + cleaning)
+- **Total Records**: ~3,300+ jobs (after merge + cleaning; varies per run)
 - **Schema**: 22 columns including `job_title`, `company`, `job_description`, `country`, `work_mode`, etc.
 - **Countries Covered**: 10+ (Nigeria, Ghana, Kenya, South Africa, Egypt, Rwanda, Uganda, Morocco, Global Remote)
+- **Data Sources**: 15 scrapers + TechMap (27 portals) + HuggingFace public datasets
 - **Skills Extracted**: 600+ across 8 categories
 - **Date Coverage**: ~27% of records have posting dates (used for skill demand time series)
 - **Analytics Files**: Pre-computed JSON under `data/analytics/` (career pathways, skill matrices, remote trends)
