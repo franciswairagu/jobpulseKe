@@ -3,14 +3,14 @@ FROM node:18-alpine AS builder
 
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
+# Copy package files (build context is repo root on Render)
+COPY ui/jobpulse-unified-app2.0/package*.json ./
 
 # Install dependencies
 RUN npm ci
 
 # Copy source code
-COPY . .
+COPY ui/jobpulse-unified-app2.0/ .
 
 # Build for production
 RUN npm run build
