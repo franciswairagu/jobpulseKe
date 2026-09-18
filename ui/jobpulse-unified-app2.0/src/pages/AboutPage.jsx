@@ -40,7 +40,7 @@ const FEATURES = [
   {
     icon: Sparkles,
     title: "AI Assistant",
-    description: "RAG-powered chatbot that answers job market questions grounded in real data from 12,992 job postings. Streams responses in real-time.",
+    description: "RAG-powered chatbot that answers job market questions grounded in real data from 3,340 job postings. Streams responses in real-time.",
     color: "#8B5CF6",
     bg: "rgba(139,92,246,0.1)",
   },
@@ -61,10 +61,10 @@ const FEATURES = [
 ];
 
 const STATS = [
-  { value: "12,992", label: "Job Records Analyzed" },
+  { value: "3,340", label: "Job Records Analyzed" },
   { value: "10+", label: "Countries Covered" },
   { value: "600+", label: "Tech Skills Tracked" },
-  { value: "15", label: "Job Board Scrapers" },
+  { value: "15+", label: "Data Sources" },
 ];
 
 export default function AboutPage() {
@@ -168,8 +168,8 @@ export default function AboutPage() {
           position themselves for success.
         </p>
         <p className="mt-3 text-sm leading-relaxed" style={{ color: COLORS.textSecondary }}>
-          Our 4-stage data pipeline collects 12,992 job records from 15 scrapers across platforms like
-          BrighterMonday, Jobberman, Careers24, LinkedIn, and Indeed. We extract 600+ skills across 15
+          Our 4-stage data pipeline collects 3,340 job records from 15+ scrapers and TechMap across platforms like
+          BrighterMonday, Jobberman, Careers24, LinkedIn, Indeed, and 27 additional portals. We extract 600+ skills across 15
           categories, analyze salary distributions, career pathways, and remote work trends — giving
           you an unbiased, real-time view of the market.
         </p>
