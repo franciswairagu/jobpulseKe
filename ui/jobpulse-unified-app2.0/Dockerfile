@@ -22,7 +22,8 @@ FROM nginx:alpine
 RUN apk add --no-cache gettext
 
 # Copy nginx config template (envsubst will fill ${BACKEND_URL} at startup)
-COPY nginx.conf /etc/nginx/templates/default.conf.template
+# Path is relative to Docker build context (repo root on Render)
+COPY ui/jobpulse-unified-app2.0/nginx.conf /etc/nginx/templates/default.conf.template
 
 # Set default backend URL for docker-compose compatibility
 ENV BACKEND_URL=http://backend:8000
