@@ -82,11 +82,38 @@ def main() -> int:
         logger.info("Scheduled scrape finished with %s records.", len(result))
         if args.scrape_only:
             return 0
+        # Merge TechMap data into the Africa master before running pipeline
+        from scripts.merge_techmap import load_techmap_dir
+        from src.config import TECHMAP_DIR
+        from src.scraping_config import SCHEMA_COLUMNS
+        import pandas as pd
+        techmap_csv = PROJECT_ROOT / "data" / "raw" / "techmap_jobs.csv"
+        has_techmap = any(TECHMAP_DIR.glob("*.jsonl")) or any(TECHMAP_DIR.glob("*.jsonl.gz"))
+        if has_techmap:
+            logger.info("Ingesting TechMap data from %s", TECHMAP_DIR)
+            records = load_techmap_dir(str(TECHMAP_DIR))
+            if records:
+                df = pd.DataFrame(records, columns=SCHEMA_COLUMNS)
+                df = df.drop_duplicates(subset=["job_id"], keep="first")
+                os.makedirs(techmap_csv.parent, exist_ok=True)
+                df.to_csv(techmap_csv, index=False)
+                logger.info("TechMap: %d records -> %s", len(df), techmap_csv)
+        # Merge scrapers + TechMap into Africa master
+        master_csv = PROJECT_ROOT / "output" / "master_africa_tech_jobs.csv"
+        africa_master = PROJECT_ROOT / "data" / "external" / "jobpulseke_master_africa_tech_jobs.csv"
+        frames = []
+        if master_csv.exists():
+            frames.append(pd.read_csv(master_csv, low_memory=False))
+        if techmap_csv.exists():
+            frames.append(pd.read_csv(techmap_csv, low_memory=False))
+        if frames:
+            combined = pd.concat(frames, ignore_index=True)
+            combined = combined.drop_duplicates(subset=["job_id"], keep="first")
+            os.makedirs(africa_master.parent, exist_ok=True)
+            combined.to_csv(africa_master, index=False)
+            logger.info("Africa master: %d unique records -> %s", len(combined), africa_master)
         from src.pipeline.full_refresh import run_full_refresh
-        outputs = run_full_refresh(
-            PROJECT_ROOT / "output" / "master_africa_tech_jobs.csv",
-            args.nlp_batch_size,
-        )
+        outputs = run_full_refresh(africa_master, args.nlp_batch_size)
         logger.info("Full refresh complete: stage4=%s analytics=%s", outputs["stage4"], outputs["analytics"])
     return 0
 

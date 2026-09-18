@@ -1,4 +1,5 @@
 import os
+import json
 from functools import lru_cache
 
 from dotenv import load_dotenv
@@ -38,7 +39,13 @@ class Settings:
 
     # --- Misc ---
     ENVIRONMENT: str = os.getenv("ENVIRONMENT", "development")
-    CORS_ORIGINS: list[str] = [o.strip() for o in os.getenv("CORS_ORIGINS", "http://localhost:5173,http://localhost:8000").split(",") if o.strip()]
+    CORS_ORIGINS: list[str] = (
+        # Handle JSON array format: ["http://a.com","http://b.com"]
+        json.loads(raw)
+        if (raw := os.getenv("CORS_ORIGINS") or os.getenv("CORS_ORIGIN", "")).strip().startswith("[")
+        # Handle comma-separated or single URL: http://a.com, http://b.com
+        else [o.strip() for o in raw.split(",") if o.strip()]
+    ) or ["http://localhost:5173", "http://localhost:8000"]
 
 
 @lru_cache

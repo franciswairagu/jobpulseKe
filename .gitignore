@@ -25,9 +25,20 @@ data/analytics/
 data/exports/
 data/processed/*.parquet
 data/processed/*.csv
+data/processed/.last_*
 data/nlp/*.parquet
 data/rag/*.parquet
 data/rag/*.npy
+data/raw/master_africa_tech_jobs.csv
+
+# ---- Scraper output (regenerated each run) ----
+output/
+scripts/output/
+
+# ---- Temp / misc ----
+files.zip
+tree.txt
+*.zip
 
 # NOTE: this does NOT ignore reports/*.md — the written reports are
 # deliverables and are committed intentionally.

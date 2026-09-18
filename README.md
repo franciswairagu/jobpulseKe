@@ -1,10 +1,10 @@
-# JobPulse - African Tech Job Market Intelligence Platform
+# JobPulse — African Tech Job Market Intelligence Platform
 
 **A full-stack data engineering & AI platform analyzing tech job postings across African markets.**
 
 ---
 
-## Project Vision
+## 🎯 Project Vision
 
 JobPulse is a comprehensive intelligence platform that collects, cleans, and analyzes African tech job market data to provide:
 
@@ -17,7 +17,7 @@ JobPulse is a comprehensive intelligence platform that collects, cleans, and ana
 
 ---
 
-## Architecture
+## 🏗️ Architecture
 
 ```
 jobpulse/
@@ -26,21 +26,23 @@ jobpulse/
 │   ├── processed/              # Ingested, cleaned & feature-engineered Parquet files
 │   ├── analytics/              # Pre-computed analytics JSON (career pathways, skill matrices)
 │   ├── external/               # Datasets pulled in from sibling projects
+│   ├── techmap/                # External TechMap Kenya job data (JSONL / gzipped JSONL)
 │   └── archive/                # Older/superseded master datasets
 ├── notebooks/                  # CRISP-DM analysis notebook with EDA visualizations
 ├── reports/                    # Historical run reports
 ├── scripts/                    # Command-line entry points
 │   ├── run_scrapers.py         # Scraper suite orchestrator
+│   ├── run_pipeline.py         # Full pipeline: TechMap merge + stages 1-4 (recommended)
+│   ├── merge_techmap.py        # Ingest TechMap JSONL into pipeline schema
 │   ├── merge_csvs.py           # Merge schema-conformant CSVs, dedup on job_id
 │   ├── merge_jobpulseke.py     # Merge in the sister jobpulseKe Kenya dataset
 │   ├── merge_public_datasets.py# Merge in public HuggingFace job datasets
 │   ├── run_stage1_ingestion.py # Stage 1: load + validate + filter -> Parquet
-│   ├── run_stage2_cleaning.py  # Stage 2: geo-normalize, dedupe -> Parquet
-│   └── run_full_pipeline.py    # Run all stages sequentially
+│   └── run_stage2_cleaning.py  # Stage 2: geo-normalize, dedupe -> Parquet
 ├── src/                        # Core application logic
 │   ├── config.py               # Pipeline config (Stages 1–4): paths, schema, taxonomies
 │   ├── scraping_config.py      # Scraper-suite config: schema, crawl politeness, keywords
-│   ├── collectors/              # Site-specific scrapers (Stage 0 - data collection)
+│   ├── collectors/              # Site-specific scrapers (Stage 0 — data collection)
 │   ├── utils/                   # Shared helpers for collectors
 │   ├── ingestion/               # Stage 1: Data Loading & Ingestion
 │   ├── processing/              # Stage 2: Cleaning, Geo-Normalization & Deduplication
@@ -80,7 +82,7 @@ jobpulse/
 
 ---
 
-## Quick Start
+## 🚀 Quick Start
 
 ### Prerequisites
 
@@ -101,7 +103,7 @@ Use this method if `./start.sh` doesn't work (e.g. Windows, permission errors).
 
 You need **two separate terminals** running at the same time.
 
-#### Terminal 1 - Backend
+#### Terminal 1 — Backend
 
 ```bash
 cd ui/jobpulse-backend/jobpulse-backend
@@ -135,7 +137,7 @@ $env:DATABASE_URL="sqlite:///./jobpulse.db"
 $env:SECRET_KEY="dev-secret-change-in-production"
 ```
 
-#### Terminal 2 - Frontend
+#### Terminal 2 — Frontend
 
 ```bash
 cd ui/jobpulse-unified-app2.0
@@ -154,7 +156,7 @@ npm run dev
 
 ---
 
-## Data Pipeline Stages
+## 📋 Data Pipeline Stages
 
 ### Stage 0: Data Collection (Scraping)
 
@@ -176,6 +178,7 @@ Site-specific scrapers under `src/collectors/`, orchestrated by `scripts/run_scr
 | CareerJet | ~500 | Global aggregator |
 | Jobicy | ~300 | Remote jobs |
 | HuggingFace datasets | ~2,400 | Public datasets |
+| TechMap | ~1,400 | Kenya (27 portals: LinkedIn, BrighterMonday, Lever, etc.) |
 
 ### Stage 1: Data Loading & Ingestion
 
@@ -225,12 +228,19 @@ from src.analytics.stage4_orchestrator import run_stage_4_analytics
 ### Run Full Pipeline
 
 ```bash
-python scripts/run_full_pipeline.py
+# Full pipeline: scrapers + TechMap merge + stages 1-4
+python scripts/run_pipeline.py
+
+# Skip scrapers, just merge existing data + run stages 1-4
+python scripts/run_pipeline.py --no-scrape
+
+# Run scrapers only (no pipeline)
+python scripts/run_pipeline.py --scrape-only
 ```
 
 ---
 
-## Frontend Pages
+## 🖥️ Frontend Pages
 
 | Page | Route | Description |
 |------|-------|-------------|
@@ -243,7 +253,7 @@ python scripts/run_full_pipeline.py
 
 ---
 
-## API Endpoints
+## 🔌 API Endpoints
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
@@ -264,7 +274,7 @@ python scripts/run_full_pipeline.py
 
 ---
 
-## RAG Assistant
+## 🤖 RAG Assistant
 
 The AI assistant combines **retrieval-augmented generation** with a local LLM for grounded, natural-language answers.
 
@@ -329,7 +339,7 @@ OLLAMA_HOST=0.0.0.0 ollama serve &
 
 ---
 
-## Technology Stack
+## 🛠️ Technology Stack
 
 | Layer | Technology |
 |-------|-----------|
@@ -347,18 +357,19 @@ OLLAMA_HOST=0.0.0.0 ollama serve &
 
 ---
 
-## Dataset Info
+## 📊 Dataset Info
 
-- **Total Records**: 12,992 jobs (after merge + cleaning)
+- **Total Records**: ~3,300+ jobs (after merge + cleaning; varies per run)
 - **Schema**: 22 columns including `job_title`, `company`, `job_description`, `country`, `work_mode`, etc.
 - **Countries Covered**: 10+ (Nigeria, Ghana, Kenya, South Africa, Egypt, Rwanda, Uganda, Morocco, Global Remote)
+- **Data Sources**: 15 scrapers + TechMap (27 portals) + HuggingFace public datasets
 - **Skills Extracted**: 600+ across 8 categories
 - **Date Coverage**: ~27% of records have posting dates (used for skill demand time series)
 - **Analytics Files**: Pre-computed JSON under `data/analytics/` (career pathways, skill matrices, remote trends)
 
 ---
 
-## Notebook
+## 📓 Notebook
 
 The CRISP-DM analysis notebook at `notebooks/notebook.ipynb` includes:
 
@@ -386,7 +397,7 @@ The CRISP-DM analysis notebook at `notebooks/notebook.ipynb` includes:
 
 ---
 
-## Known Issues
+## ⚠️ Known Issues
 
 - **Work mode data**: ~90% of records have `unknown` work mode (inferred from descriptions when available)
 - **Employment type**: Only ~5% of records have explicit employment type data
@@ -396,7 +407,7 @@ The CRISP-DM analysis notebook at `notebooks/notebook.ipynb` includes:
 
 ---
 
-## Development Notes
+## 📝 Development Notes
 
 - **Step Gating Rule**: Each stage is designed to be completed and spot-checked before proceeding to the next
 - **Geographic Scope**: African countries + remote-eligible roles
@@ -409,8 +420,8 @@ The CRISP-DM analysis notebook at `notebooks/notebook.ipynb` includes:
 
 ---
 
-## License
+## 📄 License
 
-Proprietary - African Tech Jobs Intelligence Platform
+Proprietary — African Tech Jobs Intelligence Platform
 
 **Moringa School DSF-FT16 Capstone Project**

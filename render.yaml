@@ -24,7 +24,7 @@ services:
       - key: SECRET_KEY
         generateValue: true
       - key: CORS_ORIGINS
-        value: '["http://localhost:5173","http://localhost:8000"]'
+        value: '["http://localhost:5173","http://localhost:8000","https://jobpulse-frontend-7axe.onrender.com"]'
         sync: false
       - key: ENVIRONMENT
         value: production
@@ -38,7 +38,7 @@ services:
     region: oregon
     plan: free
     dockerfilePath: ./ui/jobpulse-unified-app2.0/Dockerfile
-    dockerContext: .
+    dockerContext: ./ui/jobpulse-unified-app2.0
     healthCheckPath: /
     envVars:
       - key: BACKEND_URL

@@ -35,7 +35,7 @@ const FEATURES = [
   {
     icon: Sparkles,
     title: "AI Assistant",
-    description: "RAG-powered chatbot that answers job market questions grounded in real data from 12,992 job postings. Streams responses in real-time.",
+    description: "RAG-powered chatbot that answers job market questions grounded in real data from 3,340 job postings. Streams responses in real-time.",
     color: "#8B5CF6",
     bg: "rgba(139,92,246,0.1)",
   },
@@ -56,10 +56,10 @@ const FEATURES = [
 ];
 
 const STATS = [
-  { value: "12,992", label: "Job Records Analyzed" },
+  { value: "3,340", label: "Job Records Analyzed" },
   { value: "10+", label: "Countries Covered" },
   { value: "600+", label: "Tech Skills Tracked" },
-  { value: "15", label: "Job Board Scrapers" },
+  { value: "15+", label: "Data Sources" },
 ];
 
 function PulseLine() {
@@ -129,7 +129,7 @@ export default function LandingPage({ onNavigateToAuth }) {
           <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-white/60 sm:text-lg">
             JobPulse is an African-focused career intelligence platform that helps tech professionals
             understand market demand, identify skill gaps, and find the right opportunities — powered
-            by real data from 12,992 job postings across 10+ countries.
+            by real data from 3,340 job postings across 10+ countries.
           </p>
 
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
@@ -242,7 +242,7 @@ export default function LandingPage({ onNavigateToAuth }) {
               {
                 step: "02",
                 title: "Get Matched",
-                description: "We compare your profile against 12,992 real job postings to calculate match scores and identify gaps.",
+                description: "We compare your profile against 3,340 real job postings to calculate match scores and identify gaps.",
               },
               {
                 step: "03",

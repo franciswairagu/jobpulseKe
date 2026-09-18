@@ -191,7 +191,7 @@ export async function getDashboard({ region = "All Africa", period = "Last 6 mon
       points: [],
     },
     dataSource: {
-      source: "JobPulseKE database",
+      source: "JobPulseKE + TechMap database",
       collectedAt: new Date().toISOString().split("T")[0],
       sampleSize: totalJobs,
     },
@@ -232,7 +232,7 @@ export async function getMarketSkills({ query = "", sortKey = "demand", country,
     skills: rows,
     total: rows.length,
     filters: { country, industry },
-    dataSource: data.dataSource || { source: "JobPulseKE database", collectedAt: new Date().toISOString().split("T")[0] },
+    dataSource: data.dataSource || { source: "JobPulseKE + TechMap database", collectedAt: new Date().toISOString().split("T")[0] },
   };
 }
 
