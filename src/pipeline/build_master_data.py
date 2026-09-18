@@ -240,6 +240,8 @@ def load_source_files():
 
         "jobicy_jobs.csv",
         "remotive_jobs.csv",
+
+        "techmap_jobs.csv",
     ]
 
     frames = []
