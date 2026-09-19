@@ -31,7 +31,8 @@ build/
 
 # Data (large files, not needed in Docker images)
 data/processed/*.parquet
-data/processed/*.csv
+data/processed/cleaned_jobs.csv
+data/processed/jobpulse_cleaned_*.csv
 data/raw/
 data/archive/
 data/techmap/

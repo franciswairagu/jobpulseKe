@@ -19,6 +19,7 @@ COPY src/ /app/src/
 # Copy data for auto-ingestion (backend loads this if DB is empty)
 RUN mkdir -p /app/data/processed /app/data/external /app/data/uploads /app/data/models /app/logs
 COPY data/external/jobpulseke_master_africa_tech_jobs.csv /app/data/external/
+COPY data/processed/master_full.csv /app/data/processed/
 COPY src/models/tech_category_classifier.joblib /app/data/models/
 
 EXPOSE 8000
@@ -26,4 +27,4 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
     CMD python -c "import urllib.request,os; urllib.request.urlopen(f'http://localhost:{os.environ.get(\"PORT\",8000)}/docs')" || exit 1
 
-CMD ["sh", "-c", "echo '=== ENV DEBUG ===' && echo DATABASE_URL=${DATABASE_URL:-NOT_SET} && echo ENVIRONMENT=${ENVIRONMENT:-NOT_SET} && echo PORT=${PORT:-NOT_SET} && echo '=== END DEBUG ===' && uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]

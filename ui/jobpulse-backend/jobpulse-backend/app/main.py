@@ -1,4 +1,5 @@
 import logging
+import os
 import uuid
 from pathlib import Path
 
@@ -67,12 +68,15 @@ def _auto_ingest_if_empty():
     db = SessionLocal()
     try:
         count = db.query(Job).filter(Job.status == JobStatus.AVAILABLE).count()
-        if count > 0:
+        force = os.getenv("FORCE_REINGEST", "").lower() in ("1", "true", "yes")
+        if count > 0 and not force:
             logger.info("DB already has %d jobs — skipping auto-ingest", count)
             return
+        if force and count > 0:
+            logger.info("FORCE_REINGEST=true — clearing %d existing jobs", count)
+            db.query(Job).delete()
+            db.commit()
 
-        # Find a data file to ingest — prefer the latest cleaned parquet
-        # over the stale legacy cleaned_jobs.csv (only 744 rows).
         # Check for Docker environment first, then fallback to relative path
         docker_data = Path("/app/data")
         if docker_data.exists():
@@ -80,30 +84,73 @@ def _auto_ingest_if_empty():
         else:
             data_root = Path(__file__).resolve().parent.parent.parent.parent.parent / "data"
         processed_dir = data_root / "processed"
+
+        # Build a list of all candidate files with their row counts,
+        # then pick the one with the most rows.
+        import pandas as pd
         candidates = []
-        # 1. Latest timestamped cleaned parquet
+
+        # 1. All cleaned parquets (sorted by row count descending)
         if processed_dir.exists():
-            parquets = sorted(processed_dir.glob("jobpulse_cleaned_*.parquet"), key=lambda p: p.stat().st_mtime, reverse=True)
-            candidates.extend(str(p) for p in parquets)
-        # 2. Configured path
-        candidates.append(settings.JOB_DATASET_PATH)
-        # 3. External master CSV (largest dataset)
-        candidates.append(str(data_root / "external" / "jobpulseke_master_africa_tech_jobs.csv"))
-        # 4. Legacy fallback (smallest — only if nothing else exists)
-        candidates.append(str(data_root / "processed" / "cleaned_jobs.csv"))
+            for p in processed_dir.glob("jobpulse_cleaned_*.parquet"):
+                try:
+                    df_tmp = pd.read_parquet(p)
+                    candidates.append((str(p), len(df_tmp)))
+                    del df_tmp
+                except Exception:
+                    pass
 
-        data_path = None
-        for p in candidates:
-            if Path(p).exists():
-                data_path = p
-                break
+        # 2. master_full.csv (the largest comprehensive dataset)
+        master_full = data_root / "processed" / "master_full.csv"
+        if master_full.exists():
+            try:
+                df_tmp = pd.read_csv(master_full)
+                candidates.append((str(master_full), len(df_tmp)))
+                del df_tmp
+            except Exception:
+                pass
 
-        if not data_path:
+        # 3. Configured path
+        if Path(settings.JOB_DATASET_PATH).exists():
+            try:
+                df_tmp = pd.read_parquet(settings.JOB_DATASET_PATH) if settings.JOB_DATASET_PATH.endswith(".parquet") else pd.read_csv(settings.JOB_DATASET_PATH)
+                candidates.append((settings.JOB_DATASET_PATH, len(df_tmp)))
+                del df_tmp
+            except Exception:
+                pass
+
+        # 4. External master CSV
+        ext_csv = data_root / "external" / "jobpulseke_master_africa_tech_jobs.csv"
+        if ext_csv.exists():
+            try:
+                df_tmp = pd.read_csv(ext_csv)
+                candidates.append((str(ext_csv), len(df_tmp)))
+                del df_tmp
+            except Exception:
+                pass
+
+        # 5. Legacy fallback
+        legacy = data_root / "processed" / "cleaned_jobs.csv"
+        if legacy.exists():
+            try:
+                df_tmp = pd.read_csv(legacy)
+                candidates.append((str(legacy), len(df_tmp)))
+                del df_tmp
+            except Exception:
+                pass
+
+        if not candidates:
             logger.warning("No job data file found for auto-ingest — dashboard will be empty")
             return
 
+        # Pick the candidate with the most rows
+        candidates.sort(key=lambda x: x[1], reverse=True)
+        data_path, row_count = candidates[0]
+        logger.info("Auto-ingest: selected %s (%d rows) from %d candidates: %s",
+                     data_path, row_count, len(candidates),
+                     [(Path(c[0]).name, c[1]) for c in candidates])
+
         logger.info("Auto-ingesting jobs from %s", data_path)
-        import pandas as pd
         if data_path.endswith(".csv"):
             df = pd.read_csv(data_path).fillna("")
         else:
