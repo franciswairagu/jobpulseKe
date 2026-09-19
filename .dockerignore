@@ -1,0 +1,75 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.venv/
+venv/
+env/
+.pytest_cache/
+
+# Node
+node_modules/
+.pnp
+.pnp.js
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
+
+# Data (large files, not needed in all images)
+data/processed/*.parquet
+data/processed/*.csv
+data/raw/
+data/archive/
+data/external/
+data/techmap/
+data/nlp/
+data/rag/
+data/analytics/
+data/uploads/
+*.db
+*.sqlite
+
+# Logs
+logs/
+*.log
+
+# Documentation
+*.md
+LICENSE
+*.pptx
+*.docx
+*.zip
+
+# Notebooks
+notebooks/
+
+# Reports
+reports/
+
+# Docker (avoid recursive copies)
+**/Dockerfile
+**/docker-compose.yml
+**/.dockerignore
+
+# Misc
+create_presentation.py
+run_time_series_component.py
+deploy.sh
+start.sh
+tree.txt
+cron/
+.vscode/
