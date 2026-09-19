@@ -59,25 +59,22 @@ async function apiFetch(path, options = {}) {
 export async function registerUser({ name, email, password }) {
   const data = await apiFetch("/api/auth/register", {
     method: "POST",
-    body: JSON.stringify({ name, email, password }),
+    body: JSON.stringify({ name, email, password, role: "SEEKER" }),
   });
   // Auto-login after register
   return loginUser({ email, password });
 }
 
 export async function loginUser({ email, password }) {
-  const form = new URLSearchParams();
-  form.append("username", email);
-  form.append("password", password);
-
   const res = await fetch(`${API_BASE}/api/auth/login`, {
     method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: form,
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password }),
   });
   if (!res.ok) {
     const body = await parseJSON(res).catch(() => ({}));
-    throw new Error(body?.error?.message || "Login failed");
+    const msg = body?.error?.message || body?.errors?.[0]?.msg || body?.message || "Login failed";
+    throw new Error(msg);
   }
   return parseJSON(res);
 }

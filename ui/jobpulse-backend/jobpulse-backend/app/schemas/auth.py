@@ -7,6 +7,7 @@ class UserRegister(BaseModel):
     email: EmailStr
     password: str = Field(min_length=8)
     name: str | None = None
+    role: str | None = None
 
 
 class UserLogin(BaseModel):

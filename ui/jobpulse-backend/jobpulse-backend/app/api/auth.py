@@ -1,5 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordRequestForm
+from fastapi import APIRouter, Depends, HTTPException, Request, status
+from pydantic import BaseModel, EmailStr
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user
@@ -13,6 +13,11 @@ router = APIRouter(prefix="/api/auth", tags=["auth"])
 
 def _error(code: str, message: str, status_code: int):
     return HTTPException(status_code=status_code, detail={"error": {"code": code, "message": message, "details": {}}})
+
+
+class _LoginBody(BaseModel):
+    email: EmailStr
+    password: str
 
 
 @router.post("/register", response_model=UserOut, status_code=status.HTTP_201_CREATED)
@@ -31,9 +36,23 @@ def register(payload: UserRegister, db: Session = Depends(get_db)):
 
 
 @router.post("/login", response_model=TokenPair)
-def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.email == form_data.username).first()
-    if not user or not verify_password(form_data.password, user.hashed_password):
+async def login(request: Request, db: Session = Depends(get_db)):
+    content_type = request.headers.get("content-type", "")
+
+    if "application/json" in content_type:
+        body = _LoginBody.model_validate(await request.json())
+        email = body.email
+        password = body.password
+    else:
+        form = await request.form()
+        email = form.get("username", form.get("email", ""))
+        password = form.get("password", "")
+
+    if not email or not password:
+        raise _error("INVALID_CREDENTIALS", "Email and password are required.", status.HTTP_400_BAD_REQUEST)
+
+    user = db.query(User).filter(User.email == email).first()
+    if not user or not verify_password(password, user.hashed_password):
         raise _error("INVALID_CREDENTIALS", "Incorrect email or password.", status.HTTP_401_UNAUTHORIZED)
     if not user.is_active:
         raise _error("ACCOUNT_INACTIVE", "This account has been deactivated.", status.HTTP_403_FORBIDDEN)
