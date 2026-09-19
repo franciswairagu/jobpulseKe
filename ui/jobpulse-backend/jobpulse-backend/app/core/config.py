@@ -2,10 +2,6 @@ import os
 import json
 from functools import lru_cache
 
-from dotenv import load_dotenv
-
-load_dotenv()
-
 
 def _bool(value: str | None, default: bool = False) -> bool:
     if value is None:
