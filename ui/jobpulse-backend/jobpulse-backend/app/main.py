@@ -124,6 +124,7 @@ def on_startup():
     # Set startup_id FIRST so the /api/startup-id endpoint is available immediately
     app.state.startup_id = str(uuid.uuid4())
     logger.info("JobPulse backend starting (env=%s, startup_id=%s)", settings.ENVIRONMENT, app.state.startup_id)
+    logger.info("CORS origins: %s", settings.CORS_ORIGINS)
 
     init_db()
     build_registry()

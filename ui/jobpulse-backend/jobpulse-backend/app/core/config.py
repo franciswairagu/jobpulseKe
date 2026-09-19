@@ -42,6 +42,8 @@ class Settings:
         # Handle comma-separated or single URL: http://a.com, http://b.com
         else [o.strip() for o in raw.split(",") if o.strip()]
     ) or ["http://localhost:5173", "http://localhost:8000"]
+    # Strip trailing slashes from origins so CORS matching works
+    CORS_ORIGINS = [o.rstrip("/") for o in CORS_ORIGINS]
 
 
 @lru_cache
