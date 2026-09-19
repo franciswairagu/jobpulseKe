@@ -64,6 +64,10 @@ reports/
 **/docker-compose.yml
 **/.dockerignore
 
+# Env files (use Railway env vars instead)
+.env
+.env.*
+
 # Misc
 create_presentation.py
 run_time_series_component.py
