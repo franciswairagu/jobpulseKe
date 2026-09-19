@@ -29,12 +29,11 @@ dist/
 build/
 *.egg-info/
 
-# Data (large files, not needed in all images)
+# Data (large files, not needed in Docker images)
 data/processed/*.parquet
 data/processed/*.csv
 data/raw/
 data/archive/
-data/external/
 data/techmap/
 data/nlp/
 data/rag/
