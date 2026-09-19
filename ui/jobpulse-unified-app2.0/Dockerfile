@@ -3,7 +3,7 @@ FROM node:18-alpine AS builder
 
 WORKDIR /app
 
-# Copy package files (build context is repo root on Render)
+# Copy package files (build context is repo root)
 COPY ui/jobpulse-unified-app2.0/package*.json ./
 
 # Install dependencies
@@ -21,21 +21,20 @@ FROM nginx:alpine
 # Install envsubst (from gettext)
 RUN apk add --no-cache gettext
 
-# Copy nginx config template (envsubst will fill ${BACKEND_URL} at startup)
-# Path is relative to Docker build context (repo root on Render)
+# Copy nginx config template (envsubst will fill ${PORT} and ${BACKEND_URL} at startup)
 COPY ui/jobpulse-unified-app2.0/nginx.conf /etc/nginx/templates/default.conf.template
 
-# Default backend URL — override via Render env var BACKEND_URL
-ENV BACKEND_URL=https://jobpulse-api.onrender.com
+# Defaults — override via Railway env vars PORT and BACKEND_URL
+ENV PORT=80
+ENV BACKEND_URL=http://localhost:8000
 
 # Copy built files from builder
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Expose port
 EXPOSE 80
 
-# Health check
+# Health check uses the dynamic PORT
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:80/ || exit 1
+    CMD wget --no-verbose --tries=1 --spider http://localhost:${PORT}/ || exit 1
 
-CMD ["/bin/sh", "-c", "export BACKEND_URL=${BACKEND_URL:-https://jobpulse-api.onrender.com} && envsubst '${BACKEND_URL}' < /etc/nginx/templates/default.conf.template > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"]
+CMD ["/bin/sh", "-c", "export PORT=${PORT:-80} && export BACKEND_URL=${BACKEND_URL:-http://localhost:8000} && envsubst '${PORT} ${BACKEND_URL}' < /etc/nginx/templates/default.conf.template > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"]
