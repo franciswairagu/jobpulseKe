@@ -142,6 +142,31 @@ def _get_role_demand_data(db: Session, country: str | None = None) -> dict:
         "is_role_question": True,
     }
 
+
+def _format_market_answer(question: str, market_data: dict) -> str:
+    """Format a readable answer from database market data when RAG index is unavailable."""
+    if market_data.get("is_role_question"):
+        roles = market_data.get("roles", [])
+        country = market_data.get("country", "Africa")
+        total = market_data.get("total_jobs", 0)
+        if not roles:
+            return f"No role data found for {country}."
+        lines = [f"Here are the top roles in {country} (out of {total:,} jobs):\n"]
+        for r in roles[:10]:
+            lines.append(f"- **{r['title']}**: {r['count']} jobs ({r['percentage']}%)")
+        return "\n".join(lines)
+    else:
+        skills = market_data.get("skills", [])
+        country = market_data.get("country", "Africa")
+        total = market_data.get("total_jobs", 0)
+        if not skills:
+            return f"No skill data found for {country}."
+        lines = [f"Here are the top skills in {country} (out of {total:,} jobs):\n"]
+        for s in skills[:10]:
+            lines.append(f"- **{s['skill']}**: {s['count']} jobs ({s['percentage']}%)")
+        return "\n".join(lines)
+
+
 # ---------------------------------------------------------------------------
 # Lazy-loaded RAG assistant singleton
 # ---------------------------------------------------------------------------
@@ -227,14 +252,28 @@ def ask_rag(
 ):
     """Ask a job-market question grounded in the indexed JobPulse dataset."""
     assistant = _get_assistant()
+
+    # Always try to get market data from DB (works without RAG index)
+    market_data = None
+    if _is_market_intelligence_question(payload.question):
+        country = _extract_country_filter(payload.question)
+        is_role = _is_role_question(payload.question)
+        if is_role:
+            market_data = _get_role_demand_data(db, country)
+        else:
+            market_data = _get_skill_demand_data(db, country)
+
     if assistant is None:
+        # Fallback: answer from DB market data only
+        if market_data:
+            answer = _format_market_answer(payload.question, market_data)
+            return RAGQueryResponse(answer=answer, confidence="database", sources=[], method="database")
         raise HTTPException(
             status_code=503,
             detail={
                 "error": {
                     "code": "RAG_UNAVAILABLE",
-                    "message": "RAG assistant is not available. The src/ module was not found. "
-                               "Run the backend from the project root or mount src/ into the container.",
+                    "message": "RAG assistant is still loading. Please try again in a moment.",
                     "details": {},
                 }
             },
@@ -243,28 +282,12 @@ def ask_rag(
     try:
         start_time = time.time()
 
-        # For market intelligence questions, fetch actual skill or role demand data
-        market_data = None
-        if _is_market_intelligence_question(payload.question):
-            country = _extract_country_filter(payload.question)
-            is_role = _is_role_question(payload.question)
-
-            if is_role:
-                market_data = _get_role_demand_data(db, country)
-                logger.info("Market intelligence query (roles): country=%s, roles_found=%d",
-                           country, len(market_data.get("roles", [])))
-            else:
-                market_data = _get_skill_demand_data(db, country)
-                logger.info("Market intelligence query (skills): country=%s, skills_found=%d",
-                           country, len(market_data.get("skills", [])))
-
         result = assistant.ask(payload.question, top_k=payload.top_k, market_data=market_data)
         
         elapsed_time = time.time() - start_time
         logger.info("RAG query completed in %.2f seconds, method=%s", elapsed_time, 
                    "llm" if assistant.llm and assistant.llm.available else "template")
 
-        # Detect whether LLM was used for generation
         method = "template"
         if assistant.llm and assistant.llm.available and result.confidence == "grounded":
             method = "llm"
@@ -277,6 +300,9 @@ def ask_rag(
         )
     except Exception as e:
         logger.exception("RAG query failed")
+        if market_data:
+            answer = _format_market_answer(payload.question, market_data)
+            return RAGQueryResponse(answer=answer, confidence="database", sources=[], method="database")
         raise HTTPException(
             status_code=500,
             detail={"error": {"code": "RAG_ERROR", "message": str(e)[:500], "details": {}}},
@@ -311,25 +337,8 @@ async def ask_rag_stream(
     payload: RAGQueryRequest,
     db: Session = Depends(get_db),
 ):
-    """Stream a job-market answer token-by-token via Server-Sent Events.
-
-    SSE event types:
-      - `token`   — incremental text chunk (`content` field)
-      - `done`    — final metadata (`confidence`, `sources`, `method`)
-      - `error`   — error message
-    """
+    """Stream a job-market answer token-by-token via Server-Sent Events."""
     assistant = _get_assistant()
-    if assistant is None:
-        raise HTTPException(
-            status_code=503,
-            detail={
-                "error": {
-                    "code": "RAG_UNAVAILABLE",
-                    "message": "RAG assistant is not available.",
-                    "details": {},
-                }
-            },
-        )
 
     market_data = None
     if _is_market_intelligence_question(payload.question):
@@ -340,14 +349,26 @@ async def ask_rag_stream(
         else:
             market_data = _get_skill_demand_data(db, country)
 
+    if assistant is None:
+        # Fallback: stream the DB answer directly
+        if market_data:
+            answer = _format_market_answer(payload.question, market_data)
+            async def _db_stream():
+                import json
+                yield f"data: {json.dumps({'type': 'token', 'content': answer})}\n\n"
+                yield f"data: {json.dumps({'type': 'done', 'confidence': 'database', 'sources': [], 'method': 'database'})}\n\n"
+                yield "data: [DONE]\n\n"
+            return StreamingResponse(_db_stream(), media_type="text/event-stream",
+                                     headers={"Cache-Control": "no-cache", "Connection": "keep-alive", "X-Accel-Buffering": "no"})
+        raise HTTPException(
+            status_code=503,
+            detail={"error": {"code": "RAG_UNAVAILABLE", "message": "RAG assistant is still loading.", "details": {}}},
+        )
+
     return StreamingResponse(
         _sse_generator(payload.question, payload.top_k, market_data, assistant),
         media_type="text/event-stream",
-        headers={
-            "Cache-Control": "no-cache",
-            "Connection": "keep-alive",
-            "X-Accel-Buffering": "no",
-        },
+        headers={"Cache-Control": "no-cache", "Connection": "keep-alive", "X-Accel-Buffering": "no"},
     )
 
 

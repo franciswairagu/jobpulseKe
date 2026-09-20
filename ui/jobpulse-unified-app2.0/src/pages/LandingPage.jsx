@@ -35,7 +35,7 @@ const FEATURES = [
   {
     icon: Sparkles,
     title: "AI Assistant",
-    description: "RAG-powered chatbot that answers job market questions grounded in real data from 3,340 job postings. Streams responses in real-time.",
+    description: "RAG-powered chatbot that answers job market questions grounded in real data from 14,000+ job postings. Streams responses in real-time.",
     color: "#8B5CF6",
     bg: "rgba(139,92,246,0.1)",
   },
@@ -56,9 +56,9 @@ const FEATURES = [
 ];
 
 const STATS = [
-  { value: "3,340", label: "Job Records Analyzed" },
+  { value: "14,000+", label: "Job Records Analyzed" },
   { value: "10+", label: "Countries Covered" },
-  { value: "600+", label: "Tech Skills Tracked" },
+  { value: "800+", label: "Tech Skills Tracked" },
   { value: "15+", label: "Data Sources" },
 ];
 

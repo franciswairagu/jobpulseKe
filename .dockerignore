@@ -37,6 +37,7 @@ data/raw/
 data/archive/
 data/techmap/
 data/nlp/
+!data/nlp/jobs_nlp_enriched_20260918_200334.parquet
 data/rag/
 data/analytics/
 data/uploads/
