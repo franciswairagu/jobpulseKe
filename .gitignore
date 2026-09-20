@@ -25,6 +25,7 @@ data/analytics/
 data/exports/
 data/processed/*.parquet
 data/processed/*.csv
+!data/processed/master_full.csv
 data/processed/.last_*
 data/nlp/*.parquet
 data/rag/*.parquet
