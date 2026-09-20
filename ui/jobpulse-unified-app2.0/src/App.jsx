@@ -48,6 +48,7 @@ export default function App() {
         if (retries > 0) {
           setTimeout(() => checkStartup(retries - 1, delay * 1.5), delay);
         } else {
+          logout();
           setServerReady(true);
           setCheckingStartup(false);
         }
