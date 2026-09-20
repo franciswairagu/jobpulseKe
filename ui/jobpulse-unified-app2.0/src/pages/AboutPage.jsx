@@ -168,7 +168,7 @@ export default function AboutPage() {
           position themselves for success.
         </p>
         <p className="mt-3 text-sm leading-relaxed" style={{ color: COLORS.textSecondary }}>
-          Our 4-stage data pipeline collects 3,340 job records from 15+ scrapers and TechMap across platforms like
+          Our 4-stage data pipeline collects 14,000+ job records from 15+ scrapers and TechMap across platforms like
           BrighterMonday, Jobberman, Careers24, LinkedIn, Indeed, and 27 additional portals. We extract 600+ skills across 15
           categories, analyze salary distributions, career pathways, and remote work trends — giving
           you an unbiased, real-time view of the market.
