@@ -1,0 +1,183 @@
+{
+  "seniority_progression": {
+    "Intern": 761,
+    "Entry Level": 381,
+    "Mid-Level": 6942,
+    "Senior": 1286,
+    "Lead": 1752,
+    "Executive": 487
+  },
+  "skills_by_seniority": {
+    "Intern": {
+      "analytics": 113,
+      "programming_language": 90,
+      "methodology": 48,
+      "web_framework": 27,
+      "devops": 26,
+      "cloud_platform": 25,
+      "frontend": 22,
+      "architecture": 21,
+      "infrastructure": 18,
+      "database": 17
+    },
+    "Entry Level": {
+      "programming_language": 14,
+      "web_framework": 10,
+      "analytics": 10,
+      "devops": 7,
+      "cloud_platform": 5,
+      "infrastructure": 5,
+      "methodology": 4,
+      "ai_ml": 3,
+      "architecture": 2,
+      "security": 2
+    },
+    "Mid-Level": {
+      "programming_language": 228,
+      "web_framework": 135,
+      "cloud_platform": 39,
+      "methodology": 36,
+      "infrastructure": 34,
+      "analytics": 32,
+      "mobile": 28,
+      "database": 26,
+      "devops": 26,
+      "architecture": 14
+    },
+    "Senior": {
+      "programming_language": 127,
+      "web_framework": 80,
+      "methodology": 32,
+      "devops": 26,
+      "analytics": 25,
+      "ai_ml": 21,
+      "cloud_platform": 20,
+      "architecture": 18,
+      "database": 16,
+      "infrastructure": 14
+    },
+    "Lead": {
+      "programming_language": 80,
+      "methodology": 53,
+      "analytics": 49,
+      "web_framework": 23,
+      "cloud_platform": 20,
+      "architecture": 17,
+      "devops": 16,
+      "frontend": 16,
+      "ai_ml": 13,
+      "infrastructure": 12
+    },
+    "Executive": {
+      "programming_language": 16,
+      "ai_ml": 15,
+      "analytics": 9,
+      "methodology": 8,
+      "web_framework": 6,
+      "frontend": 5,
+      "devops": 4,
+      "cloud_platform": 4,
+      "data_platform": 4,
+      "architecture": 3
+    }
+  },
+  "salary_by_seniority": {
+    "Intern": {
+      "min": null,
+      "max": null,
+      "mean": null,
+      "median": null,
+      "q25": null,
+      "q75": null,
+      "count": 0
+    },
+    "Entry Level": {
+      "min": null,
+      "max": null,
+      "mean": null,
+      "median": null,
+      "q25": null,
+      "q75": null,
+      "count": 0
+    },
+    "Mid-Level": {
+      "min": null,
+      "max": null,
+      "mean": null,
+      "median": null,
+      "q25": null,
+      "q75": null,
+      "count": 0
+    },
+    "Senior": {
+      "min": null,
+      "max": null,
+      "mean": null,
+      "median": null,
+      "q25": null,
+      "q75": null,
+      "count": 0
+    },
+    "Lead": {
+      "min": null,
+      "max": null,
+      "mean": null,
+      "median": null,
+      "q25": null,
+      "q75": null,
+      "count": 0
+    },
+    "Executive": {
+      "min": null,
+      "max": null,
+      "mean": null,
+      "median": null,
+      "q25": null,
+      "q75": null,
+      "count": 0
+    }
+  },
+  "experience_by_seniority": {
+    "Intern": {
+      "Not specified": 635,
+      "5-10 years": 56,
+      "1-3 years": 32,
+      "3-5 years": 24,
+      "10+ years": 14
+    },
+    "Entry Level": {
+      "Not specified": 370,
+      "5-10 years": 5,
+      "3-5 years": 4,
+      "1-3 years": 2
+    },
+    "Mid-Level": {
+      "Not specified": 6809,
+      "3-5 years": 54,
+      "1-3 years": 50,
+      "5-10 years": 25,
+      "10+ years": 4
+    },
+    "Senior": {
+      "Not specified": 1200,
+      "5-10 years": 55,
+      "3-5 years": 14,
+      "10+ years": 10,
+      "1-3 years": 7
+    },
+    "Lead": {
+      "Not specified": 1540,
+      "5-10 years": 95,
+      "3-5 years": 52,
+      "1-3 years": 36,
+      "10+ years": 29
+    },
+    "Executive": {
+      "Not specified": 424,
+      "5-10 years": 19,
+      "1-3 years": 19,
+      "3-5 years": 15,
+      "10+ years": 10
+    }
+  }
+}

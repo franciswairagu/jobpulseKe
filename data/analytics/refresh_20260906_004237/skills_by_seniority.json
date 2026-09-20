@@ -1,0 +1,73 @@
+{
+  "Entry Level": {
+    "frontend": 7,
+    "methodology": 5,
+    "programming_language": 4,
+    "devops": 3,
+    "web_framework": 2,
+    "database": 1,
+    "testing": 1,
+    "architecture": 1
+  },
+  "Mid-Level": {
+    "programming_language": 29,
+    "web_framework": 14,
+    "database": 10,
+    "ai_ml": 5,
+    "testing": 4,
+    "cloud_platform": 3,
+    "frontend": 2,
+    "analytics": 1,
+    "architecture": 1
+  },
+  "Intern": {
+    "programming_language": 13,
+    "web_framework": 11,
+    "ai_ml": 9,
+    "cloud_platform": 6,
+    "data_platform": 4,
+    "architecture": 4,
+    "analytics": 3,
+    "database": 3,
+    "devops": 2,
+    "frontend": 2,
+    "methodology": 2
+  },
+  "Lead": {
+    "programming_language": 25,
+    "devops": 14,
+    "cloud_platform": 10,
+    "data_platform": 9,
+    "web_framework": 8,
+    "methodology": 5,
+    "architecture": 5,
+    "ai_ml": 3,
+    "analytics": 2,
+    "frontend": 1,
+    "testing": 1
+  },
+  "Executive": {
+    "programming_language": 5,
+    "ai_ml": 4,
+    "cloud_platform": 2,
+    "devops": 2,
+    "architecture": 2,
+    "analytics": 1,
+    "web_framework": 1,
+    "methodology": 1
+  },
+  "Senior": {
+    "programming_language": 58,
+    "web_framework": 27,
+    "devops": 20,
+    "cloud_platform": 12,
+    "database": 10,
+    "ai_ml": 9,
+    "architecture": 7,
+    "frontend": 4,
+    "data_platform": 2,
+    "methodology": 2,
+    "analytics": 1,
+    "testing": 1
+  }
+}

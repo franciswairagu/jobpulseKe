@@ -1,0 +1,682 @@
+{
+  "java": {
+    "Uganda": 1,
+    "Nigeria": 2,
+    "South Africa": 7,
+    "Ghana": 1,
+    "Egypt": 8,
+    "Global Remote": 3,
+    "Kenya": 10
+  },
+  "swift": {
+    "Nigeria": 1,
+    "South Africa": 1,
+    "Kenya": 2
+  },
+  "python": {
+    "Nigeria": 7,
+    "Kenya": 30,
+    "South Africa": 3,
+    "Egypt": 3,
+    "Global Remote": 12,
+    "Unknown": 4
+  },
+  "node.js": {
+    "Nigeria": 3,
+    "South Africa": 2,
+    "Global Remote": 3,
+    "Kenya": 2
+  },
+  "power bi": {
+    "Nigeria": 1,
+    "Kenya": 21
+  },
+  "pytorch": {
+    "Nigeria": 2,
+    "Global Remote": 1,
+    "Kenya": 1,
+    "Unknown": 1
+  },
+  "tensorflow": {
+    "Nigeria": 2,
+    "Unknown": 1
+  },
+  "linux": {
+    "Nigeria": 4,
+    "South Africa": 2,
+    "Egypt": 1,
+    "Kenya": 15
+  },
+  "angular": {
+    "Nigeria": 2,
+    "South Africa": 1
+  },
+  "react": {
+    "Nigeria": 4,
+    "Ghana": 4,
+    "South Africa": 2,
+    "Egypt": 1,
+    "Global Remote": 10,
+    "Kenya": 8,
+    "Unknown": 1
+  },
+  "mongodb": {
+    "Nigeria": 1,
+    "Global Remote": 3,
+    "Kenya": 1
+  },
+  "mysql": {
+    "Nigeria": 1,
+    "Kenya": 2
+  },
+  "postgresql": {
+    "Nigeria": 1,
+    "Global Remote": 4,
+    "Kenya": 9
+  },
+  "windows server": {
+    "Nigeria": 1,
+    "Kenya": 1
+  },
+  "sql": {
+    "Nigeria": 2,
+    "South Africa": 1,
+    "Global Remote": 7,
+    "Kenya": 28
+  },
+  "javascript": {
+    "Nigeria": 1,
+    "Global Remote": 5,
+    "South Africa": 1,
+    "Kenya": 6
+  },
+  "next.js": {
+    "Nigeria": 2,
+    "Egypt": 1,
+    "Global Remote": 3,
+    "South Africa": 1,
+    "Kenya": 4
+  },
+  "vue": {
+    "Nigeria": 1,
+    "Global Remote": 1,
+    "South Africa": 1
+  },
+  "css": {
+    "Nigeria": 1,
+    "Global Remote": 6,
+    "Kenya": 2
+  },
+  "html": {
+    "Nigeria": 1,
+    "Global Remote": 1,
+    "Kenya": 2
+  },
+  "scikit-learn": {
+    "Nigeria": 1,
+    "Global Remote": 1,
+    "Kenya": 1
+  },
+  "react native": {
+    "Nigeria": 1,
+    "Ghana": 2,
+    "Egypt": 1,
+    "South Africa": 1
+  },
+  "php": {
+    "Nigeria": 2,
+    "South Africa": 2,
+    "Kenya": 2
+  },
+  ".net": {
+    "Nigeria": 1,
+    "Ghana": 2,
+    "Kenya": 1,
+    "South Africa": 2,
+    "Egypt": 7,
+    "Rwanda": 1
+  },
+  "fiber": {
+    "Nigeria": 2,
+    "Kenya": 3
+  },
+  "chef": {
+    "Nigeria": 2,
+    "Ghana": 1,
+    "Kenya": 12
+  },
+  "qc": {
+    "Nigeria": 4,
+    "Ghana": 1,
+    "Kenya": 5,
+    "Unknown": 2
+  },
+  "scrum": {
+    "Nigeria": 1,
+    "Global Remote": 1,
+    "Kenya": 7
+  },
+  "aws": {
+    "Kenya": 19,
+    "South Africa": 4,
+    "Ghana": 1,
+    "Global Remote": 13,
+    "Nigeria": 1
+  },
+  "laravel": {
+    "Nigeria": 1,
+    "South Africa": 1
+  },
+  "nodejs": {
+    "Nigeria": 1
+  },
+  "ubuntu": {
+    "Nigeria": 1,
+    "Ghana": 1,
+    "Kenya": 5
+  },
+  "elixir": {
+    "Nigeria": 1,
+    "Global Remote": 1
+  },
+  "golang": {
+    "Nigeria": 2,
+    "South Africa": 2,
+    "Kenya": 1
+  },
+  "vuejs": {
+    "Nigeria": 1
+  },
+  "elasticsearch": {
+    "Nigeria": 1,
+    "Global Remote": 1,
+    "Kenya": 2
+  },
+  "fastapi": {
+    "Nigeria": 1,
+    "Global Remote": 3,
+    "Kenya": 1
+  },
+  "ruby": {
+    "Nigeria": 1,
+    "Global Remote": 3,
+    "South Africa": 1
+  },
+  "rails": {
+    "Nigeria": 1,
+    "Global Remote": 10,
+    "South Africa": 1,
+    "Kenya": 2
+  },
+  "ruby on rails": {
+    "Nigeria": 1,
+    "Global Remote": 3
+  },
+  "django": {
+    "Nigeria": 1,
+    "Global Remote": 1
+  },
+  "oracle": {
+    "Nigeria": 1,
+    "South Africa": 1,
+    "Ghana": 1,
+    "Egypt": 3,
+    "Senegal": 2,
+    "Kenya": 6
+  },
+  "rust": {
+    "South Africa": 2,
+    "Kenya": 1
+  },
+  "azure": {
+    "South Africa": 1,
+    "Global Remote": 6,
+    "Kenya": 15,
+    "Nigeria": 1
+  },
+  "spring": {
+    "Ghana": 1,
+    "Global Remote": 1,
+    "South Africa": 1,
+    "Kenya": 10
+  },
+  "microservices": {
+    "Egypt": 1,
+    "Global Remote": 4,
+    "Kenya": 8
+  },
+  "supabase": {
+    "Egypt": 1,
+    "Kenya": 1
+  },
+  "flutter": {
+    "Egypt": 1,
+    "Global Remote": 1,
+    "South Africa": 1
+  },
+  "ci/cd": {
+    "Global Remote": 9,
+    "Kenya": 10
+  },
+  "github": {
+    "Global Remote": 5,
+    "Kenya": 5
+  },
+  "databricks": {
+    "Global Remote": 4,
+    "Kenya": 3
+  },
+  "cypress": {
+    "Global Remote": 1,
+    "Kenya": 1
+  },
+  "playwright": {
+    "Global Remote": 1,
+    "Kenya": 1
+  },
+  "excel": {
+    "Global Remote": 6,
+    "South Africa": 1,
+    "Senegal": 3,
+    "Kenya": 196,
+    "Unknown": 2
+  },
+  "less": {
+    "Global Remote": 5,
+    "Kenya": 27
+  },
+  "express": {
+    "Global Remote": 3,
+    "Kenya": 9,
+    "Unknown": 1
+  },
+  "spark": {
+    "Global Remote": 3,
+    "Kenya": 6
+  },
+  "go": {
+    "Global Remote": 15,
+    "South Africa": 2,
+    "Kenya": 37
+  },
+  "lean": {
+    "Global Remote": 1,
+    "Kenya": 24
+  },
+  "r": {
+    "Global Remote": 4,
+    "Kenya": 43
+  },
+  "google sheets": {
+    "South Africa": 1,
+    "Kenya": 31,
+    "Unknown": 1
+  },
+  "clickhouse": {
+    "Global Remote": 1
+  },
+  "redis": {
+    "Global Remote": 1,
+    "Kenya": 1
+  },
+  "llm": {
+    "Global Remote": 12,
+    "South Africa": 1,
+    "Kenya": 8,
+    "Unknown": 3
+  },
+  "openai": {
+    "Global Remote": 5
+  },
+  "api": {
+    "Global Remote": 7,
+    "South Africa": 1,
+    "Kenya": 12
+  },
+  "rest": {
+    "Global Remote": 7,
+    "Kenya": 12
+  },
+  "solid": {
+    "Global Remote": 8,
+    "Kenya": 55
+  },
+  "typescript": {
+    "Global Remote": 9,
+    "South Africa": 1,
+    "Kenya": 5
+  },
+  "kotlin": {
+    "Global Remote": 2,
+    "Kenya": 1
+  },
+  "rag": {
+    "Global Remote": 3,
+    "Kenya": 4
+  },
+  "datadog": {
+    "Global Remote": 5
+  },
+  "docker": {
+    "Global Remote": 6,
+    "Kenya": 8
+  },
+  "kubernetes": {
+    "Global Remote": 8,
+    "South Africa": 1,
+    "Kenya": 5
+  },
+  "kafka": {
+    "Global Remote": 2
+  },
+  "spring boot": {
+    "Global Remote": 1,
+    "Kenya": 7
+  },
+  "dynamodb": {
+    "Global Remote": 1,
+    "Kenya": 2
+  },
+  "graphql": {
+    "Global Remote": 3,
+    "Kenya": 1
+  },
+  "github actions": {
+    "Global Remote": 2,
+    "Kenya": 1
+  },
+  "helm": {
+    "Global Remote": 1
+  },
+  "shadcn": {
+    "Global Remote": 1
+  },
+  "tailwind": {
+    "Global Remote": 2
+  },
+  "pair programming": {
+    "Global Remote": 1,
+    "Kenya": 1
+  },
+  "vercel": {
+    "Global Remote": 2,
+    "Kenya": 1
+  },
+  "gcp": {
+    "Global Remote": 6,
+    "Kenya": 7
+  },
+  "heroku": {
+    "Global Remote": 1
+  },
+  "rspec": {
+    "Global Remote": 1
+  },
+  "object-oriented": {
+    "Global Remote": 1
+  },
+  "autogen": {
+    "Global Remote": 1
+  },
+  "crewai": {
+    "Global Remote": 1
+  },
+  "langchain": {
+    "Global Remote": 2,
+    "Kenya": 1
+  },
+  "langgraph": {
+    "Global Remote": 1
+  },
+  "postgres": {
+    "Global Remote": 1,
+    "Kenya": 1
+  },
+  "git": {
+    "Global Remote": 2,
+    "Kenya": 8,
+    "Nigeria": 1
+  },
+  "snowflake": {
+    "Global Remote": 2,
+    "Kenya": 1
+  },
+  "agile": {
+    "Global Remote": 3,
+    "Kenya": 26
+  },
+  "jenkins": {
+    "Global Remote": 2,
+    "Kenya": 1
+  },
+  "babel": {
+    "Global Remote": 1
+  },
+  "bootstrap": {
+    "Global Remote": 1
+  },
+  "css3": {
+    "Global Remote": 1,
+    "Kenya": 1
+  },
+  "html5": {
+    "Global Remote": 1,
+    "Kenya": 2
+  },
+  "scss": {
+    "Global Remote": 1
+  },
+  "webpack": {
+    "Global Remote": 1
+  },
+  "junit": {
+    "Global Remote": 1
+  },
+  "design patterns": {
+    "Global Remote": 1
+  },
+  "tdd": {
+    "Global Remote": 1
+  },
+  "apache": {
+    "Global Remote": 2,
+    "Kenya": 1
+  },
+  "huggingface": {
+    "Global Remote": 2,
+    "Kenya": 2
+  },
+  "dart": {
+    "South Africa": 1
+  },
+  "scala": {
+    "South Africa": 1
+  },
+  "nuxt": {
+    "South Africa": 1
+  },
+  "svelte": {
+    "South Africa": 1
+  },
+  "ansible": {
+    "South Africa": 1
+  },
+  "owasp": {
+    "Global Remote": 2
+  },
+  "penetration testing": {
+    "Global Remote": 2,
+    "Kenya": 1
+  },
+  "grafana": {
+    "Global Remote": 1
+  },
+  "prometheus": {
+    "Global Remote": 1
+  },
+  "pulumi": {
+    "Global Remote": 1,
+    "Kenya": 1
+  },
+  "terraform": {
+    "Global Remote": 1,
+    "Kenya": 2,
+    "Nigeria": 1
+  },
+  "macos": {
+    "Global Remote": 1,
+    "Kenya": 4
+  },
+  "airflow": {
+    "Global Remote": 1,
+    "Kenya": 2
+  },
+  "bigquery": {
+    "Global Remote": 1,
+    "Kenya": 2
+  },
+  "dbt": {
+    "Global Remote": 1,
+    "Kenya": 1
+  },
+  "redshift": {
+    "Global Remote": 1
+  },
+  "pandas": {
+    "Global Remote": 1,
+    "Kenya": 2
+  },
+  "apache spark": {
+    "Global Remote": 1
+  },
+  "gitlab": {
+    "Global Remote": 1,
+    "Kenya": 1
+  },
+  "assembly": {
+    "Senegal": 2,
+    "Kenya": 20
+  },
+  "mlflow": {
+    "Kenya": 2
+  },
+  "transformers": {
+    "Kenya": 7
+  },
+  "cloudflare": {
+    "Kenya": 1
+  },
+  "websocket": {
+    "Kenya": 1
+  },
+  "websockets": {
+    "Kenya": 1
+  },
+  "numpy": {
+    "Kenya": 1,
+    "Unknown": 2
+  },
+  "apache airflow": {
+    "Kenya": 1
+  },
+  "matplotlib": {
+    "Kenya": 2
+  },
+  "plotly": {
+    "Kenya": 3
+  },
+  "bash": {
+    "Kenya": 3
+  },
+  "gitlab ci": {
+    "Kenya": 1
+  },
+  "asp.net": {
+    "Kenya": 1
+  },
+  "jira": {
+    "Kenya": 10
+  },
+  "kanban": {
+    "Kenya": 4
+  },
+  "code review": {
+    "Kenya": 4
+  },
+  "tableau": {
+    "Kenya": 10
+  },
+  "prefect": {
+    "Kenya": 1
+  },
+  "nomad": {
+    "Kenya": 1
+  },
+  "powerbi": {
+    "Kenya": 2
+  },
+  "openstack": {
+    "Kenya": 1
+  },
+  "debian": {
+    "Kenya": 3
+  },
+  "flask": {
+    "Kenya": 2
+  },
+  "midjourney": {
+    "Kenya": 1
+  },
+  "seaborn": {
+    "Kenya": 1
+  },
+  "firewall": {
+    "Kenya": 2
+  },
+  "Looker": {
+    "Kenya": 4
+  },
+  "looker": {
+    "Kenya": 4
+  },
+  "looker studio": {
+    "Kenya": 2
+  },
+  "google cloud": {
+    "Nigeria": 1,
+    "Kenya": 4
+  },
+  "firebase": {
+    "Kenya": 1
+  },
+  "nagios": {
+    "Kenya": 2
+  },
+  "metabase": {
+    "Kenya": 3
+  },
+  "microsoft azure": {
+    "Kenya": 3
+  },
+  "postman": {
+    "Kenya": 1
+  },
+  "selenium": {
+    "Kenya": 1
+  },
+  "shell": {
+    "Kenya": 1
+  },
+  "prisma": {
+    "Kenya": 1
+  },
+  "ssl": {
+    "Kenya": 1
+  },
+  "nginx": {
+    "Kenya": 1
+  },
+  "vault": {
+    "Kenya": 1
+  }
+}
