@@ -1,0 +1,433 @@
+{
+  "by_country": {
+    "Kenya": {
+      "stats": {
+        "min": null,
+        "max": null,
+        "mean": null,
+        "median": null,
+        "q25": null,
+        "q75": null,
+        "count": 0
+      },
+      "records_total": 1368,
+      "records_with_salary": 0
+    },
+    "Uganda": {
+      "stats": {
+        "min": null,
+        "max": null,
+        "mean": null,
+        "median": null,
+        "q25": null,
+        "q75": null,
+        "count": 0
+      },
+      "records_total": 16,
+      "records_with_salary": 0
+    },
+    "Unknown": {
+      "stats": {
+        "min": null,
+        "max": null,
+        "mean": null,
+        "median": null,
+        "q25": null,
+        "q75": null,
+        "count": 0
+      },
+      "records_total": 24,
+      "records_with_salary": 0
+    },
+    "Nigeria": {
+      "stats": {
+        "min": null,
+        "max": null,
+        "mean": null,
+        "median": null,
+        "q25": null,
+        "q75": null,
+        "count": 0
+      },
+      "records_total": 940,
+      "records_with_salary": 0
+    },
+    "South Africa": {
+      "stats": {
+        "min": null,
+        "max": null,
+        "mean": null,
+        "median": null,
+        "q25": null,
+        "q75": null,
+        "count": 0
+      },
+      "records_total": 156,
+      "records_with_salary": 0
+    },
+    "Ghana": {
+      "stats": {
+        "min": null,
+        "max": null,
+        "mean": null,
+        "median": null,
+        "q25": null,
+        "q75": null,
+        "count": 0
+      },
+      "records_total": 544,
+      "records_with_salary": 0
+    },
+    "Global Remote": {
+      "stats": {
+        "min": null,
+        "max": null,
+        "mean": null,
+        "median": null,
+        "q25": null,
+        "q75": null,
+        "count": 0
+      },
+      "records_total": 105,
+      "records_with_salary": 0
+    },
+    "Egypt": {
+      "stats": {
+        "min": null,
+        "max": null,
+        "mean": null,
+        "median": null,
+        "q25": null,
+        "q75": null,
+        "count": 0
+      },
+      "records_total": 144,
+      "records_with_salary": 0
+    },
+    "Rwanda": {
+      "stats": {
+        "min": null,
+        "max": null,
+        "mean": null,
+        "median": null,
+        "q25": null,
+        "q75": null,
+        "count": 0
+      },
+      "records_total": 39,
+      "records_with_salary": 0
+    },
+    "Morocco": {
+      "stats": {
+        "min": null,
+        "max": null,
+        "mean": null,
+        "median": null,
+        "q25": null,
+        "q75": null,
+        "count": 0
+      },
+      "records_total": 1,
+      "records_with_salary": 0
+    },
+    "Senegal": {
+      "stats": {
+        "min": null,
+        "max": null,
+        "mean": null,
+        "median": null,
+        "q25": null,
+        "q75": null,
+        "count": 0
+      },
+      "records_total": 3,
+      "records_with_salary": 0
+    }
+  },
+  "by_seniority": {
+    "Mid-Level": {
+      "stats": {
+        "min": null,
+        "max": null,
+        "mean": null,
+        "median": null,
+        "q25": null,
+        "q75": null,
+        "count": 0
+      },
+      "records_total": 1405,
+      "records_with_salary": 0
+    },
+    "Entry Level": {
+      "stats": {
+        "min": null,
+        "max": null,
+        "mean": null,
+        "median": null,
+        "q25": null,
+        "q75": null,
+        "count": 0
+      },
+      "records_total": 77,
+      "records_with_salary": 0
+    },
+    "Lead": {
+      "stats": {
+        "min": null,
+        "max": null,
+        "mean": null,
+        "median": null,
+        "q25": null,
+        "q75": null,
+        "count": 0
+      },
+      "records_total": 737,
+      "records_with_salary": 0
+    },
+    "Senior": {
+      "stats": {
+        "min": null,
+        "max": null,
+        "mean": null,
+        "median": null,
+        "q25": null,
+        "q75": null,
+        "count": 0
+      },
+      "records_total": 371,
+      "records_with_salary": 0
+    },
+    "Executive": {
+      "stats": {
+        "min": null,
+        "max": null,
+        "mean": null,
+        "median": null,
+        "q25": null,
+        "q75": null,
+        "count": 0
+      },
+      "records_total": 237,
+      "records_with_salary": 0
+    },
+    "Intern": {
+      "stats": {
+        "min": null,
+        "max": null,
+        "mean": null,
+        "median": null,
+        "q25": null,
+        "q75": null,
+        "count": 0
+      },
+      "records_total": 513,
+      "records_with_salary": 0
+    }
+  },
+  "by_skill_category": {
+    "testing": {
+      "stats": {
+        "min": null,
+        "max": null,
+        "mean": null,
+        "median": null,
+        "q25": null,
+        "q75": null,
+        "count": 0
+      },
+      "records_total": 24,
+      "records_with_salary": 0
+    },
+    "web_framework": {
+      "stats": {
+        "min": null,
+        "max": null,
+        "mean": null,
+        "median": null,
+        "q25": null,
+        "q75": null,
+        "count": 0
+      },
+      "records_total": 92,
+      "records_with_salary": 0
+    },
+    "cloud_platform": {
+      "stats": {
+        "min": null,
+        "max": null,
+        "mean": null,
+        "median": null,
+        "q25": null,
+        "q75": null,
+        "count": 0
+      },
+      "records_total": 52,
+      "records_with_salary": 0
+    },
+    "devops": {
+      "stats": {
+        "min": null,
+        "max": null,
+        "mean": null,
+        "median": null,
+        "q25": null,
+        "q75": null,
+        "count": 0
+      },
+      "records_total": 56,
+      "records_with_salary": 0
+    },
+    "architecture": {
+      "stats": {
+        "min": null,
+        "max": null,
+        "mean": null,
+        "median": null,
+        "q25": null,
+        "q75": null,
+        "count": 0
+      },
+      "records_total": 43,
+      "records_with_salary": 0
+    },
+    "ai_ml": {
+      "stats": {
+        "min": null,
+        "max": null,
+        "mean": null,
+        "median": null,
+        "q25": null,
+        "q75": null,
+        "count": 0
+      },
+      "records_total": 46,
+      "records_with_salary": 0
+    },
+    "database": {
+      "stats": {
+        "min": null,
+        "max": null,
+        "mean": null,
+        "median": null,
+        "q25": null,
+        "q75": null,
+        "count": 0
+      },
+      "records_total": 36,
+      "records_with_salary": 0
+    },
+    "methodology": {
+      "stats": {
+        "min": null,
+        "max": null,
+        "mean": null,
+        "median": null,
+        "q25": null,
+        "q75": null,
+        "count": 0
+      },
+      "records_total": 110,
+      "records_with_salary": 0
+    },
+    "programming_language": {
+      "stats": {
+        "min": null,
+        "max": null,
+        "mean": null,
+        "median": null,
+        "q25": null,
+        "q75": null,
+        "count": 0
+      },
+      "records_total": 230,
+      "records_with_salary": 0
+    },
+    "mobile": {
+      "stats": {
+        "min": null,
+        "max": null,
+        "mean": null,
+        "median": null,
+        "q25": null,
+        "q75": null,
+        "count": 0
+      },
+      "records_total": 7,
+      "records_with_salary": 0
+    },
+    "data_platform": {
+      "stats": {
+        "min": null,
+        "max": null,
+        "mean": null,
+        "median": null,
+        "q25": null,
+        "q75": null,
+        "count": 0
+      },
+      "records_total": 24,
+      "records_with_salary": 0
+    },
+    "infrastructure": {
+      "stats": {
+        "min": null,
+        "max": null,
+        "mean": null,
+        "median": null,
+        "q25": null,
+        "q75": null,
+        "count": 0
+      },
+      "records_total": 34,
+      "records_with_salary": 0
+    },
+    "frontend": {
+      "stats": {
+        "min": null,
+        "max": null,
+        "mean": null,
+        "median": null,
+        "q25": null,
+        "q75": null,
+        "count": 0
+      },
+      "records_total": 45,
+      "records_with_salary": 0
+    },
+    "security": {
+      "stats": {
+        "min": null,
+        "max": null,
+        "mean": null,
+        "median": null,
+        "q25": null,
+        "q75": null,
+        "count": 0
+      },
+      "records_total": 7,
+      "records_with_salary": 0
+    },
+    "analytics": {
+      "stats": {
+        "min": null,
+        "max": null,
+        "mean": null,
+        "median": null,
+        "q25": null,
+        "q75": null,
+        "count": 0
+      },
+      "records_total": 221,
+      "records_with_salary": 0
+    }
+  },
+  "overall": {
+    "min": null,
+    "max": null,
+    "mean": null,
+    "median": null,
+    "q25": null,
+    "q75": null,
+    "count": 0
+  }
+}
