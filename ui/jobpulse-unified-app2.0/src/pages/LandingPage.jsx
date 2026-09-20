@@ -129,7 +129,7 @@ export default function LandingPage({ onNavigateToAuth }) {
           <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-white/60 sm:text-lg">
             JobPulse is an African-focused career intelligence platform that helps tech professionals
             understand market demand, identify skill gaps, and find the right opportunities — powered
-            by real data from 3,340 job postings across 10+ countries.
+            by real data from 14,000+ job postings across 10+ countries.
           </p>
 
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
@@ -242,7 +242,7 @@ export default function LandingPage({ onNavigateToAuth }) {
               {
                 step: "02",
                 title: "Get Matched",
-                description: "We compare your profile against 3,340 real job postings to calculate match scores and identify gaps.",
+                description: "We compare your profile against 14,000+ real job postings to calculate match scores and identify gaps.",
               },
               {
                 step: "03",
