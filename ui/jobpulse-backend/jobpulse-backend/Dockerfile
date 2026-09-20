@@ -20,7 +20,6 @@ COPY src/ /app/src/
 RUN mkdir -p /app/data/processed /app/data/external /app/data/uploads /app/data/models /app/data/nlp /app/logs
 COPY data/external/jobpulseke_master_africa_tech_jobs.csv /app/data/external/
 COPY data/processed/master_full.csv /app/data/processed/
-COPY data/nlp/jobs_nlp_enriched_20260918_200334.parquet /app/data/nlp/
 COPY src/models/tech_category_classifier.joblib /app/data/models/
 
 EXPOSE 8000
