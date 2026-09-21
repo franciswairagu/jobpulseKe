@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import AppShell from "./components/layout/AppShell";
 import DashboardPage from "./pages/DashboardPage";
 import CVAnalyzerPage from "./pages/CVAnalyzerPage";
@@ -55,14 +55,19 @@ export default function App() {
       });
   }, [startupId, logout, setStartupId]);
 
+  const checkStartupRef = useRef(checkStartup);
+  checkStartupRef.current = checkStartup;
+
   useEffect(() => {
     if (!token) {
       setCheckingStartup(false);
       setServerReady(true);
       return;
     }
-    checkStartup();
-  }, []); // Run once on mount
+    setCheckingStartup(true);
+    setServerReady(false);
+    checkStartupRef.current();
+  }, [token]);
 
   if (checkingStartup) {
     return (
