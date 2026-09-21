@@ -43,6 +43,12 @@ export default function AuthPage({ initialMode = "login", onBack }) {
         throw new Error("Login failed. Please check that the backend server is running and accessible.");
       }
       login({ token: tokens.access_token, refreshToken: tokens.refresh_token });
+      // Write to localStorage immediately so DashboardPage can read the token
+      // before the AuthContext useEffect flushes
+      localStorage.setItem("jobpulse_auth", JSON.stringify({
+        token: tokens.access_token,
+        refreshToken: tokens.refresh_token,
+      }));
       try {
         const API_BASE = import.meta.env.VITE_API_BASE || "";
         const me = await fetch(`${API_BASE}/api/auth/me`, {
