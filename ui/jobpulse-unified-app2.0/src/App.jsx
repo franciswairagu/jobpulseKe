@@ -61,7 +61,6 @@ export default function App() {
   useEffect(() => {
     if (!token) {
       setCheckingStartup(false);
-      setServerReady(true);
       return;
     }
     setCheckingStartup(true);
@@ -86,6 +85,17 @@ export default function App() {
 
   if (!token) {
     return <AuthPage initialMode={authMode} onBack={() => setShowAuth(false)} />;
+  }
+
+  if (!serverReady) {
+    return (
+      <div className="flex min-h-screen items-center justify-center" style={{ background: "#FAFAFA" }}>
+        <div className="text-center">
+          <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-4 border-gray-200 border-t-[#FA510F]" />
+          <p className="text-sm text-gray-500">Loading dashboard...</p>
+        </div>
+      </div>
+    );
   }
 
   const handleSearch = (query) => {
