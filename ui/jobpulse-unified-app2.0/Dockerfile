@@ -35,6 +35,6 @@ EXPOSE 80
 
 # Health check uses the dynamic PORT
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:${PORT}/ || exit 1
+    CMD wget --no-verbose --tries=1 --spider http://127.0.0.1:${PORT}/ || exit 1
 
 CMD ["/bin/sh", "-c", "export PORT=${PORT:-80} && export BACKEND_URL=${BACKEND_URL:-http://localhost:8000} && envsubst '${PORT} ${BACKEND_URL}' < /etc/nginx/templates/default.conf.template > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"]
