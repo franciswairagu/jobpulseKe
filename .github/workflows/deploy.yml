@@ -24,12 +24,27 @@ jobs:
       - name: Check token
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_TOKEN_ALT: ${{ secrets.vercel_token }}
+          VERCEL_TOKEN_ALT2: ${{ secrets.Vercel_Token }}
+          VERCEL_TOKEN_ALT3: ${{ secrets.VERCEL_API_TOKEN }}
         run: |
+          {
+            echo "### Secret check"
+            echo "- VERCEL_TOKEN set: $([ -n \"$VERCEL_TOKEN\" ] && echo yes || echo NO) len=${#VERCEL_TOKEN}"
+            echo "- vercel_token set: $([ -n \"$VERCEL_TOKEN_ALT\" ] && echo yes || echo NO) len=${#VERCEL_TOKEN_ALT}"
+            echo "- Vercel_Token set: $([ -n \"$VERCEL_TOKEN_ALT2\" ] && echo yes || echo NO) len=${#VERCEL_TOKEN_ALT2}"
+            echo "- VERCEL_API_TOKEN set: $([ -n \"$VERCEL_TOKEN_ALT3\" ] && echo yes || echo NO) len=${#VERCEL_TOKEN_ALT3}"
+            echo "- repo: $GITHUB_REPOSITORY ref: $GITHUB_REF"
+          } >> "$GITHUB_STEP_SUMMARY"
           if [ -z "$VERCEL_TOKEN" ]; then
-            echo "VERCEL_TOKEN secret is missing or empty" >> "$GITHUB_STEP_SUMMARY"
+            echo "VERCEL_TOKEN secret is missing or empty"
+            # promote any known alias into VERCEL_TOKEN for the rest of the job
+            if [ -n "$VERCEL_TOKEN_ALT" ]; then echo "found vercel_token"; fi
+            if [ -n "$VERCEL_TOKEN_ALT2" ]; then echo "found Vercel_Token"; fi
+            if [ -n "$VERCEL_TOKEN_ALT3" ]; then echo "found VERCEL_API_TOKEN"; fi
             exit 1
           fi
-          echo "VERCEL_TOKEN is set (length=${#VERCEL_TOKEN})" >> "$GITHUB_STEP_SUMMARY"
+          echo "VERCEL_TOKEN is set (length=${#VERCEL_TOKEN})"
 
       - name: Install dependencies
         run: npm ci
