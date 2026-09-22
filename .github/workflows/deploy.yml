@@ -13,9 +13,6 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ui/jobpulse-unified-app2.0
 
     steps:
       - uses: actions/checkout@v4
@@ -30,41 +27,33 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           S_VERCEL: ${{ secrets.VERCEL_TOKEN }}
-          S_VERCEL_lower: ${{ secrets.vercel_token }}
-          S_VERCEL_MIX: ${{ secrets.Vercel_Token }}
-          S_VERCEL_API: ${{ secrets.VERCEL_API_TOKEN }}
-          V_VERCEL: ${{ vars.VERCEL_TOKEN }}
-          V_VERCEL_lower: ${{ vars.vercel_token }}
         run: |
           yn() { if [ -n "$1" ]; then echo "Y(${#1})"; else echo "N"; fi; }
-          DIAG="repo=$GITHUB_REPOSITORY ref=$GITHUB_REF sec[VERCEL_TOKEN=$(yn "$S_VERCEL") vercel_token=$(yn "$S_VERCEL_lower") Vercel_Token=$(yn "$S_VERCEL_MIX") VERCEL_API_TOKEN=$(yn "$S_VERCEL_API")] var[VERCEL_TOKEN=$(yn "$V_VERCEL") vercel_token=$(yn "$V_VERCEL_lower")]"
+          DIAG="repo=$GITHUB_REPOSITORY ref=$GITHUB_REF sec[VERCEL_TOKEN=$(yn "$S_VERCEL")]"
           echo "$DIAG"
           echo "::error title=secret-diag::$DIAG"
           {
             echo "### Secret check"
             echo "$DIAG"
           } >> "$GITHUB_STEP_SUMMARY"
-
-          TOKEN="$S_VERCEL"
-          [ -z "$TOKEN" ] && TOKEN="$S_VERCEL_lower"
-          [ -z "$TOKEN" ] && TOKEN="$S_VERCEL_MIX"
-          [ -z "$TOKEN" ] && TOKEN="$S_VERCEL_API"
-          [ -z "$TOKEN" ] && TOKEN="$V_VERCEL"
-          [ -z "$TOKEN" ] && TOKEN="$V_VERCEL_lower"
-          if [ -z "$TOKEN" ]; then
-            echo "No Vercel token found in secrets or vars"
+          if [ -z "$S_VERCEL" ]; then
+            echo "No Vercel token found"
             exit 1
           fi
-          echo "Using Vercel token (length=${#TOKEN})"
-          echo "VERCEL_TOKEN=$TOKEN" >> "$GITHUB_ENV"
+          echo "VERCEL_TOKEN=$S_VERCEL" >> "$GITHUB_ENV"
 
       - name: Install dependencies
+        working-directory: ui/jobpulse-unified-app2.0
         run: npm ci
 
       - name: Build
+        working-directory: ui/jobpulse-unified-app2.0
         run: npm run build
 
       - name: Deploy to Vercel
+        env:
+          VERCEL_ORG_ID: team_PdDMaalD8mdX7GviRZd37VUA
+          VERCEL_PROJECT_ID: prj_pHFHkFHZKI0dCHnMHEMdWDH6aeyy
         run: |
           set +e
           npx --yes vercel deploy --prod --yes --token="$VERCEL_TOKEN" > /tmp/vercel-out.txt 2>&1
@@ -74,11 +63,7 @@ jobs:
             echo '```'
             cat /tmp/vercel-out.txt
             echo '```'
-            echo "project.json:"
-            echo '```'
-            cat .vercel/project.json 2>/dev/null || true
-            echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
-          ERR=$(tail -c 1800 /tmp/vercel-out.txt | tr '\n' ' | ' | sed 's/::/::/g')
+          ERR=$(tail -c 1800 /tmp/vercel-out.txt | tr '\n' ' | ')
           echo "::error title=vercel-deploy(exit $code)::$ERR"
           exit $code
