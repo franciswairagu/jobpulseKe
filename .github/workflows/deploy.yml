@@ -5,6 +5,11 @@ on:
     branches: [master]
   workflow_dispatch:
 
+permissions:
+  contents: read
+  checks: write
+  statuses: write
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -32,18 +37,13 @@ jobs:
           V_VERCEL_lower: ${{ vars.vercel_token }}
         run: |
           yn() { if [ -n "$1" ]; then echo "Y(${#1})"; else echo "N"; fi; }
-          DIAG="repo=$GITHUB_REPOSITORY ref=$GITHUB_REF | sec VERCEL_TOKEN=$(yn "$S_VERCEL") vercel_token=$(yn "$S_VERCEL_lower") Vercel_Token=$(yn "$S_VERCEL_MIX") VERCEL_API_TOKEN=$(yn "$S_VERCEL_API") | var VERCEL_TOKEN=$(yn "$V_VERCEL") vercel_token=$(yn "$V_VERCEL_lower")"
+          DIAG="repo=$GITHUB_REPOSITORY ref=$GITHUB_REF sec[VERCEL_TOKEN=$(yn "$S_VERCEL") vercel_token=$(yn "$S_VERCEL_lower") Vercel_Token=$(yn "$S_VERCEL_MIX") VERCEL_API_TOKEN=$(yn "$S_VERCEL_API")] var[VERCEL_TOKEN=$(yn "$V_VERCEL") vercel_token=$(yn "$V_VERCEL_lower")]"
           echo "$DIAG"
-          echo "### Secret check" >> "$GITHUB_STEP_SUMMARY"
-          echo "$DIAG" >> "$GITHUB_STEP_SUMMARY"
-          SUMMARY_JSON=$(python3 -c 'import json,sys; print(json.dumps(sys.stdin.read()))' <<< "$DIAG")
-          curl -sS -X POST \
-            -H "Authorization: Bearer $GH_TOKEN" \
-            -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/$GITHUB_REPOSITORY/check-runs" \
-            -d "{\"name\":\"vercel-secret-diag\",\"head_sha\":\"$GITHUB_SHA\",\"status\":\"completed\",\"conclusion\":\"failure\",\"output\":{\"title\":\"Secret diagnostics\",\"summary\":$SUMMARY_JSON}}" \
-            | head -c 500
-          echo
+          echo "::error title=secret-diag::$DIAG"
+          {
+            echo "### Secret check"
+            echo "$DIAG"
+          } >> "$GITHUB_STEP_SUMMARY"
 
           TOKEN="$S_VERCEL"
           [ -z "$TOKEN" ] && TOKEN="$S_VERCEL_lower"
@@ -79,4 +79,5 @@ jobs:
             cat .vercel/project.json
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
+          echo "::notice title=vercel-deploy::exit $code $(head -c 200 /tmp/vercel-out.txt | tr '\n' ' ')"
           exit $code
