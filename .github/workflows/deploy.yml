@@ -76,8 +76,9 @@ jobs:
             echo '```'
             echo "project.json:"
             echo '```'
-            cat .vercel/project.json
+            cat .vercel/project.json 2>/dev/null || true
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
-          echo "::notice title=vercel-deploy::exit $code $(head -c 200 /tmp/vercel-out.txt | tr '\n' ' ')"
+          ERR=$(tail -c 1800 /tmp/vercel-out.txt | tr '\n' ' | ' | sed 's/::/::/g')
+          echo "::error title=vercel-deploy(exit $code)::$ERR"
           exit $code
