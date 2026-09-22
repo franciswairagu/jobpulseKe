@@ -252,7 +252,11 @@ export default function AppShell({ activeKey, onNavigate, title, subtitle, searc
       )}
 
       {/* Main content area */}
-      <div className="flex min-w-0 flex-1 flex-col" style={{ marginLeft: sidebarCollapsed ? 72 : 192 }}>
+      <div
+        className={`flex min-w-0 flex-1 flex-col ${
+          sidebarCollapsed ? "lg:ml-[72px]" : "lg:ml-48"
+        }`}
+      >
         {/* Header */}
         <header
           className={`sticky top-0 z-20 flex items-center justify-between gap-4 border-b px-4 py-3 transition-all duration-300 lg:px-6 ${
@@ -340,7 +344,7 @@ export default function AppShell({ activeKey, onNavigate, title, subtitle, searc
         {/* Page content */}
         <main
           id="main-content"
-          className="flex-1 overflow-y-auto px-6 py-5 lg:px-10 lg:py-6"
+          className="flex-1 overflow-y-auto px-4 py-5 sm:px-6 lg:px-10 lg:py-6"
         >
           <div className="page-enter" key={activeKey}>
             {children}
