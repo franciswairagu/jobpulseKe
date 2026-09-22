@@ -23,28 +23,40 @@ jobs:
 
       - name: Check token
         env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_TOKEN_ALT: ${{ secrets.vercel_token }}
-          VERCEL_TOKEN_ALT2: ${{ secrets.Vercel_Token }}
-          VERCEL_TOKEN_ALT3: ${{ secrets.VERCEL_API_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          S_VERCEL: ${{ secrets.VERCEL_TOKEN }}
+          S_VERCEL_lower: ${{ secrets.vercel_token }}
+          S_VERCEL_MIX: ${{ secrets.Vercel_Token }}
+          S_VERCEL_API: ${{ secrets.VERCEL_API_TOKEN }}
+          V_VERCEL: ${{ vars.VERCEL_TOKEN }}
+          V_VERCEL_lower: ${{ vars.vercel_token }}
         run: |
-          {
-            echo "### Secret check"
-            echo "- VERCEL_TOKEN set: $([ -n \"$VERCEL_TOKEN\" ] && echo yes || echo NO) len=${#VERCEL_TOKEN}"
-            echo "- vercel_token set: $([ -n \"$VERCEL_TOKEN_ALT\" ] && echo yes || echo NO) len=${#VERCEL_TOKEN_ALT}"
-            echo "- Vercel_Token set: $([ -n \"$VERCEL_TOKEN_ALT2\" ] && echo yes || echo NO) len=${#VERCEL_TOKEN_ALT2}"
-            echo "- VERCEL_API_TOKEN set: $([ -n \"$VERCEL_TOKEN_ALT3\" ] && echo yes || echo NO) len=${#VERCEL_TOKEN_ALT3}"
-            echo "- repo: $GITHUB_REPOSITORY ref: $GITHUB_REF"
-          } >> "$GITHUB_STEP_SUMMARY"
-          if [ -z "$VERCEL_TOKEN" ]; then
-            echo "VERCEL_TOKEN secret is missing or empty"
-            # promote any known alias into VERCEL_TOKEN for the rest of the job
-            if [ -n "$VERCEL_TOKEN_ALT" ]; then echo "found vercel_token"; fi
-            if [ -n "$VERCEL_TOKEN_ALT2" ]; then echo "found Vercel_Token"; fi
-            if [ -n "$VERCEL_TOKEN_ALT3" ]; then echo "found VERCEL_API_TOKEN"; fi
+          yn() { if [ -n "$1" ]; then echo "Y(${#1})"; else echo "N"; fi; }
+          DIAG="repo=$GITHUB_REPOSITORY ref=$GITHUB_REF | sec VERCEL_TOKEN=$(yn "$S_VERCEL") vercel_token=$(yn "$S_VERCEL_lower") Vercel_Token=$(yn "$S_VERCEL_MIX") VERCEL_API_TOKEN=$(yn "$S_VERCEL_API") | var VERCEL_TOKEN=$(yn "$V_VERCEL") vercel_token=$(yn "$V_VERCEL_lower")"
+          echo "$DIAG"
+          echo "### Secret check" >> "$GITHUB_STEP_SUMMARY"
+          echo "$DIAG" >> "$GITHUB_STEP_SUMMARY"
+          SUMMARY_JSON=$(python3 -c 'import json,sys; print(json.dumps(sys.stdin.read()))' <<< "$DIAG")
+          curl -sS -X POST \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/check-runs" \
+            -d "{\"name\":\"vercel-secret-diag\",\"head_sha\":\"$GITHUB_SHA\",\"status\":\"completed\",\"conclusion\":\"failure\",\"output\":{\"title\":\"Secret diagnostics\",\"summary\":$SUMMARY_JSON}}" \
+            | head -c 500
+          echo
+
+          TOKEN="$S_VERCEL"
+          [ -z "$TOKEN" ] && TOKEN="$S_VERCEL_lower"
+          [ -z "$TOKEN" ] && TOKEN="$S_VERCEL_MIX"
+          [ -z "$TOKEN" ] && TOKEN="$S_VERCEL_API"
+          [ -z "$TOKEN" ] && TOKEN="$V_VERCEL"
+          [ -z "$TOKEN" ] && TOKEN="$V_VERCEL_lower"
+          if [ -z "$TOKEN" ]; then
+            echo "No Vercel token found in secrets or vars"
             exit 1
           fi
-          echo "VERCEL_TOKEN is set (length=${#VERCEL_TOKEN})"
+          echo "Using Vercel token (length=${#TOKEN})"
+          echo "VERCEL_TOKEN=$TOKEN" >> "$GITHUB_ENV"
 
       - name: Install dependencies
         run: npm ci
@@ -53,8 +65,6 @@ jobs:
         run: npm run build
 
       - name: Deploy to Vercel
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
           set +e
           npx --yes vercel deploy --prod --yes --token="$VERCEL_TOKEN" > /tmp/vercel-out.txt 2>&1
