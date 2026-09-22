@@ -1,0 +1,305 @@
+{
+  "by_country": {
+    "Kenya": {
+      "remote": 24,
+      "hybrid": 0,
+      "on_site": 0,
+      "not_specified": 1619,
+      "total": 1643,
+      "remote_pct": 1.46,
+      "pan_african_pct": 22.34
+    },
+    "Uganda": {
+      "remote": 0,
+      "hybrid": 0,
+      "on_site": 0,
+      "not_specified": 31,
+      "total": 31,
+      "remote_pct": 0.0,
+      "pan_african_pct": 3.23
+    },
+    "Unknown": {
+      "remote": 16,
+      "hybrid": 0,
+      "on_site": 0,
+      "not_specified": 8,
+      "total": 24,
+      "remote_pct": 66.67,
+      "pan_african_pct": 66.67
+    },
+    "Nigeria": {
+      "remote": 94,
+      "hybrid": 0,
+      "on_site": 0,
+      "not_specified": 2050,
+      "total": 2144,
+      "remote_pct": 4.38,
+      "pan_african_pct": 9.19
+    },
+    "South Africa": {
+      "remote": 13,
+      "hybrid": 0,
+      "on_site": 0,
+      "not_specified": 431,
+      "total": 444,
+      "remote_pct": 2.93,
+      "pan_african_pct": 3.15
+    },
+    "Ghana": {
+      "remote": 1,
+      "hybrid": 0,
+      "on_site": 0,
+      "not_specified": 1009,
+      "total": 1010,
+      "remote_pct": 0.1,
+      "pan_african_pct": 0.1
+    },
+    "Global Remote": {
+      "remote": 208,
+      "hybrid": 0,
+      "on_site": 0,
+      "not_specified": 0,
+      "total": 208,
+      "remote_pct": 100.0,
+      "pan_african_pct": 100.0
+    },
+    "Egypt": {
+      "remote": 15,
+      "hybrid": 0,
+      "on_site": 0,
+      "not_specified": 405,
+      "total": 420,
+      "remote_pct": 3.57,
+      "pan_african_pct": 3.57
+    },
+    "Rwanda": {
+      "remote": 0,
+      "hybrid": 0,
+      "on_site": 0,
+      "not_specified": 58,
+      "total": 58,
+      "remote_pct": 0.0,
+      "pan_african_pct": 0.0
+    },
+    "Morocco": {
+      "remote": 0,
+      "hybrid": 0,
+      "on_site": 0,
+      "not_specified": 1,
+      "total": 1,
+      "remote_pct": 0.0,
+      "pan_african_pct": 0.0
+    },
+    "Senegal": {
+      "remote": 0,
+      "hybrid": 0,
+      "on_site": 0,
+      "not_specified": 3,
+      "total": 3,
+      "remote_pct": 0.0,
+      "pan_african_pct": 100.0
+    }
+  },
+  "by_seniority": {
+    "Mid-Level": {
+      "remote": 82,
+      "hybrid": 0,
+      "on_site": 0,
+      "not_specified": 2831,
+      "total": 2913,
+      "remote_pct": 2.81,
+      "pan_african_pct": 4.67
+    },
+    "Entry Level": {
+      "remote": 13,
+      "hybrid": 0,
+      "on_site": 0,
+      "not_specified": 116,
+      "total": 129,
+      "remote_pct": 10.08,
+      "pan_african_pct": 15.5
+    },
+    "Lead": {
+      "remote": 75,
+      "hybrid": 0,
+      "on_site": 0,
+      "not_specified": 1069,
+      "total": 1144,
+      "remote_pct": 6.56,
+      "pan_african_pct": 19.14
+    },
+    "Senior": {
+      "remote": 74,
+      "hybrid": 0,
+      "on_site": 0,
+      "not_specified": 638,
+      "total": 712,
+      "remote_pct": 10.39,
+      "pan_african_pct": 17.56
+    },
+    "Executive": {
+      "remote": 32,
+      "hybrid": 0,
+      "on_site": 0,
+      "not_specified": 352,
+      "total": 384,
+      "remote_pct": 8.33,
+      "pan_african_pct": 17.45
+    },
+    "Intern": {
+      "remote": 95,
+      "hybrid": 0,
+      "on_site": 0,
+      "not_specified": 609,
+      "total": 704,
+      "remote_pct": 13.49,
+      "pan_african_pct": 36.22
+    }
+  },
+  "by_skill_category": {
+    "cloud_platform": {
+      "remote": 41,
+      "hybrid": 0,
+      "on_site": 0,
+      "not_specified": 47,
+      "total": 88,
+      "remote_pct": 46.59,
+      "pan_african_pct": 61.36
+    },
+    "testing": {
+      "remote": 7,
+      "hybrid": 0,
+      "on_site": 0,
+      "not_specified": 21,
+      "total": 28,
+      "remote_pct": 25.0,
+      "pan_african_pct": 39.29
+    },
+    "infrastructure": {
+      "remote": 13,
+      "hybrid": 0,
+      "on_site": 0,
+      "not_specified": 33,
+      "total": 46,
+      "remote_pct": 28.26,
+      "pan_african_pct": 36.96
+    },
+    "frontend": {
+      "remote": 26,
+      "hybrid": 0,
+      "on_site": 0,
+      "not_specified": 32,
+      "total": 58,
+      "remote_pct": 44.83,
+      "pan_african_pct": 56.9
+    },
+    "architecture": {
+      "remote": 42,
+      "hybrid": 0,
+      "on_site": 0,
+      "not_specified": 30,
+      "total": 72,
+      "remote_pct": 58.33,
+      "pan_african_pct": 75.0
+    },
+    "programming_language": {
+      "remote": 99,
+      "hybrid": 0,
+      "on_site": 0,
+      "not_specified": 279,
+      "total": 378,
+      "remote_pct": 26.19,
+      "pan_african_pct": 50.0
+    },
+    "ai_ml": {
+      "remote": 41,
+      "hybrid": 0,
+      "on_site": 0,
+      "not_specified": 19,
+      "total": 60,
+      "remote_pct": 68.33,
+      "pan_african_pct": 80.0
+    },
+    "security": {
+      "remote": 8,
+      "hybrid": 0,
+      "on_site": 0,
+      "not_specified": 4,
+      "total": 12,
+      "remote_pct": 66.67,
+      "pan_african_pct": 75.0
+    },
+    "web_framework": {
+      "remote": 56,
+      "hybrid": 0,
+      "on_site": 0,
+      "not_specified": 116,
+      "total": 172,
+      "remote_pct": 32.56,
+      "pan_african_pct": 39.53
+    },
+    "analytics": {
+      "remote": 18,
+      "hybrid": 0,
+      "on_site": 0,
+      "not_specified": 248,
+      "total": 266,
+      "remote_pct": 6.77,
+      "pan_african_pct": 42.11
+    },
+    "mobile": {
+      "remote": 9,
+      "hybrid": 0,
+      "on_site": 0,
+      "not_specified": 11,
+      "total": 20,
+      "remote_pct": 45.0,
+      "pan_african_pct": 45.0
+    },
+    "data_platform": {
+      "remote": 15,
+      "hybrid": 0,
+      "on_site": 0,
+      "not_specified": 18,
+      "total": 33,
+      "remote_pct": 45.45,
+      "pan_african_pct": 63.64
+    },
+    "devops": {
+      "remote": 46,
+      "hybrid": 0,
+      "on_site": 0,
+      "not_specified": 47,
+      "total": 93,
+      "remote_pct": 49.46,
+      "pan_african_pct": 55.91
+    },
+    "database": {
+      "remote": 22,
+      "hybrid": 0,
+      "on_site": 0,
+      "not_specified": 38,
+      "total": 60,
+      "remote_pct": 36.67,
+      "pan_african_pct": 56.67
+    },
+    "methodology": {
+      "remote": 37,
+      "hybrid": 0,
+      "on_site": 0,
+      "not_specified": 107,
+      "total": 144,
+      "remote_pct": 25.69,
+      "pan_african_pct": 50.0
+    }
+  },
+  "overall": {
+    "remote": 371,
+    "hybrid": 0,
+    "on_site": 0,
+    "not_specified": 5615,
+    "total": 5986,
+    "remote_pct": 6.2,
+    "pan_african_pct": 13.73
+  }
+}

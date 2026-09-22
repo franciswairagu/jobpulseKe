@@ -162,23 +162,25 @@ npm run dev
 
 Site-specific scrapers under `src/collectors/`, orchestrated by `scripts/run_scrapers.py`.
 
+Counts below are from the latest full pipeline run (2026-09-23, unioned master):
+
 | Source | Records | Region |
 |--------|---------|--------|
-| BrighterMonday | ~1,200 | East Africa (Kenya, Tanzania, Uganda, Rwanda) |
-| Jobberman | ~1,500 | Nigeria |
-| Careers24 | ~1,100 | South Africa |
-| Fuzu | ~800 | East Africa |
-| HotNigerianJobs | ~600 | Nigeria |
-| MyJobMag | ~900 | Africa-wide |
-| LinkedIn | ~1,200 | Global (African filters) |
-| Indeed | ~800 | Global (African filters) |
-| RemoteOK | ~700 | Remote tech jobs |
-| WeWorkRemotely | ~400 | Remote jobs |
-| Talent.com | ~600 | Global aggregator |
-| CareerJet | ~500 | Global aggregator |
-| Jobicy | ~300 | Remote jobs |
-| HuggingFace datasets | ~2,400 | Public datasets |
-| TechMap | ~1,400 | Kenya (27 portals: LinkedIn, BrighterMonday, Lever, etc.) |
+| LinkedIn (guest) | 1,985 | Global (African filters) |
+| Jobberman | 1,824 | Nigeria |
+| TechMap (27 portals) | 1,427 | Kenya |
+| HotNigerianJobs | 765 | Nigeria |
+| MyJobMag | 492 | Africa-wide |
+| WeWorkRemotely | 97 | Remote jobs |
+| RemoteOK | 84 | Remote tech jobs |
+| BrighterMonday | 63 | East Africa (Kenya, Tanzania, Uganda, Rwanda) |
+| Jobicy | 34 | Remote jobs |
+| Fuzu | 20 | East Africa |
+| Indeed | 16 | Global (African filters) |
+| JobWebKenya | 7 | Kenya |
+| Talent.com | 5 | Global aggregator |
+| HuggingFace datasets | 6,910 | Public datasets (master_full only) |
+| CareerJet / Careers24 / PNet | 0 this run | Global aggregators (blocked/structure change) |
 
 ### Stage 1: Data Loading & Ingestion
 
@@ -348,7 +350,7 @@ OLLAMA_HOST=0.0.0.0 ollama serve &
 | **NLP** | Custom regex-based SkillExtractor (600+ skills, 15 categories), MetadataExtractor |
 | **ML** | Scikit-learn (LogisticRegression for tech category classification) |
 | **Embeddings** | Sentence-Transformers (`all-MiniLM-L6-v2`) with TF-IDF fallback |
-| **Vector Store** | Custom numpy brute-force cosine similarity (~13k docs, sub-ms search) |
+| **Vector Store** | Custom numpy brute-force cosine similarity (~6k docs, sub-ms search) |
 | **LLM** | Ollama + `qwen2.5:0.5b` (local, ~300MB RAM, fallback to templates) |
 | **Backend** | FastAPI, SQLAlchemy 2.0, SQLite (dev) / PostgreSQL (prod) |
 | **Auth** | JWT (python-jose), bcrypt password hashing |
@@ -359,12 +361,14 @@ OLLAMA_HOST=0.0.0.0 ollama serve &
 
 ## 📊 Dataset Info
 
-- **Total Records**: ~3,300+ jobs (after merge + cleaning; varies per run)
+**Last refreshed**: 2026-09-23 (full pipeline run — scrape → merge → Stages 1–4 → RAG rebuild)
+
+- **Total Records**: 15,411 in `master_full.csv` (backend/UI dataset) · 6,819 in the Africa master · 5,986 cleaned & NLP-enriched
 - **Schema**: 22 columns including `job_title`, `company`, `job_description`, `country`, `work_mode`, etc.
-- **Countries Covered**: 10+ (Nigeria, Ghana, Kenya, South Africa, Egypt, Rwanda, Uganda, Morocco, Global Remote)
-- **Data Sources**: 15 scrapers + TechMap (27 portals) + HuggingFace public datasets
+- **Countries Covered**: 10+ (Nigeria, Kenya, Ghana, South Africa, Egypt, Rwanda, Uganda, Morocco, Senegal, Global Remote)
+- **Data Sources**: 15 scrapers + TechMap (27 portals) + HuggingFace public datasets (39 distinct source labels after merge)
 - **Skills Extracted**: 600+ across 8 categories
-- **Date Coverage**: ~27% of records have posting dates (used for skill demand time series)
+- **Date Coverage**: 58% of records have posting dates (used for skill demand time series)
 - **Analytics Files**: Pre-computed JSON under `data/analytics/` (career pathways, skill matrices, remote trends)
 
 ---
@@ -399,9 +403,10 @@ The CRISP-DM analysis notebook at `notebooks/notebook.ipynb` includes:
 
 ## ⚠️ Known Issues
 
-- **Work mode data**: ~90% of records have `unknown` work mode (inferred from descriptions when available)
-- **Employment type**: Only ~5% of records have explicit employment type data
-- **Date coverage**: ~27% of records have posting dates (sparse historical data for time series)
+- **Work mode data**: ~75% of records have `unknown` work mode (inferred from descriptions when available)
+- **Employment type**: Only ~21% of records have explicit employment type data
+- **Date coverage**: ~58% of records have posting dates (sparse historical data for time series)
+- **Blocked sources**: CareerJet, Careers24 and PNet returned no rows in the latest run (anti-bot / structure change); Talent.com KE listing layout changed (country subdomains mostly dead)
 - **Skill taxonomy**: Some niche skills may not be captured in the 600+ taxonomy
 - **RAG preload**: Backend takes ~25s to start (loads sentence-transformers model + warms up Ollama)
 

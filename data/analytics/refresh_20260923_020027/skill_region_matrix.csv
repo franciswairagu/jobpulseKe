@@ -1,0 +1,441 @@
+skill,region,count
+java,Uganda,1
+java,Nigeria,8
+java,South Africa,21
+java,Ghana,1
+java,Egypt,21
+java,Global Remote,9
+java,Kenya,10
+swift,Nigeria,3
+swift,South Africa,4
+swift,Kenya,2
+swift,Global Remote,1
+python,Nigeria,13
+python,Kenya,31
+python,South Africa,13
+python,Egypt,9
+python,Global Remote,27
+python,Unknown,4
+node.js,Nigeria,8
+node.js,South Africa,4
+node.js,Global Remote,10
+node.js,Kenya,3
+power bi,Nigeria,1
+power bi,Kenya,21
+power bi,Global Remote,1
+power bi,South Africa,1
+power bi,Egypt,2
+pytorch,Nigeria,2
+pytorch,Global Remote,1
+pytorch,Kenya,1
+pytorch,Unknown,1
+tensorflow,Nigeria,2
+tensorflow,Unknown,1
+linux,Nigeria,4
+linux,South Africa,3
+linux,Egypt,1
+linux,Kenya,15
+linux,Global Remote,7
+linux,Ghana,1
+angular,Nigeria,3
+angular,South Africa,4
+angular,Global Remote,3
+angular,Kenya,1
+angular,Egypt,1
+react,Nigeria,8
+react,Ghana,5
+react,South Africa,8
+react,Egypt,6
+react,Global Remote,18
+react,Kenya,9
+react,Unknown,1
+mongodb,Nigeria,1
+mongodb,Global Remote,4
+mongodb,Kenya,1
+mysql,Nigeria,1
+mysql,Kenya,2
+mysql,Global Remote,1
+postgresql,Nigeria,1
+postgresql,Global Remote,9
+postgresql,Kenya,9
+windows server,Nigeria,1
+windows server,Kenya,1
+sql,Nigeria,3
+sql,South Africa,2
+sql,Global Remote,15
+sql,Kenya,28
+javascript,Nigeria,1
+javascript,Global Remote,9
+javascript,South Africa,5
+javascript,Kenya,6
+next.js,Nigeria,2
+next.js,Egypt,1
+next.js,Global Remote,6
+next.js,South Africa,3
+next.js,Kenya,4
+vue,Nigeria,1
+vue,Global Remote,2
+vue,South Africa,3
+css,Nigeria,1
+css,Global Remote,11
+css,Kenya,2
+html,Nigeria,1
+html,Global Remote,3
+html,Kenya,2
+scikit-learn,Nigeria,1
+scikit-learn,Global Remote,1
+scikit-learn,Kenya,1
+react native,Nigeria,1
+react native,Ghana,3
+react native,Egypt,4
+react native,South Africa,4
+react native,Global Remote,1
+php,Nigeria,7
+php,South Africa,4
+php,Kenya,2
+php,Global Remote,2
+php,Egypt,1
+.net,Nigeria,7
+.net,Ghana,2
+.net,Kenya,4
+.net,South Africa,12
+.net,Egypt,15
+.net,Rwanda,1
+.net,Global Remote,2
+fiber,Nigeria,3
+fiber,Kenya,3
+fiber,Ghana,1
+chef,Nigeria,4
+chef,Ghana,2
+chef,Kenya,15
+chef,Global Remote,2
+chef,Uganda,1
+qc,Nigeria,5
+qc,Ghana,1
+qc,Kenya,5
+qc,Unknown,2
+scrum,Nigeria,2
+scrum,Global Remote,3
+scrum,Kenya,8
+aws,Kenya,19
+aws,South Africa,6
+aws,Ghana,1
+aws,Global Remote,29
+aws,Nigeria,4
+laravel,Nigeria,4
+laravel,South Africa,3
+laravel,Global Remote,2
+nodejs,Nigeria,1
+nodejs,Global Remote,1
+ubuntu,Nigeria,2
+ubuntu,Ghana,1
+ubuntu,Kenya,6
+ubuntu,Global Remote,1
+elixir,Nigeria,1
+elixir,Global Remote,1
+golang,Nigeria,2
+golang,South Africa,7
+golang,Kenya,1
+golang,Global Remote,5
+vuejs,Nigeria,1
+vuejs,Egypt,1
+elasticsearch,Nigeria,2
+elasticsearch,Global Remote,2
+elasticsearch,Kenya,2
+fastapi,Nigeria,1
+fastapi,Global Remote,3
+fastapi,Kenya,1
+ruby,Nigeria,1
+ruby,Global Remote,7
+ruby,South Africa,4
+ruby,Egypt,2
+rails,Nigeria,1
+rails,Global Remote,20
+rails,South Africa,5
+rails,Kenya,2
+rails,Egypt,1
+ruby on rails,Nigeria,1
+ruby on rails,Global Remote,4
+ruby on rails,South Africa,2
+ruby on rails,Egypt,1
+django,Nigeria,3
+django,Global Remote,2
+oracle,Nigeria,1
+oracle,South Africa,2
+oracle,Ghana,4
+oracle,Egypt,8
+oracle,Senegal,2
+oracle,Kenya,6
+oracle,Global Remote,4
+rust,South Africa,7
+rust,Kenya,1
+rust,Global Remote,2
+azure,South Africa,4
+azure,Global Remote,20
+azure,Kenya,15
+azure,Nigeria,3
+azure,Egypt,1
+spring,Ghana,1
+spring,Global Remote,2
+spring,South Africa,5
+spring,Kenya,10
+spring,Egypt,2
+microservices,Egypt,1
+microservices,Global Remote,7
+microservices,Kenya,8
+supabase,Egypt,1
+supabase,Kenya,1
+flutter,Egypt,1
+flutter,Global Remote,3
+flutter,South Africa,4
+flutter,Nigeria,1
+ci/cd,Global Remote,22
+ci/cd,Kenya,10
+github,Global Remote,9
+github,Kenya,5
+github,Nigeria,1
+databricks,Global Remote,4
+databricks,Kenya,3
+databricks,South Africa,1
+cypress,Global Remote,2
+cypress,Kenya,1
+playwright,Global Remote,2
+playwright,Kenya,1
+excel,Global Remote,13
+excel,South Africa,1
+excel,Senegal,3
+excel,Kenya,196
+excel,Unknown,2
+excel,Nigeria,33
+less,Global Remote,13
+less,Kenya,27
+express,Global Remote,4
+express,Kenya,9
+express,Unknown,1
+spark,Global Remote,3
+spark,Kenya,6
+go,Global Remote,35
+go,South Africa,2
+go,Kenya,37
+lean,Global Remote,4
+lean,Kenya,24
+r,Global Remote,7
+r,Kenya,43
+r,Nigeria,34
+r,South Africa,2
+google sheets,South Africa,1
+google sheets,Kenya,31
+google sheets,Unknown,1
+clickhouse,Global Remote,1
+redis,Global Remote,2
+redis,Kenya,1
+llm,Global Remote,21
+llm,South Africa,4
+llm,Kenya,8
+llm,Unknown,3
+openai,Global Remote,7
+api,Global Remote,21
+api,South Africa,1
+api,Kenya,13
+api,Nigeria,1
+api,Ghana,1
+rest,Global Remote,22
+rest,Kenya,12
+solid,Global Remote,23
+solid,Kenya,55
+solid,Nigeria,7
+typescript,Global Remote,19
+typescript,South Africa,4
+typescript,Kenya,5
+typescript,Nigeria,2
+kotlin,Global Remote,3
+kotlin,Kenya,1
+rag,Global Remote,3
+rag,Kenya,4
+datadog,Global Remote,10
+docker,Global Remote,8
+docker,Kenya,8
+docker,Nigeria,1
+kubernetes,Global Remote,17
+kubernetes,South Africa,1
+kubernetes,Kenya,5
+kafka,Global Remote,6
+spring boot,Global Remote,1
+spring boot,Kenya,7
+spring boot,South Africa,1
+spring boot,Egypt,2
+dynamodb,Global Remote,1
+dynamodb,Kenya,2
+graphql,Global Remote,8
+graphql,Kenya,1
+github actions,Global Remote,2
+github actions,Kenya,1
+helm,Global Remote,3
+shadcn,Global Remote,1
+tailwind,Global Remote,3
+pair programming,Global Remote,1
+pair programming,Kenya,1
+vercel,Global Remote,3
+vercel,Kenya,1
+gcp,Global Remote,18
+gcp,Kenya,7
+gcp,South Africa,1
+heroku,Global Remote,1
+rspec,Global Remote,1
+object-oriented,Global Remote,3
+autogen,Global Remote,1
+crewai,Global Remote,1
+langchain,Global Remote,2
+langchain,Kenya,1
+langgraph,Global Remote,1
+postgres,Global Remote,3
+postgres,Kenya,1
+git,Global Remote,11
+git,Kenya,8
+git,Nigeria,1
+git,Egypt,1
+snowflake,Global Remote,4
+snowflake,Kenya,1
+snowflake,South Africa,1
+agile,Global Remote,13
+agile,Kenya,27
+agile,Nigeria,1
+jenkins,Global Remote,5
+jenkins,Kenya,1
+babel,Global Remote,1
+bootstrap,Global Remote,1
+css3,Global Remote,1
+css3,Kenya,1
+html5,Global Remote,2
+html5,Kenya,2
+scss,Global Remote,1
+webpack,Global Remote,2
+junit,Global Remote,1
+design patterns,Global Remote,2
+tdd,Global Remote,1
+apache,Global Remote,3
+apache,Kenya,1
+huggingface,Global Remote,4
+huggingface,Kenya,2
+dart,South Africa,1
+scala,South Africa,4
+scala,Global Remote,2
+nuxt,South Africa,3
+nuxt,Global Remote,1
+svelte,South Africa,4
+svelte,Global Remote,1
+ansible,South Africa,1
+ansible,Global Remote,3
+owasp,Global Remote,3
+penetration testing,Global Remote,2
+penetration testing,Kenya,1
+grafana,Global Remote,3
+prometheus,Global Remote,3
+pulumi,Global Remote,1
+pulumi,Kenya,1
+terraform,Global Remote,5
+terraform,Kenya,2
+terraform,Nigeria,1
+terraform,South Africa,1
+macos,Global Remote,3
+macos,Kenya,4
+airflow,Global Remote,2
+airflow,Kenya,2
+bigquery,Global Remote,5
+bigquery,Kenya,2
+dbt,Global Remote,1
+dbt,Kenya,1
+redshift,Global Remote,1
+pandas,Global Remote,1
+pandas,Kenya,2
+apache spark,Global Remote,1
+gitlab,Global Remote,1
+gitlab,Kenya,1
+assembly,Senegal,2
+assembly,Kenya,20
+assembly,Nigeria,1
+mlflow,Kenya,2
+mlflow,Global Remote,1
+transformers,Kenya,7
+cloudflare,Kenya,1
+cloudflare,Global Remote,2
+websocket,Kenya,1
+websockets,Kenya,1
+websockets,Global Remote,2
+numpy,Kenya,1
+numpy,Unknown,2
+apache airflow,Kenya,1
+matplotlib,Kenya,2
+plotly,Kenya,3
+bash,Kenya,3
+bash,Global Remote,4
+gitlab ci,Kenya,1
+asp.net,Kenya,1
+asp.net,Global Remote,1
+jira,Kenya,10
+jira,Global Remote,3
+kanban,Kenya,4
+kanban,Global Remote,1
+code review,Kenya,4
+code review,Global Remote,2
+tableau,Kenya,10
+prefect,Kenya,1
+nomad,Kenya,1
+nomad,Global Remote,1
+powerbi,Kenya,2
+openstack,Kenya,1
+debian,Kenya,3
+flask,Kenya,2
+midjourney,Kenya,1
+seaborn,Kenya,1
+firewall,Kenya,2
+Looker,Kenya,4
+Looker,Global Remote,1
+looker,Kenya,4
+looker,Global Remote,1
+looker studio,Kenya,2
+looker studio,Global Remote,1
+google cloud,Nigeria,1
+google cloud,Kenya,4
+google cloud,Global Remote,5
+firebase,Kenya,1
+firebase,Global Remote,1
+firebase,South Africa,2
+nagios,Kenya,2
+metabase,Kenya,3
+microsoft azure,Kenya,3
+microsoft azure,Global Remote,2
+postman,Kenya,1
+selenium,Kenya,1
+shell,Kenya,1
+prisma,Kenya,1
+prisma,Global Remote,1
+ssl,Kenya,1
+ssl,Global Remote,1
+nginx,Kenya,1
+vault,Kenya,1
+vault,Global Remote,2
+xamarin,Global Remote,1
+netlify,Global Remote,1
+jest,Global Remote,1
+redux,Global Remote,2
+zustand,Global Remote,1
+jwt,Global Remote,1
+oauth,Global Remote,1
+tls,Global Remote,2
+tls,Kenya,1
+gRPC,Global Remote,2
+grpc,Global Remote,2
+restful,Global Remote,1
+swiftui,South Africa,1
+lambda,Global Remote,1
+centos,Global Remote,1
+ionic,Global Remote,1
+vite,Global Remote,1
+rest api,Global Remote,2
+oop,Global Remote,1
+splunk,Global Remote,3
+bitbucket,Global Remote,1
+kubeflow,Global Remote,1
+puppet,Global Remote,2
+amazon web services,Nigeria,4
