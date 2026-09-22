@@ -41,7 +41,11 @@ class Settings:
         if (raw := os.getenv("CORS_ORIGINS") or os.getenv("CORS_ORIGIN", "")).strip().startswith("[")
         # Handle comma-separated or single URL: http://a.com, http://b.com
         else [o.strip() for o in raw.split(",") if o.strip()]
-    ) or ["http://localhost:5173", "http://localhost:8000"]
+    ) or [
+        "http://localhost:5173",
+        "http://localhost:8000",
+        "https://jobpulse-ke-seven.vercel.app",
+    ]
     # Strip trailing slashes from origins so CORS matching works
     CORS_ORIGINS = [o.rstrip("/") for o in CORS_ORIGINS]
 

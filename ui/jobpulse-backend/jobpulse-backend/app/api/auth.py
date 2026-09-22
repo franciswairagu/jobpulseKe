@@ -16,8 +16,9 @@ def _error(code: str, message: str, status_code: int):
 
 
 class _LoginBody(BaseModel):
-    email: EmailStr
+    email: EmailStr | None = None
     password: str
+    username: str | None = None
 
 
 @router.post("/register", response_model=UserOut, status_code=status.HTTP_201_CREATED)
@@ -41,7 +42,7 @@ async def login(request: Request, db: Session = Depends(get_db)):
 
     if "application/json" in content_type:
         body = _LoginBody.model_validate(await request.json())
-        email = body.email
+        email = body.email or body.username or ""
         password = body.password
     else:
         form = await request.form()

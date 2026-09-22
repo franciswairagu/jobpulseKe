@@ -31,28 +31,51 @@ export default function App() {
   const [serverReady, setServerReady] = useState(false);
   const meta = PAGE_META[activeKey] ?? {};
 
-  const checkStartup = useCallback((retries = 5, delay = 2000) => {
-    fetch("/api/startup-id")
-      .then((r) => r.json())
-      .then((data) => {
+  const checkStartup = useCallback((retries = 3, delay = 600) => {
+    let cancelled = false;
+    let timer;
+
+    const run = async (remaining, wait) => {
+      if (wait > 0) {
+        await new Promise((r) => {
+          timer = setTimeout(r, wait);
+        });
+      }
+      if (cancelled) return;
+      try {
+        const res = await fetch("/api/startup-id", {
+          headers: { Accept: "application/json" },
+        });
+        const contentType = res.headers.get("content-type") || "";
+        if (!res.ok || !contentType.includes("application/json")) {
+          throw new Error("API unavailable");
+        }
+        const data = await res.json();
         const serverId = data.startup_id;
-        if (startupId && startupId !== serverId) {
+        if (startupId && serverId && startupId !== serverId) {
           logout();
-        } else {
+        } else if (serverId) {
           setStartupId(serverId);
         }
         setServerReady(true);
         setCheckingStartup(false);
-      })
-      .catch(() => {
-        if (retries > 0) {
-          setTimeout(() => checkStartup(retries - 1, delay * 1.5), delay);
+      } catch {
+        if (cancelled) return;
+        if (remaining > 0) {
+          await run(remaining - 1, delay);
         } else {
           logout();
           setServerReady(true);
           setCheckingStartup(false);
         }
-      });
+      }
+    };
+
+    run(retries, 0);
+    return () => {
+      cancelled = true;
+      if (timer) clearTimeout(timer);
+    };
   }, [startupId, logout, setStartupId]);
 
   const checkStartupRef = useRef(checkStartup);
@@ -65,7 +88,8 @@ export default function App() {
     }
     setCheckingStartup(true);
     setServerReady(false);
-    checkStartupRef.current();
+    const cleanup = checkStartupRef.current();
+    return cleanup;
   }, [token]);
 
   if (checkingStartup) {

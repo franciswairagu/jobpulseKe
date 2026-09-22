@@ -42,25 +42,39 @@ export default function AuthPage({ initialMode = "login", onBack }) {
       if (!tokens || !tokens.access_token) {
         throw new Error("Login failed. Please check that the backend server is running and accessible.");
       }
-      login({ token: tokens.access_token, refreshToken: tokens.refresh_token });
-      // Write to localStorage immediately so DashboardPage can read the token
-      // before the AuthContext useEffect flushes
-      localStorage.setItem("jobpulse_auth", JSON.stringify({
+      const payload = {
         token: tokens.access_token,
         refreshToken: tokens.refresh_token,
-      }));
+      };
+      login(payload);
+      // Write immediately so DashboardPage can read the token before AuthContext flushes
+      try {
+        const prevRaw = localStorage.getItem("jobpulse_auth");
+        const prev = prevRaw ? JSON.parse(prevRaw) : {};
+        localStorage.setItem(
+          "jobpulse_auth",
+          JSON.stringify({ ...prev, ...payload })
+        );
+      } catch {
+        localStorage.setItem("jobpulse_auth", JSON.stringify(payload));
+      }
       try {
         const API_BASE = import.meta.env.VITE_API_BASE || "";
         const me = await fetch(`${API_BASE}/api/auth/me`, {
           headers: { Authorization: `Bearer ${tokens.access_token}` },
-        }).then((r) => r.json());
-        setUser(me);
+        }).then((r) => (r.ok ? r.json() : null));
+        if (me) setUser(me);
       } catch {}
-      // Store the server's startup ID so we can detect restarts later
       try {
         const API_BASE = import.meta.env.VITE_API_BASE || "";
-        const res = await fetch(`${API_BASE}/api/startup-id`).then((r) => r.json());
-        if (res.startup_id) setStartupId(res.startup_id);
+        const res = await fetch(`${API_BASE}/api/startup-id`, {
+          headers: { Accept: "application/json" },
+        }).then((r) => {
+          const ct = r.headers.get("content-type") || "";
+          if (!r.ok || !ct.includes("application/json")) return null;
+          return r.json();
+        });
+        if (res?.startup_id) setStartupId(res.startup_id);
       } catch {}
     } catch (err) {
       setError(err.message);
