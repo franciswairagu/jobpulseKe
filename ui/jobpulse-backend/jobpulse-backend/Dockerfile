@@ -11,7 +11,7 @@ RUN pip install --no-cache-dir --retries 5 --timeout 120 -r requirements.txt
 
 # Copy backend application code
 COPY ui/jobpulse-backend/jobpulse-backend/ .
-RUN rm -f .env .env.local .env.production
+RUN rm -f .env .env.local .env.production *.db
 
 # Copy src/ for RAG assistant (sentence-transformers, retriever, etc.)
 COPY src/ /app/src/

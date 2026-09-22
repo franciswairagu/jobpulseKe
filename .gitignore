@@ -27,14 +27,18 @@ data/processed/*.csv
 !data/processed/master_full.csv
 data/processed/.last_*
 data/nlp/*.parquet
-!data/nlp/jobs_nlp_enriched_20260918_200334.parquet
+!data/nlp/jobs_nlp_enriched_20260923_020116.parquet
 data/rag/*.parquet
 data/rag/*.npy
+data/rag/*.npz
 data/raw/master_africa_tech_jobs.csv
 
 # ---- Scraper output (regenerated each run) ----
 output/
 scripts/output/
+
+# ---- Runtime logs ----
+logs/
 
 # ---- Temp / misc ----
 files.zip

@@ -2,8 +2,8 @@
 services:
   backend:
     build:
-      context: ./ui/jobpulse-backend/jobpulse-backend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ui/jobpulse-backend/jobpulse-backend/Dockerfile
     container_name: jobpulse-backend
     ports:
       - "8000:8000"
@@ -30,8 +30,8 @@ services:
 
   frontend:
     build:
-      context: ./ui/jobpulse-unified-app2.0
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ui/jobpulse-unified-app2.0/Dockerfile
     container_name: jobpulse-frontend
     ports:
       - "80:80"

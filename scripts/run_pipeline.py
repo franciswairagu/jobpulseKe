@@ -89,6 +89,12 @@ def step_merge_master():
     frames = []
     sources = []
 
+    # Existing master (union so re-runs accumulate instead of overwriting)
+    if MASTER_CSV.exists():
+        df = pd.read_csv(MASTER_CSV, low_memory=False)
+        frames.append(df)
+        sources.append(f"existing master: {len(df):,}")
+
     # Scraper master
     if SCRAPER_MASTER.exists():
         df = pd.read_csv(SCRAPER_MASTER, low_memory=False)
@@ -116,6 +122,39 @@ def step_merge_master():
     print(f"Sources: {', '.join(sources)}")
     print(f"Merged: {before:,} -> {after:,} unique ({before - after:,} dupes removed)")
     print(f"Saved -> {MASTER_CSV}")
+
+
+def step_update_master_full():
+    """Union the Africa master into data/processed/master_full.csv.
+
+    master_full.csv is the dataset the backend auto-ingest prefers (it picks
+    the candidate with the most rows), so new scrape runs must land here for
+    the UI to reflect them. Deduplicated on job_id; existing rows are kept.
+    """
+    banner("STEP 2b: UPDATING master_full.csv")
+    import pandas as pd
+
+    master_full = PROCESSED_DATA_DIR / "master_full.csv"
+    if not MASTER_CSV.exists():
+        print("No Africa master found, skipping.")
+        return
+
+    new_df = pd.read_csv(MASTER_CSV, low_memory=False)
+    if master_full.exists():
+        old_df = pd.read_csv(master_full, low_memory=False)
+        combined = pd.concat([old_df, new_df], ignore_index=True)
+        before = len(combined)
+        combined = combined.drop_duplicates(subset=["job_id"], keep="first")
+        after = len(combined)
+        print(f"Union: {len(old_df):,} existing + {len(new_df):,} new "
+              f"-> {before:,} rows -> {after:,} unique ({before - after:,} dupes removed)")
+    else:
+        combined = new_df
+        after = len(combined)
+        print(f"master_full.csv missing — seeded with {after:,} rows")
+
+    combined.to_csv(master_full, index=False)
+    print(f"Saved -> {master_full}")
 
 
 def step_stage1():
@@ -191,6 +230,7 @@ def main():
     # Merge
     step_merge_techmap()
     step_merge_master()
+    step_update_master_full()
 
     # Stages 1-4
     stage1_out = step_stage1()
