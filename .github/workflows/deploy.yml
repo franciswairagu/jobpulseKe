@@ -26,10 +26,10 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
           if [ -z "$VERCEL_TOKEN" ]; then
-            echo "VERCEL_TOKEN secret is missing or empty"
+            echo "VERCEL_TOKEN secret is missing or empty" >> "$GITHUB_STEP_SUMMARY"
             exit 1
           fi
-          echo "VERCEL_TOKEN is set (length=${#VERCEL_TOKEN})"
+          echo "VERCEL_TOKEN is set (length=${#VERCEL_TOKEN})" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Install dependencies
         run: npm ci
@@ -41,5 +41,17 @@ jobs:
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
-          set -x
-          npx --yes vercel deploy --prod --yes --token="$VERCEL_TOKEN"
+          set +e
+          npx --yes vercel deploy --prod --yes --token="$VERCEL_TOKEN" > /tmp/vercel-out.txt 2>&1
+          code=$?
+          {
+            echo "### Vercel deploy (exit $code)"
+            echo '```'
+            cat /tmp/vercel-out.txt
+            echo '```'
+            echo "project.json:"
+            echo '```'
+            cat .vercel/project.json
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          exit $code
