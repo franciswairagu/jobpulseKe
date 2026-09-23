@@ -20,6 +20,7 @@ class JobOut(BaseModel):
     status: str
     required_skills: list[str] = []
     preferred_skills: list[str] = []
+    description: str | None = None
 
     class Config:
         from_attributes = True

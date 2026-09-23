@@ -32,6 +32,7 @@ def _to_job_out(job: Job) -> JobOut:
         source=job.source, source_url=job.source_url,
         posted_at=job.posted_at, expires_at=job.expires_at, status=job.status.value,
         required_skills=required, preferred_skills=preferred,
+        description=(job.description[:3000] if job.description else None),
     )
 
 

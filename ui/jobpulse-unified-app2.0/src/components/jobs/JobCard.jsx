@@ -75,6 +75,28 @@ export default function JobCard({ job, saved, onToggleSave, onOpenDetails }) {
             >
               <Sparkles size={11} /> {match.matchScore}% {match.recommendation.toLowerCase()}
             </span>
+            {job.ats && (
+              <span
+                title="ATS score — how well your CV passes this posting's automated screen"
+                className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold"
+                style={{
+                  background:
+                    job.ats.score >= 80
+                      ? "rgba(16,185,129,0.1)"
+                      : job.ats.score >= 60
+                      ? "rgba(245,158,11,0.1)"
+                      : "rgba(239,68,68,0.08)",
+                  color:
+                    job.ats.score >= 80
+                      ? "#059669"
+                      : job.ats.score >= 60
+                      ? "#D97706"
+                      : COLORS.error,
+                }}
+              >
+                ATS {job.ats.score}
+              </span>
+            )}
             {job.isTargetRole && (
               <span
                 className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold"

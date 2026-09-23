@@ -1,5 +1,5 @@
 import React from "react";
-import { X, MapPin, Briefcase, Wifi, CheckCircle2, ExternalLink, Target, TrendingUp } from "lucide-react";
+import { X, MapPin, Briefcase, Wifi, CheckCircle2, ExternalLink, Target, TrendingUp, FileText, ClipboardCheck, AlertTriangle, XCircle } from "lucide-react";
 import { COLORS, FONTS, PRIORITY_STYLES } from "../../lib/theme";
 import { getSkillInsight } from "../../api/client";
 
@@ -27,8 +27,127 @@ function MatchBar({ label, value }) {
   );
 }
 
+const ATS_STATUS = {
+  pass: { icon: CheckCircle2, color: COLORS.success },
+  warn: { icon: AlertTriangle, color: COLORS.warning },
+  fail: { icon: XCircle, color: COLORS.error },
+};
+
+function ATSScoreBar({ value }) {
+  const barColor = value >= 80 ? "#10B981" : value >= 60 ? "#F59E0B" : "#EF4444";
+  return (
+    <div className="h-2 w-full overflow-hidden rounded-full" style={{ background: COLORS.surfaceTertiary }}>
+      <div
+        className="h-full rounded-full transition-all duration-700"
+        style={{ width: `${value}%`, background: `linear-gradient(90deg, ${barColor}cc, ${barColor})` }}
+      />
+    </div>
+  );
+}
+
+function ATSSection({ ats }) {
+  return (
+    <div className="mb-5 rounded-xl border p-4" style={{ borderColor: COLORS.borderLight, background: "#fff" }}>
+      <div className="flex items-center gap-2 mb-3">
+        <ClipboardCheck size={16} style={{ color: COLORS.accent }} />
+        <p className="text-sm font-semibold" style={{ color: COLORS.textDark, fontFamily: FONTS.display }}>
+          ATS score
+        </p>
+        <span
+          className="ml-auto rounded-full px-2.5 py-1 text-xs font-bold"
+          style={{
+            background: ats.score >= 80 ? "rgba(16,185,129,0.1)" : ats.score >= 60 ? "rgba(245,158,11,0.1)" : "rgba(239,68,68,0.08)",
+            color: ats.score >= 80 ? "#059669" : ats.score >= 60 ? "#D97706" : COLORS.error,
+          }}
+        >
+          {ats.score}% · {ats.label}
+        </span>
+      </div>
+
+      <div className="mb-4">
+        <ATSScoreBar value={ats.score} />
+        <p className="mt-1.5 text-[11px]" style={{ color: COLORS.textMuted }}>
+          How well your CV passes this posting's automated keyword and profile screen.
+        </p>
+      </div>
+
+      <div className="space-y-2">
+        {ats.checks.map((c) => {
+          const Icon = ATS_STATUS[c.status].icon;
+          return (
+            <div key={c.id} className="flex items-start gap-2.5 rounded-lg px-3 py-2" style={{ background: COLORS.pageBg }}>
+              <Icon size={15} className="mt-0.5 shrink-0" style={{ color: ATS_STATUS[c.status].color }} />
+              <div className="min-w-0 flex-1">
+                <div className="flex items-baseline justify-between gap-2">
+                  <span className="text-xs font-semibold" style={{ color: COLORS.textDark }}>
+                    {c.label}
+                  </span>
+                  <span className="text-xs font-bold" style={{ color: ATS_STATUS[c.status].color }}>
+                    {c.value}%
+                  </span>
+                </div>
+                <p className="mt-0.5 text-[11px]" style={{ color: COLORS.textSecondary }}>
+                  {c.detail}
+                </p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="mt-3">
+        <p className="text-xs font-semibold mb-1.5" style={{ color: COLORS.textDark }}>
+          Keywords {ats.missingKeywords.length === 0 ? "matched" : "check"}
+        </p>
+        <div className="flex flex-wrap gap-1.5">
+          {ats.matchedKeywords.map((k) => (
+            <span
+              key={`m-${k}`}
+              className="rounded-full px-2 py-0.5 text-[11px] font-medium"
+              style={{ background: "rgba(16,185,129,0.1)", color: "#059669" }}
+            >
+              {k}
+            </span>
+          ))}
+          {ats.missingKeywords.map((k) => (
+            <span
+              key={`x-${k}`}
+              className="rounded-full px-2 py-0.5 text-[11px] font-medium"
+              style={{ background: "rgba(239,68,68,0.08)", color: COLORS.error }}
+            >
+              {k}
+            </span>
+          ))}
+          {ats.matchedKeywords.length === 0 && ats.missingKeywords.length === 0 && (
+            <span className="text-[11px]" style={{ color: COLORS.textMuted }}>
+              No keywords extracted from this posting.
+            </span>
+          )}
+        </div>
+      </div>
+
+      {ats.tips.length > 0 && (
+        <div className="mt-3">
+          <p className="text-xs font-semibold mb-1.5" style={{ color: COLORS.textDark }}>
+            How to improve
+          </p>
+          <ul className="space-y-1">
+            {ats.tips.map((tip) => (
+              <li key={tip} className="flex items-start gap-1.5 text-[11px]" style={{ color: COLORS.textSecondary }}>
+                <span className="mt-1 h-1 w-1 shrink-0 rounded-full" style={{ background: COLORS.accent }} />
+                {tip}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function JobDetailsModal({ job, onClose, onAddLearningGoal }) {
   const match = job.match;
+  const ats = job.ats;
 
   return (
     <div
@@ -120,6 +239,27 @@ export default function JobDetailsModal({ job, onClose, onAddLearningGoal }) {
             </span>
           ))}
         </div>
+
+        {/* Job description */}
+        {job.description && (
+          <div className="mb-5">
+            <div className="flex items-center gap-2 mb-2">
+              <FileText size={15} style={{ color: COLORS.textSecondary }} />
+              <p className="text-sm font-semibold" style={{ color: COLORS.textDark, fontFamily: FONTS.display }}>
+                Job description
+              </p>
+            </div>
+            <div
+              className="max-h-40 overflow-y-auto whitespace-pre-line rounded-xl px-3.5 py-3 text-xs leading-relaxed"
+              style={{ background: COLORS.pageBg, color: COLORS.textSecondary }}
+            >
+              {job.description}
+            </div>
+          </div>
+        )}
+
+        {/* ATS report */}
+        {ats && <ATSSection ats={ats} />}
 
         {/* Match section */}
         {!match ? (

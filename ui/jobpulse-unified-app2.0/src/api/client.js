@@ -9,6 +9,7 @@
 
 import { scoreSkillPriority, computeJobMatch, matchLabel } from "../lib/scoring";
 import { jobMatchesAnyRole } from "../lib/roles";
+import { computeATSScore } from "../lib/ats";
 
 const API_BASE = import.meta.env.VITE_API_BASE || "";
 
@@ -107,6 +108,7 @@ function adaptJob(job) {
     source: job.source,
     sourceUrl: job.source_url,
     status: job.status,
+    description: job.description || null,
   };
 }
 
@@ -117,7 +119,8 @@ function jobSkillNames(job) {
 function jobWithMatch(job, cvAnalysis) {
   const names = jobSkillNames(job);
   const match = cvAnalysis ? computeJobMatch(job, names, cvAnalysis) : null;
-  return { ...job, skillNames: names, match };
+  const ats = cvAnalysis ? computeATSScore(job, cvAnalysis) : null;
+  return { ...job, skillNames: names, match, ats };
 }
 
 // ---------------------------------------------------------------------------
