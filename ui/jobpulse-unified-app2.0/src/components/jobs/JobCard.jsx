@@ -1,5 +1,5 @@
 import React from "react";
-import { MapPin, Briefcase, Wifi, Bookmark, Sparkles, ExternalLink } from "lucide-react";
+import { MapPin, Briefcase, Wifi, Bookmark, Sparkles, ExternalLink, Target } from "lucide-react";
 import { COLORS, FONTS } from "../../lib/theme";
 
 export default function JobCard({ job, saved, onToggleSave, onOpenDetails }) {
@@ -55,24 +55,34 @@ export default function JobCard({ job, saved, onToggleSave, onOpenDetails }) {
         </div>
 
         {match && (
-          <div
-            className="mt-3 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold"
-            style={{
-              background:
-                match.matchScore >= 75
-                  ? "rgba(16,185,129,0.1)"
-                  : match.matchScore >= 50
-                  ? "rgba(245,158,11,0.1)"
-                  : "rgba(239,68,68,0.08)",
-              color:
-                match.matchScore >= 75
-                  ? "#059669"
-                  : match.matchScore >= 50
-                  ? "#D97706"
-                  : COLORS.error,
-            }}
-          >
-            <Sparkles size={11} /> {match.matchScore}% {match.recommendation.toLowerCase()}
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <span
+              className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold"
+              style={{
+                background:
+                  match.matchScore >= 75
+                    ? "rgba(16,185,129,0.1)"
+                    : match.matchScore >= 50
+                    ? "rgba(245,158,11,0.1)"
+                    : "rgba(239,68,68,0.08)",
+                color:
+                  match.matchScore >= 75
+                    ? "#059669"
+                    : match.matchScore >= 50
+                    ? "#D97706"
+                    : COLORS.error,
+              }}
+            >
+              <Sparkles size={11} /> {match.matchScore}% {match.recommendation.toLowerCase()}
+            </span>
+            {job.isTargetRole && (
+              <span
+                className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold"
+                style={{ background: "rgba(250,81,15,0.08)", color: COLORS.accent }}
+              >
+                <Target size={11} /> Target role
+              </span>
+            )}
           </div>
         )}
 

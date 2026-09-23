@@ -1,8 +1,9 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import { UploadCloud, FileText, CheckCircle2, AlertTriangle, X, ArrowRight, Loader2, Zap, GraduationCap, ExternalLink, Sparkles } from "lucide-react";
 import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, Radar, Legend } from "recharts";
 import { COLORS, FONTS, PRIORITY_STYLES } from "../lib/theme";
 import { analyzeCV } from "../api/client";
+import { inferDesiredRoles } from "../lib/roles";
 import { useCVAnalysisActions, useAppState } from "../state/AppContext";
 import EmptyState from "../components/shared/EmptyState";
 import RecommendedJobsPanel from "../components/jobs/RecommendedJobsPanel";
@@ -532,6 +533,14 @@ export default function CVAnalyzerPage() {
   const [activeTab, setActiveTab] = useState("overview");
   const [jobSearchFocus, setJobSearchFocus] = useState(undefined);
 
+  // Roles the candidate is likely looking for, inferred from the CV's
+  // detected skills. Seeded into the Recommended Jobs panel, where the
+  // candidate can edit them; re-computed only when a new analysis arrives.
+  const inferredDesiredRoles = useMemo(
+    () => inferDesiredRoles(cvAnalysis),
+    [cvAnalysis]
+  );
+
   const handleFile = async (file) => {
     setStage("loading");
     setError(null);
@@ -632,6 +641,7 @@ export default function CVAnalyzerPage() {
                   <RecommendedJobsPanel
                     cvAnalysis={cvAnalysis}
                     initialFocusSkill={jobSearchFocus}
+                    initialDesiredRoles={inferredDesiredRoles}
                     onAddLearningGoal={() => {}}
                   />
                 )}

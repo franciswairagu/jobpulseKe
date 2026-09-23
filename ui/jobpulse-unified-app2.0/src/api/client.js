@@ -8,6 +8,7 @@
 // ---------------------------------------------------------------------------
 
 import { scoreSkillPriority, computeJobMatch, matchLabel } from "../lib/scoring";
+import { jobMatchesAnyRole } from "../lib/roles";
 
 const API_BASE = import.meta.env.VITE_API_BASE || "";
 
@@ -237,7 +238,14 @@ export async function getMarketSkills({ query = "", sortKey = "demand", country,
 // GET /api/jobs (with optional CV-based matching)
 // ---------------------------------------------------------------------------
 
-export async function getRecommendedJobs({ query = "", country, remoteOnly = false, sortBy = "match", cvAnalysis = null } = {}) {
+export async function getRecommendedJobs({
+  query = "",
+  country,
+  remoteOnly = false,
+  sortBy = "match",
+  cvAnalysis = null,
+  desiredRoles = [],
+} = {}) {
   const params = new URLSearchParams();
   if (query) params.set("q", query);
   if (country && country !== "All countries") params.set("country", country);
@@ -245,7 +253,10 @@ export async function getRecommendedJobs({ query = "", country, remoteOnly = fal
   params.set("limit", "100");
 
   const data = await apiFetch(`/api/jobs?${params}`);
-  let rows = (data.jobs || []).map(adaptJob).map((j) => jobWithMatch(j, cvAnalysis));
+  let rows = (data.jobs || [])
+    .map(adaptJob)
+    .map((j) => jobWithMatch(j, cvAnalysis))
+    .map((j) => ({ ...j, isTargetRole: jobMatchesAnyRole(j, desiredRoles) }));
 
   const sorters = {
     match: (a, b) => {
@@ -259,7 +270,14 @@ export async function getRecommendedJobs({ query = "", country, remoteOnly = fal
   };
   rows.sort(sorters[sortBy] ?? sorters.match);
 
-  return { jobs: rows, total: rows.length, personalized: !!cvAnalysis };
+  const targetCount = desiredRoles.length ? rows.filter((j) => j.isTargetRole).length : 0;
+
+  return {
+    jobs: rows,
+    total: rows.length,
+    targetCount,
+    personalized: !!cvAnalysis,
+  };
 }
 
 export async function getJobs(params = {}) {
