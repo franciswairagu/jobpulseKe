@@ -10,6 +10,7 @@ import LandingPage from "./pages/LandingPage";
 import AboutPage from "./pages/AboutPage";
 import AiAssistantWidget from "./components/shared/AiAssistantWidget";
 import { useAuth, useAuthActions } from "./state/AuthContext";
+import { fetchMe } from "./api/client";
 
 const PAGE_META = {
   dashboard: { title: null, subtitle: null },
@@ -22,7 +23,7 @@ const PAGE_META = {
 
 export default function App() {
   const { token, startupId } = useAuth();
-  const { logout, setStartupId } = useAuthActions();
+  const { logout, setStartupId, setUser } = useAuthActions();
   const [activeKey, setActiveKey] = useState("dashboard");
   const [checkingStartup, setCheckingStartup] = useState(true);
   const [authMode, setAuthMode] = useState("login");
@@ -89,7 +90,19 @@ export default function App() {
     setCheckingStartup(true);
     setServerReady(false);
     const cleanup = checkStartupRef.current();
-    return cleanup;
+    // Validate the stored session before rendering the app. A stale/expired
+    // token gets a 401 → client.js fires "jobpulse:unauthorized" → LOGOUT,
+    // sending the user back to the sign-in screen for a fresh login.
+    let cancelled = false;
+    fetchMe()
+      .then((u) => {
+        if (!cancelled && u) setUser(u);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+      cleanup();
+    };
   }, [token]);
 
   if (checkingStartup) {

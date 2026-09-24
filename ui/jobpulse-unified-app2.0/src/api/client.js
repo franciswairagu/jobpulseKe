@@ -36,6 +36,17 @@ async function parseJSON(response) {
   return data;
 }
 
+// Debounced: several parallel requests can 401 at once — logout only once.
+let lastUnauthorizedAt = 0;
+function notifyUnauthorized() {
+  try {
+    const now = Date.now();
+    if (now - lastUnauthorizedAt < 1500) return;
+    lastUnauthorizedAt = now;
+    window.dispatchEvent(new Event("jobpulse:unauthorized"));
+  } catch {}
+}
+
 async function apiFetch(path, options = {}) {
   const token = getAuthToken();
   const headers = { ...options.headers };
@@ -46,6 +57,7 @@ async function apiFetch(path, options = {}) {
 
   const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
   if (!res.ok) {
+    if (res.status === 401) notifyUnauthorized();
     const body = await parseJSON(res).catch(() => ({}));
     const msg = body?.error?.message || `Request failed (${res.status})`;
     throw new Error(msg);
@@ -504,6 +516,7 @@ export async function* askRAGStream(question, topK = 5) {
   });
 
   if (!res.ok) {
+    if (res.status === 401) notifyUnauthorized();
     const body = await parseJSON(res).catch(() => ({}));
     throw new Error(body?.error?.message || `Streaming failed (${res.status})`);
   }

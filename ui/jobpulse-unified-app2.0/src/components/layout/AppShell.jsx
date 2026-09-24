@@ -92,6 +92,7 @@ export default function AppShell({ activeKey, onNavigate, title, subtitle, searc
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [localSearch, setLocalSearch] = useState(searchQuery || "");
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const { profile } = useAppState();
   const { user } = useAuth();
   const { logout } = useAuthActions();
@@ -242,6 +243,17 @@ export default function AppShell({ activeKey, onNavigate, title, subtitle, searc
               onNavigate={onNavigate}
               onItemClick={() => setMobileNavOpen(false)}
             />
+            <button
+              onClick={() => {
+                setMobileNavOpen(false);
+                logout();
+              }}
+              className="mt-6 flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-all duration-200 hover:bg-red-500/10"
+              style={{ color: "rgba(234,243,250,0.6)" }}
+            >
+              <LogOut size={18} strokeWidth={1.8} />
+              <span>Logout</span>
+            </button>
           </div>
           <div
             className="flex-1 animate-fade-in"
@@ -328,15 +340,57 @@ export default function AppShell({ activeKey, onNavigate, title, subtitle, searc
                 }}
               />
             </button>
-            <div
-              className="flex h-9 w-9 items-center justify-center rounded-xl text-sm font-semibold text-white transition-transform hover:scale-105"
-              style={{
-                background: "linear-gradient(135deg, #FA510F, #E04500)",
-                boxShadow: "0 2px 8px rgba(250,81,15,0.3)",
-                fontFamily: FONTS.display,
-              }}
-            >
-              {userName?.[0]?.toUpperCase() ?? "U"}
+            <div className="relative">
+              <button
+                onClick={() => setUserMenuOpen((o) => !o)}
+                aria-label="Account menu"
+                aria-expanded={userMenuOpen}
+                className="flex h-9 w-9 items-center justify-center rounded-xl text-sm font-semibold text-white transition-transform hover:scale-105"
+                style={{
+                  background: "linear-gradient(135deg, #FA510F, #E04500)",
+                  boxShadow: "0 2px 8px rgba(250,81,15,0.3)",
+                  fontFamily: FONTS.display,
+                }}
+              >
+                {userName?.[0]?.toUpperCase() ?? "U"}
+              </button>
+              {userMenuOpen && (
+                <>
+                  <div
+                    className="fixed inset-0 z-40"
+                    onClick={() => setUserMenuOpen(false)}
+                  />
+                  <div
+                    className="absolute right-0 z-50 mt-2 w-56 rounded-xl border p-1.5 shadow-lg"
+                    style={{ borderColor: COLORS.border, background: "#fff" }}
+                  >
+                    <div className="px-3 py-2">
+                      <p
+                        className="truncate text-sm font-semibold"
+                        style={{ color: COLORS.textDark }}
+                      >
+                        {userName}
+                      </p>
+                      {user?.email && (
+                        <p className="truncate text-xs" style={{ color: COLORS.textMuted }}>
+                          {user.email}
+                        </p>
+                      )}
+                    </div>
+                    <div className="my-1 h-px" style={{ background: COLORS.borderLight }} />
+                    <button
+                      onClick={() => {
+                        setUserMenuOpen(false);
+                        logout();
+                      }}
+                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-red-50"
+                      style={{ color: COLORS.error }}
+                    >
+                      <LogOut size={15} /> Log out
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </header>

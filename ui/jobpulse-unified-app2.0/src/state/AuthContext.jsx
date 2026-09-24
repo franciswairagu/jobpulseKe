@@ -43,6 +43,16 @@ export function AuthProvider({ children }) {
     }
   }, [state.token, state.user, state.startupId]);
 
+  // Any API 401 (expired/invalid token) triggers a client-side logout so the
+  // user is sent back to the sign-in screen instead of a broken dashboard.
+  useEffect(() => {
+    const onUnauthorized = () => {
+      if (localStorage.getItem(STORAGE_KEY)) dispatch({ type: "LOGOUT" });
+    };
+    window.addEventListener("jobpulse:unauthorized", onUnauthorized);
+    return () => window.removeEventListener("jobpulse:unauthorized", onUnauthorized);
+  }, []);
+
   return (
     <AuthContext.Provider value={state}>
       <AuthDispatchContext.Provider value={dispatch}>{children}</AuthDispatchContext.Provider>
