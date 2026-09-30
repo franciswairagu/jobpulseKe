@@ -35,6 +35,19 @@ def _parse_date(value) -> date | None:
         return None
 
 
+def _parse_datetime(value) -> datetime | None:
+    """Parse the pipeline's `scraped_at` (ISO-8601, tz-aware) to datetime."""
+    if value is None or value == "" or (isinstance(value, float) and pd.isna(value)):
+        return None
+    try:
+        parsed = pd.to_datetime(value, errors="coerce", utc=True)
+        if pd.isna(parsed):
+            return None
+        return parsed.to_pydatetime()
+    except Exception:
+        return None
+
+
 def ingest_jobs_from_dataframe(db: Session, df: pd.DataFrame, source_default: str = "pipeline_import") -> dict:
     """
     Maps the JobPulseKE pipeline's STANDARD_COLUMNS schema
@@ -59,6 +72,13 @@ def ingest_jobs_from_dataframe(db: Session, df: pd.DataFrame, source_default: st
             is_new = job is None
             if is_new:
                 job = Job(source=source, source_job_id=source_job_id, status=JobStatus.UNKNOWN)
+                # created_at = first *collected* time, taken from the pipeline's
+                # scraped_at, which merge_jobpulseke preserves across runs. The
+                # default (row insert time) is wrong for "Added this week":
+                # a FORCE_REINGEST re-inserts every row, making all 18k look new.
+                collected_at = _parse_datetime(row.get("scraped_at"))
+                if collected_at is not None:
+                    job.created_at = collected_at
 
             description = str(row.get("job_description") or "")
 
@@ -197,7 +217,7 @@ def market_insights(db: Session, country: str | None = None) -> dict:
     if country and country != "All Africa":
         avail_filters.append(Job.country == country)
 
-    jobs_added = db.query(Job).filter(Job.created_at >= week_ago, *avail_filters[1:]).count()
+    jobs_added = db.query(Job).filter(Job.created_at >= week_ago, *avail_filters).count()
     jobs_removed = (
         db.query(JobStatusHistory)
         .join(Job, Job.id == JobStatusHistory.job_id)
