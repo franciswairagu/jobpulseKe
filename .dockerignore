@@ -37,8 +37,11 @@ data/raw/
 data/archive/
 data/techmap/
 data/nlp/
-!data/nlp/jobs_nlp_enriched_20260918_200334.parquet
+!data/nlp/jobs_nlp_enriched_20260930_210846.parquet
 data/rag/
+!data/rag/vectors.npy
+!data/rag/metadata.parquet
+!data/rag/embedder.pkl
 data/uploads/
 *.db
 *.sqlite

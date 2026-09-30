@@ -340,7 +340,8 @@ queryable in another (identical weights, identical pooling):
 | Any environment without either | TF-IDF | honest keyword-only fallback |
 
 - The ONNX weights are **baked into the image at build time** (`/app/onnx_model`), so the container loads the semantic index offline; locally they download once to `~/.cache/jobpulse/onnx-models/`.
-- Override the location with `RAG_ONNX_MODEL_DIR`.
+- The **built index** (`data/rag/vectors.npy` + `metadata.parquet`, committed by the pipeline) is baked too — startup only *loads* it. Re-embedding the whole corpus at boot peaks around ~2GB (ONNX Runtime's arena scales with batch × sequence length) and gets memory-limited hosts like Railway to SIGKILL the container. Query-time embedding runs in batches of `RAG_ONNX_BATCH_SIZE` (default 32) and stays in the low tens of MB.
+- Override the model location with `RAG_ONNX_MODEL_DIR`.
 - Parity check: torch vs ONNX cosine = 1.0 (max abs diff ~1.6e-07), top-3 retrieval identical.
 - Image-only Python deps live in `ui/jobpulse-backend/jobpulse-backend/requirements-image.txt`.
 
@@ -404,8 +405,10 @@ explicit step:
    git checkout master && git merge Francis && git push
    ```
    Vercel redeploys the frontend (`.github/workflows/deploy.yml`); Railway/Render
-   rebuild the backend image, which bakes today's `master_full.csv` **and** the
-   ONNX embedding model into the image.
+   rebuild the backend image, which bakes today's `master_full.csv`, the Stage 3
+   NLP parquet, the **pre-built RAG index** (`data/rag/` — committed by the
+   pipeline) and the ONNX embedding model into the image. Startup then only
+   *loads* the index, so it stays well inside a 512MB container.
 
 2. **Force a one-time re-ingest** on the backend service (Railway/Render env vars):
    set `FORCE_REINGEST=true` → redeploy → watch the logs for
