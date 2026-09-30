@@ -327,6 +327,23 @@ ollama pull qwen2.5:0.5b
 OLLAMA_HOST=0.0.0.0 ollama serve &
 ```
 
+### Embedding Backends (torch · ONNX · TF-IDF)
+
+The same model (`all-MiniLM-L6-v2`) runs in three ways, chosen automatically
+by `src/rag/embeddings.py`, so the index built in one environment is always
+queryable in another (identical weights, identical pooling):
+
+| Environment | Runtime | Why |
+|-------------|---------|-----|
+| Local / pipeline | `sentence-transformers` (torch) | full stack already installed |
+| Docker image (Compose, Railway, Render) | **ONNX Runtime** (`src/rag/onnx_encoder.py`) | torch is ~1GB and was dropped from the service requirements in `80dfb16`; `onnxruntime` + `transformers` cost ~150MB |
+| Any environment without either | TF-IDF | honest keyword-only fallback |
+
+- The ONNX weights are **baked into the image at build time** (`/app/onnx_model`), so the container loads the semantic index offline; locally they download once to `~/.cache/jobpulse/onnx-models/`.
+- Override the location with `RAG_ONNX_MODEL_DIR`.
+- Parity check: torch vs ONNX cosine = 1.0 (max abs diff ~1.6e-07), top-3 retrieval identical.
+- Image-only Python deps live in `ui/jobpulse-backend/jobpulse-backend/requirements-image.txt`.
+
 ### Architecture Files
 
 | File | Purpose |
@@ -335,7 +352,8 @@ OLLAMA_HOST=0.0.0.0 ollama serve &
 | `src/rag/assistant.py` | Question detection, streaming answer composition |
 | `src/rag/retriever.py` | TF-IDF / sentence-transformers retrieval, threading lock |
 | `src/rag/vector_store.py` | numpy-based vector store (brute-force cosine similarity) |
-| `src/rag/embeddings.py` | Dual embedder (SentenceTransformer + TF-IDF fallback) |
+| `src/rag/embeddings.py` | Dual embedder (SentenceTransformer torch/ONNX + TF-IDF fallback) |
+| `src/rag/onnx_encoder.py` | Torch-free all-MiniLM-L6-v2 encoder (ONNX Runtime) for the slim images |
 | `src/rag/config.py` | RAG optimization config (context size, token limits) |
 | `src/rag/validation.py` | Query input validation |
 
@@ -349,7 +367,7 @@ OLLAMA_HOST=0.0.0.0 ollama serve &
 | **Data Processing** | Pandas, Polars, PyArrow, NumPy, SciPy |
 | **NLP** | Custom regex-based SkillExtractor (600+ skills, 15 categories), MetadataExtractor |
 | **ML** | Scikit-learn (LogisticRegression for tech category classification) |
-| **Embeddings** | Sentence-Transformers (`all-MiniLM-L6-v2`) with TF-IDF fallback |
+| **Embeddings** | Sentence-Transformers `all-MiniLM-L6-v2` — torch locally, ONNX Runtime in Docker images, TF-IDF fallback |
 | **Vector Store** | Custom numpy brute-force cosine similarity (~6k docs, sub-ms search) |
 | **LLM** | Ollama + `qwen2.5:0.5b` (local, ~300MB RAM, fallback to templates) |
 | **Backend** | FastAPI, SQLAlchemy 2.0, SQLite (dev) / PostgreSQL (prod) |
@@ -370,6 +388,40 @@ OLLAMA_HOST=0.0.0.0 ollama serve &
 - **Skills Extracted**: 600+ across 8 categories
 - **Date Coverage**: 32% of records have posting dates (used for skill demand time series)
 - **Analytics Files**: Pre-computed JSON under `data/analytics/` (career pathways, skill matrices, remote trends)
+
+---
+
+## 🚀 Deploying a Data Refresh (production)
+
+The local Compose stack picks up a pipeline run automatically (`./data` is
+mounted, and the backend re-ingests when the container is recreated). The
+**deployed** stack does not — it has its own database, so it needs one
+explicit step:
+
+1. **Merge the refreshed data**
+   ```bash
+   git checkout Francis && git push origin Francis
+   git checkout master && git merge Francis && git push
+   ```
+   Vercel redeploys the frontend (`.github/workflows/deploy.yml`); Railway/Render
+   rebuild the backend image, which bakes today's `master_full.csv` **and** the
+   ONNX embedding model into the image.
+
+2. **Force a one-time re-ingest** on the backend service (Railway/Render env vars):
+   set `FORCE_REINGEST=true` → redeploy → watch the logs for
+   `Auto-ingest complete: {'created': N, ...}` → remove the variable again.
+   Auto-ingest **skips** whenever the DB already has jobs, so without this the
+   deployment keeps serving the old counts.
+
+   Local equivalent (already wired into `docker-compose.yml`):
+   ```bash
+   FORCE_REINGEST=true docker compose up -d backend
+   ```
+
+3. **Verify** the number the UI shows:
+   ```bash
+   curl -s "$API/api/jobs?page=1&page_size=1" | jq .total   # == len(master_full.csv) - 1
+   ```
 
 ---
 

@@ -3,10 +3,10 @@ Embedding backends for the RAG system.
 
 Two backends, same interface (fit/embed):
 
-  - SentenceTransformerEmbedder: real semantic embeddings (all-MiniLM-L6-v2).
-    Needs network access on first run to download model weights from
-    huggingface.co, and the `sentence-transformers` package (already in
-    requirements.txt).
+  - SentenceTransformerEmbedder: real semantic embeddings (all-MiniLM-L6-v2),
+    run either by torch (`sentence_transformers`) or, where torch is absent
+    (the slim deployment images), by ONNX Runtime via src/rag/onnx_encoder.py.
+    Needs network access on first run to fetch model weights.
   - TfidfEmbedder: scikit-learn TF-IDF vectors. No download, no network,
     works instantly anywhere scikit-learn is installed (also already in
     requirements.txt) — keyword-level rather than semantic similarity,
@@ -57,19 +57,55 @@ class BaseEmbedder:
 
 
 class SentenceTransformerEmbedder(BaseEmbedder):
-    """Real semantic embeddings via sentence-transformers."""
+    """Real semantic embeddings via sentence-transformers.
+
+    Two interchangeable runtimes for the *same* model (all-MiniLM-L6-v2):
+
+      - torch (`sentence_transformers` package) — used whenever it's
+        installed, i.e. the local/pipeline environment.
+      - ONNX Runtime (`src/rag/onnx_encoder.py`) — used when torch isn't
+        available, i.e. the slim deployment images, which deliberately do
+        not ship torch (see 80dfb16). Same weights, same pooling, so a
+        query embedded here can search a torch-built index and vice versa.
+
+    Only the backend name + model name are persisted, so both runtimes load
+    the same embedder.pkl.
+    """
 
     name = "sentence-transformer"
 
     def __init__(self, model_name: str = DEFAULT_ST_MODEL):
-        from sentence_transformers import SentenceTransformer  # deferred import
         self.model_name = model_name
-        self.model = SentenceTransformer(model_name)
+        self.model = None
+        self.onnx = None
+        self.runtime = None
+
+        torch_error = None
+        try:
+            from sentence_transformers import SentenceTransformer  # deferred import
+            self.model = SentenceTransformer(model_name)
+            self.runtime = "torch"
+        except Exception as e:
+            torch_error = e
+
+        if self.model is None:
+            try:
+                from src.rag.onnx_encoder import MiniLMOnnxEncoder
+                self.onnx = MiniLMOnnxEncoder(model_name)
+                self.runtime = "onnx"
+                logger.info(
+                    "sentence-transformers unavailable (%s) — serving %s via ONNX Runtime",
+                    type(torch_error).__name__, model_name,
+                )
+            except Exception:
+                raise torch_error
 
     def fit(self, documents: List[str]) -> None:
         pass  # pretrained model, nothing to fit
 
     def embed(self, texts: List[str]) -> np.ndarray:
+        if self.onnx is not None:
+            return self.onnx.encode(texts)
         return np.asarray(
             self.model.encode(texts, show_progress_bar=False, normalize_embeddings=True),
             dtype=np.float32,

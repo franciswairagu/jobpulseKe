@@ -1,0 +1,10 @@
+# RAG runtime installed ONLY in the Docker image (Compose / Railway / Render).
+#
+# Deliberately separate from requirements.txt: sentence-transformers needs
+# torch (~1GB installed) which was dropped from the service requirements in
+# 80dfb16 to keep PaaS builds/deployments small. These packages give the
+# same all-MiniLM-L6-v2 embeddings without torch (ONNX Runtime) plus the
+# Ollama client for local LLM generation — see src/rag/onnx_encoder.py.
+onnxruntime>=1.18
+transformers>=4.40,<6
+ollama>=0.4.0
