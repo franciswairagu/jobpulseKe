@@ -7,14 +7,21 @@ RUN apt-get update && apt-get install -y build-essential && rm -rf /var/lib/apt/
 
 # Copy backend requirements and install Python dependencies
 COPY ui/jobpulse-backend/jobpulse-backend/requirements.txt .
-RUN pip install --no-cache-dir --retries 5 --timeout 120 -r requirements.txt
+# Image-only RAG runtime (ONNX embeddings + Ollama client) — no torch
+COPY ui/jobpulse-backend/jobpulse-backend/requirements-image.txt .
+RUN pip install --no-cache-dir --retries 5 --timeout 120 \
+    -r requirements.txt -r requirements-image.txt
 
 # Copy backend application code
 COPY ui/jobpulse-backend/jobpulse-backend/ .
 RUN rm -f .env .env.local .env.production *.db
 
-# Copy src/ for RAG assistant (sentence-transformers, retriever, etc.)
+# Copy src/ for RAG assistant (retriever, ONNX encoder, etc.)
 COPY src/ /app/src/
+
+# Bake the ONNX all-MiniLM-L6-v2 weights into the image so the semantic
+# index loads offline (torch/sentence-transformers are intentionally absent)
+RUN python -c "from src.rag.onnx_encoder import prefetch_model; prefetch_model('/app/onnx_model')"
 
 # Copy data for auto-ingestion (backend loads this if DB is empty)
 RUN mkdir -p /app/data/processed /app/data/external /app/data/uploads /app/data/models /app/data/nlp /app/data/analytics /app/logs
