@@ -27,11 +27,12 @@ data/processed/*.csv
 !data/processed/master_full.csv
 data/processed/.last_*
 data/nlp/*.parquet
-!data/nlp/jobs_nlp_enriched_20260923_020116.parquet
+!data/nlp/jobs_nlp_enriched_20260930_210846.parquet
 data/rag/*.parquet
 data/rag/*.npy
 data/rag/*.npz
 data/raw/master_africa_tech_jobs.csv
+data/*.db
 
 # ---- Scraper output (regenerated each run) ----
 output/

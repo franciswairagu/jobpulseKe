@@ -162,23 +162,23 @@ npm run dev
 
 Site-specific scrapers under `src/collectors/`, orchestrated by `scripts/run_scrapers.py`.
 
-Counts below are from the latest full pipeline run (2026-09-23, unioned master):
+Counts below are the unioned master (`data/processed/master_full.csv`) after the latest full pipeline run (2026-09-30):
 
 | Source | Records | Region |
 |--------|---------|--------|
-| LinkedIn (guest) | 1,985 | Global (African filters) |
-| Jobberman | 1,824 | Nigeria |
+| LinkedIn (guest) | 3,786 | Global (African filters) |
+| Jobberman | 2,726 | Nigeria |
 | TechMap (27 portals) | 1,427 | Kenya |
-| HotNigerianJobs | 765 | Nigeria |
-| MyJobMag | 492 | Africa-wide |
-| WeWorkRemotely | 97 | Remote jobs |
-| RemoteOK | 84 | Remote tech jobs |
-| BrighterMonday | 63 | East Africa (Kenya, Tanzania, Uganda, Rwanda) |
-| Jobicy | 34 | Remote jobs |
-| Fuzu | 20 | East Africa |
+| HotNigerianJobs | 1,226 | Nigeria |
+| MyJobMag | 1,542 | Africa-wide |
+| WeWorkRemotely | 145 | Remote jobs |
+| RemoteOK | 95 | Remote tech jobs |
+| BrighterMonday | 94 | East Africa (Kenya, Tanzania, Uganda, Rwanda) |
+| Jobicy | 75 | Remote jobs |
+| Fuzu | 39 | East Africa |
 | Indeed | 16 | Global (African filters) |
 | JobWebKenya | 7 | Kenya |
-| Talent.com | 5 | Global aggregator |
+| Talent.com | 7 | Global aggregator |
 | HuggingFace datasets | 6,910 | Public datasets (master_full only) |
 | CareerJet / Careers24 / PNet | 0 this run | Global aggregators (blocked/structure change) |
 
@@ -361,14 +361,14 @@ OLLAMA_HOST=0.0.0.0 ollama serve &
 
 ## 📊 Dataset Info
 
-**Last refreshed**: 2026-09-23 (full pipeline run — scrape → merge → Stages 1–4 → RAG rebuild)
+**Last refreshed**: 2026-09-30 (full pipeline run — scrape → merge → Stages 1–4 → RAG rebuild)
 
-- **Total Records**: 15,411 in `master_full.csv` (backend/UI dataset) · 6,819 in the Africa master · 5,986 cleaned & NLP-enriched
+- **Total Records**: 18,095 in `master_full.csv` (backend/UI dataset) · 9,766 in the Africa master · 8,521 cleaned & NLP-enriched
 - **Schema**: 22 columns including `job_title`, `company`, `job_description`, `country`, `work_mode`, etc.
-- **Countries Covered**: 10+ (Nigeria, Kenya, Ghana, South Africa, Egypt, Rwanda, Uganda, Morocco, Senegal, Global Remote)
-- **Data Sources**: 15 scrapers + TechMap (27 portals) + HuggingFace public datasets (39 distinct source labels after merge)
+- **Countries Covered**: 20+ (Nigeria, Kenya, Ghana, South Africa, Egypt, Rwanda, Uganda, Morocco, Senegal, Global Remote)
+- **Data Sources**: 15 scrapers + TechMap (27 portals) + HuggingFace public datasets (40 distinct source labels after merge)
 - **Skills Extracted**: 600+ across 8 categories
-- **Date Coverage**: 58% of records have posting dates (used for skill demand time series)
+- **Date Coverage**: 32% of records have posting dates (used for skill demand time series)
 - **Analytics Files**: Pre-computed JSON under `data/analytics/` (career pathways, skill matrices, remote trends)
 
 ---
