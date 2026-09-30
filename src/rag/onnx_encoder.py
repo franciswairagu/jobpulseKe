@@ -51,6 +51,17 @@ ONNX_FILE = "onnx/model.onnx"
 
 BAKED_MODEL_DIR = "/app/onnx_model"
 
+# Forward-pass batch size (override with RAG_ONNX_BATCH_SIZE). One
+# session.run over a whole corpus materialises a (n, seq_len, 384) float32
+# tensor — ~4.7GB when building the ~6k-doc index, which OOM-killed the
+# Railway container (kernel SIGKILL, bare "Killed" in the logs). Batching
+# caps the tensor itself at ~25MB/batch; ONNX Runtime's arena still grows
+# with batch*seq_len (~2GB for a full-corpus build), which is why the
+# corpus index is pre-built and baked into the image instead of being
+# embedded at startup — batching keeps the *query-time* embedding (a handful
+# of texts) cheap regardless.
+DEFAULT_BATCH_SIZE = 32
+
 
 def onnx_available() -> bool:
     """True when the ONNX stack (onnxruntime + transformers) is installed."""
@@ -147,7 +158,17 @@ class MiniLMOnnxEncoder:
         )
         self._input_names = [i.name for i in self.session.get_inputs()]
         self._output_name = self._pick_output()
+        self.embedding_dim = self._output_dim()
+        self.batch_size = max(
+            1, int(os.environ.get("RAG_ONNX_BATCH_SIZE", str(DEFAULT_BATCH_SIZE)))
+        )
         logger.info("ONNX encoder ready: %s (%s)", self.model_name, self.model_dir)
+
+    def _output_dim(self) -> int:
+        for out in self.session.get_outputs():
+            if len(out.shape) == 3:
+                return int(out.shape[-1])
+        return 384
 
     def _pick_output(self) -> str:
         for out in self.session.get_outputs():
@@ -156,7 +177,27 @@ class MiniLMOnnxEncoder:
                 return out.name
         return self.session.get_outputs()[0].name
 
-    def encode(self, texts: List[str]) -> np.ndarray:
+    def encode(self, texts: List[str], batch_size: Optional[int] = None) -> np.ndarray:
+        """L2-normalised embeddings, shape (len(texts), self.embedding_dim).
+
+        Runs the inference session in fixed-size batches rather than one
+        giant pass — see DEFAULT_BATCH_SIZE for why the single-pass version
+        gets memory-limited containers killed. Chunking is mathematically
+        irrelevant here: every row is pooled and normalised independently,
+        so batching cannot change the vectors (parity with the torch
+        runtime holds either way).
+        """
+        texts = list(texts)
+        if not texts:
+            return np.zeros((0, self.embedding_dim), dtype=np.float32)
+        size = batch_size or self.batch_size
+        parts = [
+            self._encode_batch(texts[i : i + size])
+            for i in range(0, len(texts), size)
+        ]
+        return parts[0] if len(parts) == 1 else np.concatenate(parts, axis=0)
+
+    def _encode_batch(self, texts: List[str]) -> np.ndarray:
         enc = self.tokenizer(
             list(texts),
             padding=True,

@@ -28,8 +28,12 @@ data/processed/*.csv
 data/processed/.last_*
 data/nlp/*.parquet
 !data/nlp/jobs_nlp_enriched_20260930_210846.parquet
+# RAG index: ship the built semantic index (baked into the Docker image so
+# the app never has to embed the corpus at startup — that OOM-kills Railway)
 data/rag/*.parquet
+!data/rag/metadata.parquet
 data/rag/*.npy
+!data/rag/vectors.npy
 data/rag/*.npz
 data/raw/master_africa_tech_jobs.csv
 data/*.db
