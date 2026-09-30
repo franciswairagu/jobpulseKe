@@ -12,6 +12,9 @@ services:
       - SECRET_KEY=${SECRET_KEY:-change-me-in-production}
       - CORS_ORIGINS=${CORS_ORIGINS:-["http://localhost","http://localhost:80"]}
       - ENVIRONMENT=${ENVIRONMENT:-production}
+      # Set FORCE_REINGEST=true to clear + reload jobs from data/ on startup
+      # (use after a pipeline run so the UI picks up the fresh dataset)
+      - FORCE_REINGEST=${FORCE_REINGEST:-}
       - OLLAMA_HOST=http://host.docker.internal:11434
     extra_hosts:
       - "host.docker.internal:host-gateway"
