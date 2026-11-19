@@ -109,6 +109,16 @@ def _auto_ingest_if_empty():
                     pass
 
         # 2. master_full.csv (the largest comprehensive dataset)
+        deployment_snapshot = processed_dir / "deployment_snapshot.csv"
+        if deployment_snapshot.exists():
+            try:
+                df_tmp = pd.read_csv(deployment_snapshot)
+                candidates.append((str(deployment_snapshot), len(df_tmp)))
+                del df_tmp
+            except Exception:
+                pass
+
+        # 3. master_full.csv (the pipeline's comprehensive dataset)
         master_full = data_root / "processed" / "master_full.csv"
         if master_full.exists():
             try:
@@ -118,7 +128,7 @@ def _auto_ingest_if_empty():
             except Exception:
                 pass
 
-        # 3. Configured path
+        # 4. Configured path
         if Path(settings.JOB_DATASET_PATH).exists():
             try:
                 df_tmp = pd.read_parquet(settings.JOB_DATASET_PATH) if settings.JOB_DATASET_PATH.endswith(".parquet") else pd.read_csv(settings.JOB_DATASET_PATH)
@@ -127,7 +137,7 @@ def _auto_ingest_if_empty():
             except Exception:
                 pass
 
-        # 4. External master CSV
+        # 5. External master CSV
         ext_csv = data_root / "external" / "jobpulseke_master_africa_tech_jobs.csv"
         if ext_csv.exists():
             try:
@@ -137,7 +147,7 @@ def _auto_ingest_if_empty():
             except Exception:
                 pass
 
-        # 5. Legacy fallback
+        # 6. Legacy fallback
         legacy = data_root / "processed" / "cleaned_jobs.csv"
         if legacy.exists():
             try:

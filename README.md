@@ -394,36 +394,55 @@ queryable in another (identical weights, identical pooling):
 
 ## 🚀 Deploying a Data Refresh (production)
 
-The local Compose stack picks up a pipeline run automatically (`./data` is
-mounted, and the backend re-ingests when the container is recreated). The
-**deployed** stack does not — it has its own database, so it needs one
-explicit step:
+The local Compose stack mounts `./data`, but its database skips auto-ingestion
+once it already contains jobs. Refresh it from the latest pipeline data before
+exporting the snapshot:
 
-1. **Merge the refreshed data**
+```bash
+FORCE_REINGEST=true ./start.sh
+```
+
+Wait for `Auto-ingest complete` in the backend log, then stop the local
+services. The **deployed** stack has its own database and image, so it needs
+the explicit snapshot steps below:
+
+1. **Export the exact local app dataset**
    ```bash
-   git checkout Francis && git push origin Francis
-   git checkout master && git merge Francis && git push
+   python scripts/export_deployment_snapshot.py
    ```
-   Vercel redeploys the frontend (`.github/workflows/deploy.yml`); Railway/Render
-   rebuild the backend image, which bakes today's `master_full.csv`, the Stage 3
-   NLP parquet, the **pre-built RAG index** (`data/rag/` — committed by the
-   pipeline) and the ONNX embedding model into the image. Startup then only
-   *loads* the index, so it stays well inside a 512MB container.
+   This writes `data/processed/deployment_snapshot.csv` from the local
+   `start.sh` database, including extracted skills and remote flags. Railway's
+   backend image includes this snapshot and selects it when it has more rows
+   than the pipeline master.
 
-2. **Force a one-time re-ingest** on the backend service (Railway/Render env vars):
-   set `FORCE_REINGEST=true` → redeploy → watch the logs for
-   `Auto-ingest complete: {'created': N, ...}` → remove the variable again.
-   Auto-ingest **skips** whenever the DB already has jobs, so without this the
-   deployment keeps serving the old counts.
+2. **Deploy the snapshot**
+   ```bash
+   git add data/processed/deployment_snapshot.csv
+   git commit -m "data: refresh deployment job snapshot"
+   git push origin Francis
+   git checkout master
+   git merge Francis
+   git push origin master
+   ```
+   Merge into the branch connected to Railway if it differs from `master`.
+   Vercel redeploys from `master` (`.github/workflows/deploy.yml`); Railway
+   rebuilds the backend image from its connected branch.
 
-   Local equivalent (already wired into `docker-compose.yml`):
+3. **Refresh the Railway database once**: temporarily set
+   `FORCE_REINGEST=true` in the Railway backend service and redeploy. Check
+   logs for `Auto-ingest complete`; then remove the variable and redeploy.
+   Existing jobs are updated by source and ID, and newly exported jobs are
+   added without duplicating matching records.
+
+   Local Compose equivalent:
    ```bash
    FORCE_REINGEST=true docker compose up -d backend
    ```
 
-3. **Verify** the number the UI shows:
+4. **Verify** the live and local counts match:
    ```bash
-   curl -s "$API/api/jobs?page=1&page_size=1" | jq .total   # == len(master_full.csv) - 1
+   curl -s "$API/api/jobs?page=1&limit=1" | jq .total
+   python -c "import pandas as pd; print(len(pd.read_csv('data/processed/deployment_snapshot.csv')))"
    ```
 
 ---

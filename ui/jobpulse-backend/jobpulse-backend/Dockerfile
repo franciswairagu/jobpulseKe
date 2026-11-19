@@ -27,6 +27,7 @@ RUN python -c "from src.rag.onnx_encoder import prefetch_model; prefetch_model('
 RUN mkdir -p /app/data/processed /app/data/external /app/data/uploads /app/data/models /app/data/nlp /app/data/analytics /app/logs
 COPY data/external/jobpulseke_master_africa_tech_jobs.csv /app/data/external/
 COPY data/processed/master_full.csv /app/data/processed/
+COPY data/processed/deployment_snapshot.csv /app/data/processed/
 # Stage 3 output the RAG index is built from at startup (retriever picks the
 # newest jobs_nlp_enriched_*.parquet in /app/data/nlp)
 COPY data/nlp/jobs_nlp_enriched_20260930_210846.parquet /app/data/nlp/

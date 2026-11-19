@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import uuid
 from datetime import date, datetime, timedelta, timezone
 
@@ -114,6 +115,14 @@ def ingest_jobs_from_dataframe(db: Session, df: pd.DataFrame, source_default: st
 
             extracted = extractor.extract_skills(description)
             found_skills = {s for group in extracted.values() for s in group}
+            serialized_skills = row.get("extracted_skills")
+            if isinstance(serialized_skills, str) and serialized_skills.strip():
+                preserved_skills = json.loads(serialized_skills)
+                if not isinstance(preserved_skills, list) or not all(
+                    isinstance(skill, str) for skill in preserved_skills
+                ):
+                    raise ValueError("extracted_skills must be a JSON array of strings")
+                found_skills.update(skill.strip() for skill in preserved_skills if skill.strip())
             # Also extract from title (many descriptions are empty)
             title = str(row.get("job_title") or job.title or "")
             title_skills = extractor.extract_skills(title)
