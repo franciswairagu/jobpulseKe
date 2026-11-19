@@ -394,6 +394,34 @@ queryable in another (identical weights, identical pooling):
 
 ## 🚀 Deploying a Data Refresh (production)
 
+### Daily Railway ingestion
+
+The `Automated job ingestion` GitHub Actions workflow scrapes job sources
+daily at 02:00 Nairobi time and sends only that run's listings to the Railway
+backend. Matching snapshot rows retain richer existing fields; new rows are
+added without re-uploading the full dataset. The workflow only upserts jobs:
+it does not remove listings when a source is temporarily unavailable.
+
+Before enabling the schedule:
+
+1. Generate a long random token locally, for example with
+   `python -c "import secrets; print(secrets.token_urlsafe(48))"`.
+2. Set `AUTOMATED_INGEST_TOKEN` to that value in the Railway backend service.
+3. Add GitHub Actions repository secrets `JOBPULSE_INGEST_TOKEN` (the same
+   value) and `JOBPULSE_API_URL` (the HTTPS Railway backend base URL, without
+   `/api`).
+4. Merge the workflow into the repository's default branch (`master`) to
+   activate the schedule. You can also start it manually with
+   `workflow_dispatch`.
+
+The first scheduled run occurs after the workflow is available on the default
+branch. The schedule uses 23:00 UTC because GitHub Actions cron is UTC (02:00
+the following day in Nairobi). A run with no scraped listings fails before
+uploading anything. Configure the token in both services before enabling the
+workflow; rotate both values together if it is ever exposed.
+
+### One-time snapshot deployment
+
 The local Compose stack mounts `./data`, but its database skips auto-ingestion
 once it already contains jobs. Refresh it from the latest pipeline data before
 exporting the snapshot:

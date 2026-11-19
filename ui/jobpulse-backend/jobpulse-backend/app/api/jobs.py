@@ -1,7 +1,9 @@
+import io
+import secrets
 import uuid
 
 import pandas as pd
-from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, UploadFile, status
 from sqlalchemy import func
 from sqlalchemy.orm import Session, joinedload
 
@@ -119,6 +121,59 @@ async def ingest_jobs(
 
     result = job_service.ingest_jobs_from_dataframe(db, df.fillna(""))
     return result
+
+
+@router.post("/ingest/automated")
+async def ingest_jobs_automated(
+    file: UploadFile | None = None,
+    x_ingestion_token: str | None = Header(default=None),
+    db: Session = Depends(get_db),
+):
+    """Ingest a CSV batch from the configured scheduled-ingestion workflow."""
+    expected_token = settings.AUTOMATED_INGEST_TOKEN
+    if not expected_token:
+        raise _error(
+            "AUTOMATED_INGEST_NOT_CONFIGURED",
+            "Automated ingestion is not configured.",
+            status.HTTP_503_SERVICE_UNAVAILABLE,
+        )
+    if not x_ingestion_token or not secrets.compare_digest(x_ingestion_token, expected_token):
+        raise _error("INVALID_INGESTION_TOKEN", "A valid ingestion token is required.", status.HTTP_401_UNAUTHORIZED)
+    if file is None:
+        raise _error("DATASET_REQUIRED", "Upload a CSV dataset.", status.HTTP_400_BAD_REQUEST)
+    if not file.filename or not file.filename.lower().endswith(".csv"):
+        raise _error("UNSUPPORTED_FILE_TYPE", "Job dataset must be CSV.", status.HTTP_400_BAD_REQUEST)
+
+    contents = await file.read()
+    try:
+        df = pd.read_csv(io.BytesIO(contents), low_memory=False, dtype=str)
+    except (pd.errors.EmptyDataError, pd.errors.ParserError, UnicodeDecodeError) as exc:
+        raise _error("INVALID_DATASET", "Uploaded CSV could not be parsed.", status.HTTP_400_BAD_REQUEST) from exc
+
+    if df.empty:
+        raise _error("EMPTY_DATASET", "Uploaded CSV contains no job records.", status.HTTP_400_BAD_REQUEST)
+    required_columns = {"source", "source_job_id"}
+    missing_columns = required_columns - set(df.columns)
+    if missing_columns:
+        raise _error(
+            "INVALID_DATASET_SCHEMA",
+            f"Uploaded CSV is missing required columns: {', '.join(sorted(missing_columns))}.",
+            status.HTTP_400_BAD_REQUEST,
+        )
+    has_identity = (
+        df["source"].fillna("").astype(str).str.strip().ne("")
+        & df["source_job_id"].fillna("").astype(str).str.strip().ne("")
+    )
+    if not has_identity.all():
+        raise _error(
+            "INVALID_DATASET_IDENTITIES",
+            "Every row must include source and source_job_id.",
+            status.HTTP_400_BAD_REQUEST,
+        )
+
+    return job_service.ingest_jobs_from_dataframe(
+        db, df.fillna(""), preserve_existing_on_empty=True
+    )
 
 
 @router.post("/maintenance/mark-stale")

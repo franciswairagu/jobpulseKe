@@ -1,0 +1,50 @@
+name: Automated job ingestion
+
+on:
+  schedule:
+    # 02:00 Africa/Nairobi (UTC+3; GitHub Actions schedules use UTC).
+    - cron: "0 23 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: automated-job-ingestion
+  cancel-in-progress: false
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements-ingestion.txt
+
+      - name: Validate ingestion configuration
+        env:
+          JOBPULSE_API_URL: ${{ secrets.JOBPULSE_API_URL }}
+          JOBPULSE_INGEST_TOKEN: ${{ secrets.JOBPULSE_INGEST_TOKEN }}
+        run: |
+          if [ -z "$JOBPULSE_API_URL" ] || [ -z "$JOBPULSE_INGEST_TOKEN" ]; then
+            echo "::error::Configure JOBPULSE_API_URL and JOBPULSE_INGEST_TOKEN in repository Actions secrets."
+            exit 1
+          fi
+
+      - name: Install scraper dependencies
+        run: python -m pip install -r requirements-ingestion.txt
+
+      - name: Scrape job sources
+        run: python scripts/run_scrapers.py --max-pages 5
+
+      - name: Publish scraped jobs to Railway
+        env:
+          JOBPULSE_API_URL: ${{ secrets.JOBPULSE_API_URL }}
+          JOBPULSE_INGEST_TOKEN: ${{ secrets.JOBPULSE_INGEST_TOKEN }}
+        run: python scripts/publish_scraped_jobs.py
