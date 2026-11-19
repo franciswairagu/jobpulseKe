@@ -49,7 +49,27 @@ def _parse_datetime(value) -> datetime | None:
         return None
 
 
-def ingest_jobs_from_dataframe(db: Session, df: pd.DataFrame, source_default: str = "pipeline_import") -> dict:
+def _optional_text(value, current: str | None, limit: int, preserve_existing: bool) -> str | None:
+    text = str(value or "").strip()
+    if not text:
+        return current if preserve_existing else None
+    return text[:limit]
+
+
+def _as_bool(value) -> bool:
+    if value is None or pd.isna(value):
+        return False
+    if isinstance(value, str):
+        return value.strip().lower() in {"1", "true", "yes", "on"}
+    return bool(value)
+
+
+def ingest_jobs_from_dataframe(
+    db: Session,
+    df: pd.DataFrame,
+    source_default: str = "pipeline_import",
+    preserve_existing_on_empty: bool = False,
+) -> dict:
     """
     Maps the JobPulseKE pipeline's STANDARD_COLUMNS schema
     (job_id, source, job_title, job_description, date_posted, ...)
@@ -78,27 +98,57 @@ def ingest_jobs_from_dataframe(db: Session, df: pd.DataFrame, source_default: st
                 job.created_at = datetime.now(timezone.utc)
 
             description = str(row.get("job_description") or "")
+            if preserve_existing_on_empty and not is_new and job.description:
+                description = max(job.description, description, key=len)
 
             job.title = str(row.get("job_title") or job.title or "").strip()[:255]
-            job.company = str(row.get("company") or "").strip()[:255] or None
-            job.description = description[:65535] or None
-            job.country = str(row.get("country") or "").strip()[:100] or None
-            job.city = str(row.get("location") or "").strip()[:100] or None
-            
-            # Determine remote status from work_mode or remote_scope
-            work_mode = str(row.get("work_mode") or "").strip().lower()
-            remote_scope = str(row.get("remote_scope") or "").strip().lower()
-            job.remote = (
-                work_mode in ("remote", "hybrid") or 
-                remote_scope in ("global", "africa-wide") or
-                bool(row.get("remote_eligible"))
+            job.company = _optional_text(
+                row.get("company"), job.company, 255, preserve_existing_on_empty and not is_new
+            )
+            job.description = description[:65535] or (
+                job.description if preserve_existing_on_empty and not is_new else None
+            )
+            job.country = _optional_text(
+                row.get("country"), job.country, 100, preserve_existing_on_empty and not is_new
+            )
+            job.city = _optional_text(
+                row.get("location"), job.city, 100, preserve_existing_on_empty and not is_new
             )
             
-            job.work_mode = work_mode[:50] or None
-            job.employment_type = str(row.get("employment_type") or "").strip()[:50] or None
-            job.source_url = str(row.get("vacancy_url") or "").strip()[:1000] or None
-            job.posted_at = _parse_date(row.get("date_posted"))
-            job.expires_at = _parse_date(row.get("application_deadline"))
+            # Determine remote status from work_mode or remote_scope
+            incoming_work_mode = str(row.get("work_mode") or "").strip().lower()
+            remote_scope = str(row.get("remote_scope") or "").strip().lower()
+            remote_eligible = row.get("remote_eligible")
+            has_remote_signal = (
+                incoming_work_mode not in ("", "unknown")
+                or bool(remote_scope)
+                or remote_eligible not in (None, "")
+            )
+            work_mode = incoming_work_mode
+            if preserve_existing_on_empty and not is_new and work_mode in ("", "unknown"):
+                work_mode = str(job.work_mode or "").strip().lower()
+            if not (preserve_existing_on_empty and not is_new and not has_remote_signal):
+                job.remote = (
+                    incoming_work_mode in ("remote", "hybrid")
+                    or remote_scope in ("global", "africa-wide")
+                    or _as_bool(remote_eligible)
+                )
+
+            job.work_mode = _optional_text(
+                work_mode, job.work_mode, 50, preserve_existing_on_empty and not is_new
+            )
+            job.employment_type = _optional_text(
+                row.get("employment_type"), job.employment_type, 50, preserve_existing_on_empty and not is_new
+            )
+            job.source_url = _optional_text(
+                row.get("vacancy_url"), job.source_url, 1000, preserve_existing_on_empty and not is_new
+            )
+            posted_at = _parse_date(row.get("date_posted"))
+            expires_at = _parse_date(row.get("application_deadline"))
+            if posted_at is not None or not (preserve_existing_on_empty and not is_new):
+                job.posted_at = posted_at
+            if expires_at is not None or not (preserve_existing_on_empty and not is_new):
+                job.expires_at = expires_at
 
             if job.status == JobStatus.UNKNOWN:
                 job.status = JobStatus.AVAILABLE

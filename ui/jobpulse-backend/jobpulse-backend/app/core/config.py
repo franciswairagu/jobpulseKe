@@ -32,6 +32,7 @@ class Settings:
 
     # --- Job data ingestion ---
     JOB_DATASET_PATH: str = os.getenv("JOB_DATASET_PATH", "./data/processed/jobpulse_cleaned.parquet")
+    AUTOMATED_INGEST_TOKEN: str = os.getenv("AUTOMATED_INGEST_TOKEN", "")
 
     # --- Misc ---
     ENVIRONMENT: str = os.getenv("ENVIRONMENT", "development")
