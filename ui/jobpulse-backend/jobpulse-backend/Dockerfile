@@ -32,7 +32,7 @@ COPY data/processed/master_full.csv /app/data/processed/
 COPY data/nlp/jobs_nlp_enriched_20260930_210846.parquet /app/data/nlp/
 # Pre-built RAG index: startup loads it instead of re-embedding the corpus,
 # which needs ~2GB peak (ONNX runtime arena) and OOM-kills Railway containers
-COPY data/rag/vectors.npy data/rag/metadata.parquet data/rag/embedder.pkl /app/data/rag/
+COPY data/rag/ /app/data/rag/
 COPY data/analytics/ /app/data/analytics/
 COPY src/models/tech_category_classifier.joblib /app/data/models/
 

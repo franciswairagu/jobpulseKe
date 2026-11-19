@@ -1,6 +1,7 @@
 import logging
 import os
 import uuid
+from datetime import datetime, timezone
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Request, status
@@ -73,8 +74,15 @@ def _auto_ingest_if_empty():
             logger.info("DB already has %d jobs — skipping auto-ingest", count)
             return
         if force and count > 0:
-            logger.info("FORCE_REINGEST=true — clearing %d existing jobs", count)
-            db.query(Job).delete()
+            logger.info(
+                "FORCE_REINGEST=true — refreshing %d existing jobs and recording this batch as newly discovered",
+                count,
+            )
+            refresh_time = datetime.now(timezone.utc)
+            db.query(Job).filter(Job.status == JobStatus.AVAILABLE).update(
+                {Job.created_at: refresh_time},
+                synchronize_session=False,
+            )
             db.commit()
 
         # Check for Docker environment first, then fallback to relative path

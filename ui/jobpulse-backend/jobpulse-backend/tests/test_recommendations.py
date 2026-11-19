@@ -41,5 +41,12 @@ def test_recommended_jobs_reflect_real_job_data(client, db_session, auth_headers
     assert len(jobs) == 1
     assert jobs[0]["title"] == "Backend Engineer"
     # No CV uploaded yet, so candidate has no skills -> everything is missing
-    assert set(jobs[0]["missing_skills"]) == {"python", "django", "postgresql", "aws"}
+    assert set(jobs[0]["missing_skills"]) == {
+        "python",
+        "django",
+        "postgresql",
+        "aws",
+        "rest api",
+        "docker",
+    }
     assert jobs[0]["match_score"] == 0.0

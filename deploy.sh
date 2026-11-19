@@ -44,7 +44,20 @@ docker-compose up -d --build 2>/dev/null || docker compose up -d --build
 
 # Wait for services to be healthy
 echo "[4/4] Waiting for services to start..."
-sleep 10
+backend_ready=false
+frontend_ready=false
+for i in $(seq 1 60); do
+    if curl -fsS http://localhost:8000/docs >/dev/null 2>&1; then
+        backend_ready=true
+    fi
+    if curl -fsS http://localhost:80/ >/dev/null 2>&1; then
+        frontend_ready=true
+    fi
+    if [ "$backend_ready" = true ] && [ "$frontend_ready" = true ]; then
+        break
+    fi
+    sleep 2
+done
 
 # Check status
 echo ""
@@ -53,14 +66,14 @@ echo "   Deployment Status"
 echo "=========================================="
 echo ""
 
-if docker-compose ps 2>/dev/null | grep -q "backend.*Up\|healthy" || docker compose ps 2>/dev/null | grep -q "backend.*Up\|healthy"; then
+if [ "$backend_ready" = true ]; then
     echo "[OK] Backend is running  -> http://localhost:8000"
     echo "[OK] API Docs           -> http://localhost:8000/docs"
 else
     echo "[WARN] Backend may not be ready yet"
 fi
 
-if docker-compose ps 2>/dev/null | grep -q "frontend.*Up\|healthy" || docker compose ps 2>/dev/null | grep -q "frontend.*Up\|healthy"; then
+if [ "$frontend_ready" = true ]; then
     echo "[OK] Frontend is running -> http://localhost:80"
 else
     echo "[WARN] Frontend may not be ready yet"
