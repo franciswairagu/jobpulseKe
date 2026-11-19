@@ -41,6 +41,23 @@ def test_ingest_is_idempotent_on_rerun(db_session):
     assert db_session.query(Job).count() == 1
 
 
+def test_ingest_preserves_snapshot_skills_and_remote_flag(db_session):
+    df = pd.DataFrame([
+        _sample_job_row(
+            job_description="",
+            work_mode="",
+            remote_eligible=1,
+            extracted_skills='["kubernetes", "xgboost"]',
+        )
+    ])
+
+    ingest_jobs_from_dataframe(db_session, df)
+    job = db_session.query(Job).first()
+
+    assert job.remote is True
+    assert {"kubernetes", "xgboost"} <= {link.skill.name for link in job.skill_links}
+
+
 def test_new_ingest_records_discovery_time_not_source_scrape_date(db_session):
     df = pd.DataFrame([
         _sample_job_row(scraped_at="2020-01-01T00:00:00+00:00")
