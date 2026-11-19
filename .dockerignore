@@ -39,6 +39,7 @@ data/techmap/
 data/nlp/
 !data/nlp/jobs_nlp_enriched_20260930_210846.parquet
 data/rag/
+!data/rag/vectors.npz
 !data/rag/vectors.npy
 !data/rag/metadata.parquet
 !data/rag/embedder.pkl

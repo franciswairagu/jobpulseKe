@@ -1,6 +1,8 @@
+import datetime
+
 import pandas as pd
 
-from app.services.job_service import ingest_jobs_from_dataframe, mark_stale_jobs_removed, search_jobs
+from app.services.job_service import ingest_jobs_from_dataframe, market_insights, mark_stale_jobs_removed, search_jobs
 from app.models.enums import JobStatus
 from app.models.job import Job
 
@@ -37,6 +39,28 @@ def test_ingest_is_idempotent_on_rerun(db_session):
     result = ingest_jobs_from_dataframe(db_session, df)
     assert result["updated"] == 1
     assert db_session.query(Job).count() == 1
+
+
+def test_new_ingest_records_discovery_time_not_source_scrape_date(db_session):
+    df = pd.DataFrame([
+        _sample_job_row(scraped_at="2020-01-01T00:00:00+00:00")
+    ])
+
+    ingest_jobs_from_dataframe(db_session, df)
+    job = db_session.query(Job).first()
+    original_created_at = job.created_at
+
+    comparable_created_at = original_created_at
+    if comparable_created_at.tzinfo is None:
+        comparable_created_at = comparable_created_at.replace(tzinfo=datetime.timezone.utc)
+    assert comparable_created_at >= datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(minutes=5)
+
+    ingest_jobs_from_dataframe(db_session, df)
+    db_session.refresh(job)
+    assert job.created_at == original_created_at
+
+    insights = market_insights(db_session)
+    assert insights["jobs_added_this_week"] == 1
 
 
 def test_search_jobs_filters_by_country(db_session):

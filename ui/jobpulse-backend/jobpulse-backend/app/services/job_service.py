@@ -72,13 +72,9 @@ def ingest_jobs_from_dataframe(db: Session, df: pd.DataFrame, source_default: st
             is_new = job is None
             if is_new:
                 job = Job(source=source, source_job_id=source_job_id, status=JobStatus.UNKNOWN)
-                # created_at = first *collected* time, taken from the pipeline's
-                # scraped_at, which merge_jobpulseke preserves across runs. The
-                # default (row insert time) is wrong for "Added this week":
-                # a FORCE_REINGEST re-inserts every row, making all 18k look new.
-                collected_at = _parse_datetime(row.get("scraped_at"))
-                if collected_at is not None:
-                    job.created_at = collected_at
+                # created_at represents when JobPulse discovered the listing,
+                # not the listing's potentially stale source scrape date.
+                job.created_at = datetime.now(timezone.utc)
 
             description = str(row.get("job_description") or "")
 
