@@ -78,6 +78,12 @@ Production startup requires a random `SECRET_KEY` of at least 32 characters
 and a configured `GOOGLE_CLIENT_ID`. Generate the secret with
 `openssl rand -hex 32`.
 
+For Railway deployments, set `GOOGLE_CLIENT_ID` in the backend service's
+Variables before deploying. Use the OAuth 2.0 **Web application client ID**
+(not the client secret), and add the frontend origin to that OAuth client's
+authorized JavaScript origins. The API intentionally fails startup in
+production when this value is missing because Google sign-in is required.
+
 ### Without Docker
 ```bash
 pip install -r requirements.txt
