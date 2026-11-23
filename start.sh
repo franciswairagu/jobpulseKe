@@ -57,6 +57,7 @@ fi
 # Use SQLite by default if no DATABASE_URL is set
 export DATABASE_URL="${DATABASE_URL:-sqlite:///./jobpulse.db}"
 export SECRET_KEY="${SECRET_KEY:-dev-secret-change-in-production}"
+export ENVIRONMENT="${ENVIRONMENT:-development}"
 
 uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload &
 BACKEND_PID=$!

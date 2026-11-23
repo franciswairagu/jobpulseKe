@@ -1,12 +1,18 @@
-from fastapi import APIRouter, Depends, HTTPException, Request, status
-from pydantic import BaseModel, EmailStr
+import secrets
+import uuid
+
+from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import BaseModel, Field
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user
-from app.core.security import create_access_token, create_refresh_token, decode_token, hash_password, verify_password
+from app.core.config import get_settings
+from app.core.google_auth import GoogleAuthUnavailable, verify_google_id_token
+from app.core.security import create_access_token, create_refresh_token, decode_token, hash_password
 from app.database import get_db
 from app.models.user import Profile, User
-from app.schemas.auth import RefreshRequest, TokenPair, UserOut, UserRegister
+from app.schemas.auth import RefreshRequest, TokenPair, UserOut
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
@@ -15,68 +21,80 @@ def _error(code: str, message: str, status_code: int):
     return HTTPException(status_code=status_code, detail={"error": {"code": code, "message": message, "details": {}}})
 
 
-class _LoginBody(BaseModel):
-    email: EmailStr | None = None
-    password: str
-    username: str | None = None
+class GoogleLoginRequest(BaseModel):
+    credential: str = Field(min_length=1, max_length=8192)
 
 
-@router.post("/register", response_model=UserOut, status_code=status.HTTP_201_CREATED)
-def register(payload: UserRegister, db: Session = Depends(get_db)):
-    existing = db.query(User).filter(User.email == payload.email).first()
-    if existing:
-        raise _error("EMAIL_ALREADY_REGISTERED", "An account with this email already exists.", status.HTTP_409_CONFLICT)
+@router.get("/config")
+def auth_config():
+    return {"google_client_id": get_settings().GOOGLE_CLIENT_ID}
 
-    user = User(email=payload.email, hashed_password=hash_password(payload.password))
-    db.add(user)
-    db.flush()
-    db.add(Profile(user_id=user.id, name=payload.name))
+
+@router.post("/register", status_code=status.HTTP_410_GONE)
+def register() -> None:
+    raise _error("GOOGLE_SIGN_IN_REQUIRED", "Create your account with Google sign-in.", status.HTTP_410_GONE)
+
+
+@router.post("/login", status_code=status.HTTP_410_GONE)
+def login() -> None:
+    raise _error("GOOGLE_SIGN_IN_REQUIRED", "Sign in with Google to continue.", status.HTTP_410_GONE)
+
+
+@router.post("/google", response_model=TokenPair)
+def google_login(payload: GoogleLoginRequest, db: Session = Depends(get_db)):
+    settings = get_settings()
+    if not settings.GOOGLE_CLIENT_ID:
+        raise _error("GOOGLE_SIGN_IN_UNAVAILABLE", "Google sign-in is not configured.", status.HTTP_503_SERVICE_UNAVAILABLE)
+    try:
+        claims = verify_google_id_token(payload.credential, settings.GOOGLE_CLIENT_ID)
+    except GoogleAuthUnavailable as exc:
+        raise _error("GOOGLE_SIGN_IN_UNAVAILABLE", str(exc), status.HTTP_503_SERVICE_UNAVAILABLE)
+    except ValueError:
+        raise _error("INVALID_GOOGLE_CREDENTIAL", "Google sign-in could not be verified.", status.HTTP_401_UNAUTHORIZED)
+
+    email = claims.get("email")
+    subject = claims.get("sub")
+    if not isinstance(email, str) or not email.strip() or not isinstance(subject, str) or not subject or claims.get("email_verified") is not True:
+        raise _error("UNVERIFIED_GOOGLE_ACCOUNT", "Use a Google account with a verified email address.", status.HTTP_401_UNAUTHORIZED)
+
+    email = email.strip().lower()
+    user = db.query(User).filter(func.lower(User.email) == email).first()
+    if user and not user.is_active:
+        raise _error("ACCOUNT_INACTIVE", "This account has been deactivated.", status.HTTP_403_FORBIDDEN)
+    if not user:
+        user = User(email=email, hashed_password=hash_password(secrets.token_urlsafe(32)))
+        db.add(user)
+        db.flush()
+        db.add(Profile(user_id=user.id, name=claims.get("name")))
+    elif not user.profile:
+        db.add(Profile(user_id=user.id, name=claims.get("name")))
+
     db.commit()
     db.refresh(user)
-    return user
 
-
-@router.post("/login", response_model=TokenPair)
-async def login(request: Request, db: Session = Depends(get_db)):
-    content_type = request.headers.get("content-type", "")
-
-    if "application/json" in content_type:
-        body = _LoginBody.model_validate(await request.json())
-        email = body.email or body.username or ""
-        password = body.password
-    else:
-        form = await request.form()
-        email = form.get("username", form.get("email", ""))
-        password = form.get("password", "")
-
-    if not email or not password:
-        raise _error("INVALID_CREDENTIALS", "Email and password are required.", status.HTTP_400_BAD_REQUEST)
-
-    user = db.query(User).filter(User.email == email).first()
-    if not user or not verify_password(password, user.hashed_password):
-        raise _error("INVALID_CREDENTIALS", "Incorrect email or password.", status.HTTP_401_UNAUTHORIZED)
-    if not user.is_active:
-        raise _error("ACCOUNT_INACTIVE", "This account has been deactivated.", status.HTTP_403_FORBIDDEN)
-
+    claims = {"auth_provider": "google"}
     return TokenPair(
-        access_token=create_access_token(str(user.id)),
-        refresh_token=create_refresh_token(str(user.id)),
+        access_token=create_access_token(str(user.id), claims),
+        refresh_token=create_refresh_token(str(user.id), claims),
     )
 
 
 @router.post("/refresh", response_model=TokenPair)
-def refresh(payload: RefreshRequest):
+def refresh(payload: RefreshRequest, db: Session = Depends(get_db)):
     try:
         claims = decode_token(payload.refresh_token)
-        if claims.get("type") != "refresh":
+        if claims.get("type") != "refresh" or claims.get("auth_provider") != "google":
             raise ValueError("Not a refresh token")
-    except ValueError:
+        subject = uuid.UUID(claims.get("sub", ""))
+    except (ValueError, TypeError):
         raise _error("INVALID_REFRESH_TOKEN", "Refresh token is invalid or expired.", status.HTTP_401_UNAUTHORIZED)
 
-    subject = claims["sub"]
+    user = db.query(User).filter(User.id == subject).first()
+    if not user or not user.is_active:
+        raise _error("INVALID_REFRESH_TOKEN", "Refresh token is invalid or expired.", status.HTTP_401_UNAUTHORIZED)
     return TokenPair(
-        access_token=create_access_token(subject),
-        refresh_token=create_refresh_token(subject),
+        access_token=create_access_token(str(user.id), {"auth_provider": "google"}),
+        refresh_token=create_refresh_token(str(user.id), {"auth_provider": "google"}),
     )
 
 

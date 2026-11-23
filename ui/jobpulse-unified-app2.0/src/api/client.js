@@ -70,31 +70,50 @@ async function apiFetch(path, options = {}) {
 // Auth endpoints
 // ---------------------------------------------------------------------------
 
-export async function registerUser({ name, email, password }) {
-  const data = await apiFetch("/api/auth/register", {
-    method: "POST",
-    body: JSON.stringify({ name, email, password, role: "SEEKER" }),
-  });
-  // Auto-login after register
-  return loginUser({ email, password });
+export async function getAuthConfig() {
+  return apiFetch("/api/auth/config");
 }
 
-export async function loginUser({ email, password }) {
-  const res = await fetch(`${API_BASE}/api/auth/login`, {
+export async function loginWithGoogle(credential) {
+  return apiFetch("/api/auth/google", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({ credential }),
   });
-  if (!res.ok) {
-    const body = await parseJSON(res).catch(() => ({}));
-    const msg = body?.error?.message || body?.errors?.[0]?.msg || body?.message || "Login failed";
-    throw new Error(msg);
-  }
-  return parseJSON(res);
 }
 
 export async function fetchMe() {
   return apiFetch("/api/auth/me");
+}
+
+export async function getProfile() {
+  return apiFetch("/api/profile");
+}
+
+export async function updateProfile(profile) {
+  return apiFetch("/api/profile", {
+    method: "PATCH",
+    body: JSON.stringify(profile),
+  });
+}
+
+export async function downloadCV(resumeId, filename) {
+  const token = getAuthToken();
+  const res = await fetch(`${API_BASE}/api/cv/${resumeId}/file`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+  if (!res.ok) {
+    if (res.status === 401) notifyUnauthorized();
+    const body = await parseJSON(res).catch(() => ({}));
+    throw new Error(body?.error?.message || `Download failed (${res.status})`);
+  }
+  const blobUrl = URL.createObjectURL(await res.blob());
+  const link = document.createElement("a");
+  link.href = blobUrl;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
 }
 
 // ---------------------------------------------------------------------------
@@ -300,44 +319,10 @@ export async function getJobs(params = {}) {
 }
 
 // ---------------------------------------------------------------------------
-// POST /api/cv/upload + POST /api/cv/{id}/analyze + GET /api/cv/{id}
+// CV upload, analysis, persistence, and resume helpers
 // ---------------------------------------------------------------------------
 
-export async function analyzeCV(file, onStageChange) {
-  const stages = ["Uploading CV", "Analyzing skills", "Extracting metadata", "Computing match scores", "Generating recommendations"];
-
-  onStageChange?.(stages[0]);
-  const uploadRes = await apiFetch("/api/cv/upload", {
-    method: "POST",
-    body: (() => { const fd = new FormData(); fd.append("file", file); return fd; })(),
-  });
-  const resumeId = uploadRes.resume_id;
-
-  onStageChange?.(stages[1]);
-  await apiFetch(`/api/cv/${resumeId}/analyze`, { method: "POST" });
-
-  // Poll for completion
-  for (let i = 2; i < stages.length; i++) {
-    onStageChange?.(stages[i]);
-    await new Promise((r) => setTimeout(r, 800));
-  }
-
-  let analysis = null;
-  for (let attempt = 0; attempt < 30; attempt++) {
-    const status = await apiFetch(`/api/cv/${resumeId}/status`);
-    const st = status.status?.toLowerCase();
-    if (st === "completed") {
-      analysis = await apiFetch(`/api/cv/${resumeId}`);
-      break;
-    }
-    if (st === "failed") {
-      throw new Error(status.error_message || "CV analysis failed");
-    }
-    await new Promise((r) => setTimeout(r, 1000));
-  }
-
-  if (!analysis) throw new Error("CV analysis timed out");
-
+async function buildCVAnalysis(analysis, filename, resumeId) {
   // Transform backend CV analysis to frontend shape
   const foundSkills = (analysis.skills || []).map((s) => s.name);
 
@@ -380,10 +365,10 @@ export async function analyzeCV(file, onStageChange) {
 
   return {
     profile: {
-      name: file?.name?.split(".")[0] || "Candidate",
+      name: filename?.replace(/\.[^.]+$/, "") || "Candidate",
       currentRole: analysis.seniority_level || "Professional",
-      yearsExperience: analysis.years_experience || 3,
-      location: "Kenya",
+      yearsExperience: analysis.years_experience || 0,
+      location: "Not provided",
     },
     foundSkills,
     missingSkills,
@@ -396,6 +381,48 @@ export async function analyzeCV(file, onStageChange) {
     _raw: analysis,
     _resumeId: resumeId,
   };
+}
+
+async function waitForCVAnalysis(resumeId, onStageChange) {
+  const stages = ["Analyzing skills", "Extracting metadata", "Computing match scores", "Generating recommendations"];
+  let analysis = null;
+  for (let attempt = 0; attempt < 30; attempt++) {
+    onStageChange?.(stages[Math.min(attempt, stages.length - 1)]);
+    const status = await apiFetch(`/api/cv/${resumeId}/status`);
+    const stage = status.status?.toLowerCase();
+    if (stage === "completed") {
+      analysis = await apiFetch(`/api/cv/${resumeId}`);
+      break;
+    }
+    if (stage === "failed") {
+      throw new Error(status.error_message || "CV analysis failed");
+    }
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+  }
+  if (!analysis) throw new Error("CV analysis timed out");
+  return analysis;
+}
+
+export async function getLatestCVAnalysis() {
+  const latest = await apiFetch("/api/cv/latest");
+  if (!latest) return null;
+  if (latest.status?.toLowerCase() === "failed") {
+    throw new Error("Your saved CV analysis failed. Upload the document again to retry.");
+  }
+  const analysis = latest.analysis || await waitForCVAnalysis(latest.resume_id);
+  return buildCVAnalysis(analysis, latest.original_filename, latest.resume_id);
+}
+
+export async function analyzeCV(file, onStageChange) {
+  onStageChange?.("Uploading CV");
+  const uploadRes = await apiFetch("/api/cv/upload", {
+    method: "POST",
+    body: (() => { const fd = new FormData(); fd.append("file", file); return fd; })(),
+  });
+
+  await apiFetch(`/api/cv/${uploadRes.resume_id}/analyze`, { method: "POST" });
+  const analysis = await waitForCVAnalysis(uploadRes.resume_id, onStageChange);
+  return buildCVAnalysis(analysis, file?.name, uploadRes.resume_id);
 }
 
 // ---------------------------------------------------------------------------

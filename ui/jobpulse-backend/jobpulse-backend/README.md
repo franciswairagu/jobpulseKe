@@ -47,11 +47,36 @@ React Frontend
 ## 3. Running locally
 
 ```bash
-cp .env.example .env          # edit SECRET_KEY at minimum
+cp .env.example .env          # set SECRET_KEY and GOOGLE_CLIENT_ID
 docker compose up --build     # api (8000), worker, beat, postgres, redis
 ```
 
 API docs: `http://localhost:8000/docs`
+
+### Google sign-in and persistent CV files
+
+Create a Google OAuth **Web application** client ID in Google Cloud Console.
+Add each frontend origin (for local development, `http://localhost:5173`) to
+its authorized JavaScript origins, then set the same client ID as
+`GOOGLE_CLIENT_ID` in the backend environment. Google verifies the ID token
+server-side; email/password registration and login are disabled. Existing
+accounts can continue with Google when their Google-verified email matches.
+Previously issued password-auth tokens are rejected and users must sign in
+again with Google. The local launcher loads the repository `.env`; restart the
+backend after adding or changing the client ID.
+
+The profile and CV analysis are stored in the database, and the original CV is
+private behind an authenticated download endpoint. Local Docker deployments
+mount `./data` persistently. For container platforms such as Render, configure
+`STORAGE_PROVIDER=s3`, `STORAGE_BUCKET`, and, for S3-compatible services,
+`STORAGE_ENDPOINT_URL`; supply credentials through the platform's secret
+environment variables or its IAM role. Keep the bucket private and enable
+server-side encryption. Production startup rejects S3 storage without a
+bucket. Container-local storage can be lost when an instance is replaced.
+
+Production startup requires a random `SECRET_KEY` of at least 32 characters
+and a configured `GOOGLE_CLIENT_ID`. Generate the secret with
+`openssl rand -hex 32`.
 
 ### Without Docker
 ```bash
@@ -73,8 +98,10 @@ Tests run against a fresh SQLite DB per test (no Postgres/Redis required).
 
 | Endpoint | Purpose |
 |---|---|
-| `POST /api/auth/register`, `/login`, `/refresh`, `/me` | Auth |
+| `GET /api/auth/config`, `POST /api/auth/google`, `POST /api/auth/refresh`, `GET /api/auth/me` | Google sign-in and JWT auth |
+| `GET/PATCH /api/profile` | View/update the signed-in user's profile and latest CV metadata |
 | `POST /api/cv/upload` → `POST /api/cv/{id}/analyze` → `GET /api/cv/{id}/status` → `GET /api/cv/{id}` | CV pipeline |
+| `GET /api/cv/latest`, `GET /api/cv/{id}/file` | Restore analysis and download the user's saved CV |
 | `GET /api/recommendations` | Courses + interview-platform recommendations, derived from the latest CV analysis's skill gaps |
 | `GET /api/jobs/recommended` | Personalized job matches from `JobRecommender` |
 | `GET /api/jobs`, `/api/jobs/{id}`, `/api/jobs/{id}/history` | Job search/detail/status history |

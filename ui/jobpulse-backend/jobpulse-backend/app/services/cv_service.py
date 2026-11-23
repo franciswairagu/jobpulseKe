@@ -125,6 +125,7 @@ def process_resume(db: Session, resume: Resume) -> ResumeAnalysis:
     Celery task (see app/workers/tasks.py) depending on deployment size."""
 
     storage = get_storage_backend()
+    local_path = None
     try:
         resume.status = ResumeStatus.EXTRACTING_TEXT
         resume.stage = "EXTRACTING_TEXT"
@@ -195,14 +196,6 @@ def process_resume(db: Session, resume: Resume) -> ResumeAnalysis:
         resume.progress = 100
         db.add(resume)
 
-        # Per the "never persist the raw CV" policy - delete the stored
-        # file now that structured analysis has been extracted.
-        try:
-            storage.delete(resume.storage_key)
-            resume.storage_key = None
-        except Exception:
-            pass
-
         db.commit()
         db.refresh(analysis)
         return analysis
@@ -215,3 +208,6 @@ def process_resume(db: Session, resume: Resume) -> ResumeAnalysis:
         db.add(resume)
         db.commit()
         raise
+    finally:
+        if local_path:
+            storage.cleanup_read_path(local_path)

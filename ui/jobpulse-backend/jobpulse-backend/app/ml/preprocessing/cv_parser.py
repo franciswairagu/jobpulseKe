@@ -1,14 +1,13 @@
 """
 CV text extraction (PDF / DOCX).
 
-PROVENANCE NOTE: `src/cv/parser.py` referenced by the notebook (with a
-documented "never persist uploaded documents" policy) was not
+PROVENANCE NOTE: `src/cv/parser.py` referenced by the notebook was not
 uploaded. This is a standard, from-scratch text-extraction
 implementation - not a reconstruction of proprietary logic, since
 extracting text from a PDF/DOCX is a well-defined mechanical task with
-no hidden model behavior to guess at. The "never persist the raw
-document" policy mentioned in the notebook IS honored here: callers
-should extract text and discard the original bytes/path once done.
+no hidden model behavior to guess at. The application retains the
+original document in private user-scoped storage; this module only
+extracts text and does not control document retention.
 """
 
 from __future__ import annotations

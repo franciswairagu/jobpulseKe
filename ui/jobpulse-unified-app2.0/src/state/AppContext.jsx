@@ -4,19 +4,9 @@ import { useAuth } from "./AuthContext";
 const AppStateContext = createContext(null);
 const AppDispatchContext = createContext(null);
 
-const CV_STORAGE_KEY = "jobpulse_cv_analysis";
-
-function loadInitialCV() {
-  try {
-    const raw = localStorage.getItem(CV_STORAGE_KEY);
-    if (raw) return JSON.parse(raw);
-  } catch {}
-  return null;
-}
-
 const initialState = {
   profile: { name: "", greeting: "Hello" },
-  cvAnalysis: loadInitialCV(),
+  cvAnalysis: null,
   savedJobIds: [],
   filters: { region: "All Africa", period: "Last 6 months" },
   notifications: [],
@@ -27,7 +17,6 @@ function reducer(state, action) {
     case "SET_CV_ANALYSIS":
       return { ...state, cvAnalysis: action.payload };
     case "CLEAR_CV_ANALYSIS":
-      localStorage.removeItem(CV_STORAGE_KEY);
       return { ...state, cvAnalysis: null };
     case "TOGGLE_SAVE_JOB": {
       const id = action.payload;
@@ -55,16 +44,9 @@ export function AppProvider({ children }) {
   useEffect(() => {
     if (prevTokenRef.current !== token) {
       prevTokenRef.current = token;
-      localStorage.removeItem(CV_STORAGE_KEY);
       dispatch({ type: "CLEAR_CV_ANALYSIS" });
     }
   }, [token]);
-
-  useEffect(() => {
-    if (state.cvAnalysis) {
-      localStorage.setItem(CV_STORAGE_KEY, JSON.stringify(state.cvAnalysis));
-    }
-  }, [state.cvAnalysis]);
 
   return (
     <AppStateContext.Provider value={state}>

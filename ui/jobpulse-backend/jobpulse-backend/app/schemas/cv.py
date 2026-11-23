@@ -42,3 +42,13 @@ class CVAnalysisOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class LatestResumeOut(BaseModel):
+    resume_id: uuid.UUID
+    original_filename: str
+    status: str
+    stage: str | None
+    progress: int
+    uploaded_at: datetime
+    analysis: CVAnalysisOut | None = None
