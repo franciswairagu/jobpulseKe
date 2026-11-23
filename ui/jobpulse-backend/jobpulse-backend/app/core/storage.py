@@ -1,16 +1,15 @@
 """
 Storage abstraction for uploaded CVs.
 
-Only the extracted text/analysis is meant to live long-term (see
-app/services/cv_service.py) - raw CV bytes are written here just long
-enough for parsing, per the "don't persist raw CV content" principle
-noted in the notebook. Swap STORAGE_PROVIDER=s3 to write to S3 instead
-of local disk without changing any calling code.
+Raw CV files are stored here so users can retrieve their documents after
+logging out. Use a persistent volume or S3-compatible object storage in
+production; container-local files can be lost when an instance is replaced.
 """
 
 from __future__ import annotations
 
 import os
+import tempfile
 import uuid
 from abc import ABC, abstractmethod
 from pathlib import Path
@@ -29,6 +28,10 @@ class StorageBackend(ABC):
     def read_path(self, storage_key: str) -> str:
         """Return a local filesystem path usable for parsing."""
 
+    def cleanup_read_path(self, local_path: str) -> None:
+        """Remove a temporary local copy created for reading, if applicable."""
+        return None
+
     @abstractmethod
     def delete(self, storage_key: str) -> None:
         ...
@@ -46,7 +49,9 @@ class LocalStorageBackend(StorageBackend):
     def save(self, file_bytes: bytes, filename: str) -> str:
         key = self._safe_name(filename)
         target = self.base_dir / key
-        target.write_bytes(file_bytes)
+        descriptor = os.open(target, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+        with os.fdopen(descriptor, "wb") as stored_file:
+            stored_file.write(file_bytes)
         return str(target)
 
     def read_path(self, storage_key: str) -> str:
@@ -65,7 +70,7 @@ class S3StorageBackend(StorageBackend):
         import boto3  # imported lazily so local dev doesn't need boto3
 
         self.bucket = bucket
-        self.client = boto3.client("s3")
+        self.client = boto3.client("s3", endpoint_url=settings.STORAGE_ENDPOINT_URL or None)
         self._tmp_dir = Path("/tmp/jobpulse_cv_cache")
         self._tmp_dir.mkdir(parents=True, exist_ok=True)
 
@@ -75,9 +80,22 @@ class S3StorageBackend(StorageBackend):
         return key
 
     def read_path(self, storage_key: str) -> str:
-        local_path = self._tmp_dir / Path(storage_key).name
-        self.client.download_file(self.bucket, storage_key, str(local_path))
+        with tempfile.NamedTemporaryFile(
+            dir=self._tmp_dir,
+            prefix="jobpulse-cv-",
+            suffix=Path(storage_key).suffix,
+            delete=False,
+        ) as temp_file:
+            local_path = Path(temp_file.name)
+        try:
+            self.client.download_file(self.bucket, storage_key, str(local_path))
+        except Exception:
+            local_path.unlink(missing_ok=True)
+            raise
         return str(local_path)
+
+    def cleanup_read_path(self, local_path: str) -> None:
+        Path(local_path).unlink(missing_ok=True)
 
     def delete(self, storage_key: str) -> None:
         self.client.delete_object(Bucket=self.bucket, Key=storage_key)

@@ -1,7 +1,7 @@
-import React, { useState } from "react";
-import { ArrowRight, Loader2, Mail, Lock, User, ArrowLeft } from "lucide-react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { ArrowLeft, Loader2, ShieldCheck } from "lucide-react";
 import { COLORS, FONTS } from "../lib/theme";
-import { loginUser, registerUser } from "../api/client";
+import { fetchMe, getAuthConfig, loginWithGoogle } from "../api/client";
 import { useAuthActions } from "../state/AuthContext";
 
 function PulseLine() {
@@ -20,68 +20,90 @@ function PulseLine() {
 }
 
 export default function AuthPage({ initialMode = "login", onBack }) {
-  const [mode, setMode] = useState(initialMode);
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const isSignup = initialMode === "register";
+  const buttonRef = useRef(null);
+  const [googleClientId, setGoogleClientId] = useState("");
+  const [configError, setConfigError] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
-  const { login, setUser, setStartupId } = useAuthActions();
+  const { login, setUser } = useAuthActions();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleGoogleCredential = useCallback(async (credential) => {
     setError(null);
     setLoading(true);
     try {
-      let tokens;
-      if (mode === "register") {
-        tokens = await registerUser({ name, email, password });
-      } else {
-        tokens = await loginUser({ email, password });
-      }
+      const tokens = await loginWithGoogle(credential);
       if (!tokens || !tokens.access_token) {
-        throw new Error("Login failed. Please check that the backend server is running and accessible.");
+        throw new Error("Google sign-in failed. Please try again.");
       }
       const payload = {
         token: tokens.access_token,
         refreshToken: tokens.refresh_token,
       };
+      localStorage.setItem("jobpulse_auth", JSON.stringify(payload));
       login(payload);
-      // Write immediately so DashboardPage can read the token before AuthContext flushes
-      try {
-        const prevRaw = localStorage.getItem("jobpulse_auth");
-        const prev = prevRaw ? JSON.parse(prevRaw) : {};
-        localStorage.setItem(
-          "jobpulse_auth",
-          JSON.stringify({ ...prev, ...payload })
-        );
-      } catch {
-        localStorage.setItem("jobpulse_auth", JSON.stringify(payload));
-      }
-      try {
-        const API_BASE = import.meta.env.VITE_API_BASE || "";
-        const me = await fetch(`${API_BASE}/api/auth/me`, {
-          headers: { Authorization: `Bearer ${tokens.access_token}` },
-        }).then((r) => (r.ok ? r.json() : null));
-        if (me) setUser(me);
-      } catch {}
-      try {
-        const API_BASE = import.meta.env.VITE_API_BASE || "";
-        const res = await fetch(`${API_BASE}/api/startup-id`, {
-          headers: { Accept: "application/json" },
-        }).then((r) => {
-          const ct = r.headers.get("content-type") || "";
-          if (!r.ok || !ct.includes("application/json")) return null;
-          return r.json();
-        });
-        if (res?.startup_id) setStartupId(res.startup_id);
-      } catch {}
+      const me = await fetchMe();
+      setUser(me);
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
-  };
+  }, [login, setUser]);
+
+  useEffect(() => {
+    let active = true;
+    getAuthConfig()
+      .then(({ google_client_id: clientId }) => {
+        if (!active) return;
+        if (!clientId) {
+          setConfigError("Google sign-in isn't configured. Set GOOGLE_CLIENT_ID in the backend environment and restart the API.");
+          return;
+        }
+        setGoogleClientId(clientId);
+      })
+      .catch((err) => {
+        if (active) setConfigError(err.message);
+      });
+    return () => { active = false; };
+  }, []);
+
+  useEffect(() => {
+    if (!googleClientId || !buttonRef.current) return undefined;
+    let cancelled = false;
+    const handleScriptError = () => setConfigError("Could not load Google sign-in. Check your connection and try again.");
+    const renderGoogleButton = () => {
+      if (cancelled || !window.google?.accounts?.id || !buttonRef.current) return;
+      window.google.accounts.id.initialize({
+        client_id: googleClientId,
+        callback: ({ credential }) => handleGoogleCredential(credential),
+      });
+      window.google.accounts.id.renderButton(buttonRef.current, {
+        theme: "outline",
+        size: "large",
+        shape: "rectangular",
+        text: "continue_with",
+        width: 320,
+      });
+    };
+
+    let script = document.querySelector('script[src="https://accounts.google.com/gsi/client"]');
+    if (!script) {
+      script = document.createElement("script");
+      script.src = "https://accounts.google.com/gsi/client";
+      script.async = true;
+      script.defer = true;
+      document.head.appendChild(script);
+    }
+    script.addEventListener("load", renderGoogleButton);
+    script.addEventListener("error", handleScriptError);
+    renderGoogleButton();
+    return () => {
+      cancelled = true;
+      script.removeEventListener("load", renderGoogleButton);
+      script.removeEventListener("error", handleScriptError);
+    };
+  }, [googleClientId, handleGoogleCredential]);
 
   return (
     <div
@@ -139,9 +161,9 @@ export default function AuthPage({ initialMode = "login", onBack }) {
             Welcome to JobPulse
           </h1>
           <p className="mt-2 text-sm text-white/60">
-            {mode === "login"
-              ? "Sign in to access your career intelligence"
-              : "Create your account to get started"}
+            {isSignup
+              ? "Create your account with your verified Google account"
+              : "Sign in to access your career intelligence"}
           </p>
         </div>
 
@@ -152,119 +174,53 @@ export default function AuthPage({ initialMode = "login", onBack }) {
             boxShadow: "0 25px 60px rgba(0,0,0,0.3)",
           }}
         >
-          <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-            {mode === "register" && (
-              <div className="space-y-1.5">
-                <label className="block text-xs font-semibold uppercase tracking-wider" style={{ color: COLORS.textSecondary }}>
-                  Full name
-                </label>
-                <div className="relative">
-                  <User size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-textMuted" />
-                  <input
-                    type="text"
-                    required
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="w-full rounded-xl border border-border bg-white py-3 pl-10 pr-4 text-sm outline-none transition-all duration-200 focus:border-accent focus:shadow-glow-blue"
-                    style={{ color: COLORS.textDark }}
-                    placeholder="Jane Doe"
-                  />
-                </div>
-              </div>
-            )}
-
-            <div className="space-y-1.5">
-              <label className="block text-xs font-semibold uppercase tracking-wider" style={{ color: COLORS.textSecondary }}>
-                Email address
-              </label>
-              <div className="relative">
-                <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-textMuted" />
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full rounded-xl border border-border bg-white py-3 pl-10 pr-4 text-sm outline-none transition-all duration-200 focus:border-accent focus:shadow-glow-blue"
-                  style={{ color: COLORS.textDark }}
-                  placeholder="you@example.com"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="block text-xs font-semibold uppercase tracking-wider" style={{ color: COLORS.textSecondary }}>
-                Password
-              </label>
-              <div className="relative">
-                <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-textMuted" />
-                <input
-                  type="password"
-                  required
-                  minLength={8}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full rounded-xl border border-border bg-white py-3 pl-10 pr-4 text-sm outline-none transition-all duration-200 focus:border-accent focus:shadow-glow-blue"
-                  style={{ color: COLORS.textDark }}
-                  placeholder="Minimum 8 characters"
-                />
-              </div>
-            </div>
-
+          <div className="flex flex-col items-center gap-5">
             {error && (
               <div
-                className="flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-medium animate-fade-in"
+                role="alert"
+                className="flex w-full items-center gap-2 rounded-xl px-4 py-3 text-sm font-medium animate-fade-in"
                 style={{ background: "rgba(239,68,68,0.08)", color: COLORS.error }}
               >
                 <AlertTriangle size={14} />
                 {error}
               </div>
             )}
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="group flex w-full items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-semibold text-white transition-all duration-300 hover:shadow-glow-blue hover:scale-[1.02] active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100"
-              style={{
-                background: "linear-gradient(135deg, #FA510F, #E04500)",
-                boxShadow: "0 4px 14px rgba(250,81,15,0.3)",
-              }}
-            >
-              {loading ? (
-                <>
-                  <Loader2 size={16} className="animate-spin" />
-                  Please wait...
-                </>
-              ) : (
-                <>
-                  {mode === "login" ? "Sign in" : "Create account"}
-                  <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
-                </>
-              )}
-            </button>
-
-            <div className="relative my-2">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t" style={{ borderColor: COLORS.border }} />
+            {configError && (
+              <div
+                role="alert"
+                className="w-full rounded-xl px-4 py-3 text-sm"
+                style={{ background: "rgba(239,68,68,0.08)", color: COLORS.error }}
+              >
+                {configError}
               </div>
-              <div className="relative flex justify-center text-xs">
-                <span className="bg-white px-3" style={{ color: COLORS.textMuted }}>
-                  {mode === "login" ? "New here?" : "Already have an account?"}
-                </span>
+            )}
+            <div
+              ref={buttonRef}
+              className={loading ? "pointer-events-none opacity-50" : ""}
+              aria-busy={loading}
+            />
+            {loading && (
+              <div className="flex items-center gap-2 text-sm" style={{ color: COLORS.textSecondary }}>
+                <Loader2 size={16} className="animate-spin" />
+                Verifying your Google account...
               </div>
+            )}
+            {!configError && !googleClientId && (
+              <div className="flex items-center gap-2 text-sm" style={{ color: COLORS.textSecondary }}>
+                <Loader2 size={16} className="animate-spin" />
+                Loading secure sign-in...
+              </div>
+            )}
+            <div className="flex items-start gap-2 text-xs leading-relaxed" style={{ color: COLORS.textMuted }}>
+              <ShieldCheck size={15} className="mt-0.5 shrink-0" />
+              <span>Google verifies your email. Your CV and profile are private to your account.</span>
             </div>
-
-            <button
-              type="button"
-              onClick={() => {
-                setMode(mode === "login" ? "register" : "login");
-                setError(null);
-              }}
-              className="w-full rounded-xl border border-border py-3 text-sm font-semibold transition-all duration-200 hover:border-accent/30 hover:bg-surface-tertiary"
-              style={{ color: COLORS.accent }}
-            >
-              {mode === "login" ? "Create an account" : "Sign in instead"}
-            </button>
-          </form>
+            <p className="text-center text-xs" style={{ color: COLORS.textMuted }}>
+              {isSignup
+                ? "A JobPulse account will be created automatically the first time you continue."
+                : "New to JobPulse? Continue with Google to create your account."}
+            </p>
+          </div>
         </div>
 
         <p className="mt-6 text-center text-xs text-white/40">

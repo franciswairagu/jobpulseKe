@@ -8,6 +8,7 @@ import AssistantPage from "./pages/AssistantPage";
 import AuthPage from "./pages/AuthPage";
 import LandingPage from "./pages/LandingPage";
 import AboutPage from "./pages/AboutPage";
+import ProfilePage from "./pages/ProfilePage";
 import AiAssistantWidget from "./components/shared/AiAssistantWidget";
 import { useAuth, useAuthActions } from "./state/AuthContext";
 import { fetchMe } from "./api/client";
@@ -19,6 +20,7 @@ const PAGE_META = {
   "career-insights": { title: "Career Insights", subtitle: "Career progression, skill distribution & opportunities" },
   "ai-assistant": { title: "AI Assistant", subtitle: "Ask questions about the African tech job market" },
   about: { title: "About JobPulse", subtitle: "Empowering Africa's tech workforce" },
+  profile: { title: "Your Profile", subtitle: "Your account details and saved CV" },
 };
 
 export default function App() {
@@ -151,6 +153,7 @@ export default function App() {
       {activeKey === "career-insights" && <CareerInsightsPage />}
       {activeKey === "ai-assistant" && <AssistantPage />}
       {activeKey === "about" && <AboutPage />}
+      {activeKey === "profile" && <ProfilePage />}
     </AppShell>
     <AiAssistantWidget />
   </>

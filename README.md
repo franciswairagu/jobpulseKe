@@ -120,6 +120,7 @@ pip install -r requirements.txt
 # Set environment variables (defaults work for local dev)
 export DATABASE_URL="sqlite:///./jobpulse.db"
 export SECRET_KEY="dev-secret-change-in-production"
+export GOOGLE_CLIENT_ID="your-google-web-client-id"
 
 # Start the backend server
 uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
@@ -129,12 +130,14 @@ On **Windows cmd** (without bash), set env vars with:
 ```cmd
 set DATABASE_URL=sqlite:///./jobpulse.db
 set SECRET_KEY=dev-secret-change-in-production
+set GOOGLE_CLIENT_ID=your-google-web-client-id
 ```
 
 On **Windows PowerShell**:
 ```powershell
 $env:DATABASE_URL="sqlite:///./jobpulse.db"
 $env:SECRET_KEY="dev-secret-change-in-production"
+$env:GOOGLE_CLIENT_ID="your-google-web-client-id"
 ```
 
 #### Terminal 2 — Frontend
@@ -248,10 +251,11 @@ python scripts/run_pipeline.py --scrape-only
 |------|-------|-------------|
 | Dashboard | `/` | Market overview with top skills, geographic demand, skill demand trends, remote trends |
 | CV Analyzer | `/cv` | Upload CV, view extracted skills, skill gaps, job matches, courses, interview prep |
+| Profile | `/profile` | Manage account details and access your saved CV |
 | Skills Explorer | `/skills` | Searchable/filterable table of all skills with demand %, growth rate |
 | Career Insights | `/career-insights` | Career progression paths, skills by seniority, geographic demand, remote scores |
 | AI Assistant | `/assistant` | RAG-powered chatbot with streaming responses for market questions |
-| Auth | `/auth` | Login/Register with JWT |
+| Auth | `/auth` | Sign in or create an account with verified Google sign-in |
 
 ---
 
@@ -259,10 +263,13 @@ python scripts/run_pipeline.py --scrape-only
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| `/api/auth/register` | POST | Register new user |
-| `/api/auth/login` | POST | Login and get JWT |
+| `/api/auth/config` | GET | Public Google OAuth client configuration |
+| `/api/auth/google` | POST | Verify Google ID token and sign in or create account |
 | `/api/auth/me` | GET | Get current user profile |
+| `/api/profile` | GET/PATCH | View/update the signed-in user's profile and CV metadata |
 | `/api/cv/upload` | POST | Upload CV for analysis |
+| `/api/cv/latest` | GET | Restore the latest saved CV analysis after sign-in |
+| `/api/cv/{id}/file` | GET | Download the signed-in user's saved CV |
 | `/api/cv/{id}/analyze` | POST | Trigger CV analysis |
 | `/api/recommendations` | GET | Get course/interview recommendations |
 | `/api/jobs/recommended` | GET | Get personalized job matches |

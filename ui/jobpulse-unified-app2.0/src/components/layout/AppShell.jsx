@@ -6,6 +6,7 @@ import {
   Compass,
   Sparkles,
   Info,
+  UserRound,
   LogOut,
   User,
   Search,
@@ -27,6 +28,7 @@ const NAV_ITEMS = [
   { key: "career-insights", label: "Career Insights", icon: Compass },
   { key: "ai-assistant", label: "AI Assistant", icon: Sparkles },
   { key: "about", label: "About", icon: Info },
+  { key: "profile", label: "Profile", icon: UserRound },
 ];
 
 function NavList({ activeKey, onNavigate, onItemClick, collapsed }) {

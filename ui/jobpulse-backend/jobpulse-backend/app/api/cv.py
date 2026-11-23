@@ -1,7 +1,10 @@
 import uuid
+from pathlib import Path
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, UploadFile, status
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
+from starlette.background import BackgroundTask
 
 from app.api.deps import get_current_user
 from app.core.config import get_settings
@@ -11,7 +14,7 @@ from app.ml.preprocessing.cv_parser import SUPPORTED_EXTENSIONS
 from app.models.enums import ResumeStatus
 from app.models.resume import Resume
 from app.models.user import User
-from app.schemas.cv import CVAnalysisOut, ResumeStatusOut, ResumeUploadOut, SkillOut
+from app.schemas.cv import CVAnalysisOut, LatestResumeOut, ResumeStatusOut, ResumeUploadOut, SkillOut
 from app.services.cv_service import process_resume
 
 router = APIRouter(prefix="/api/cv", tags=["cv"])
@@ -29,6 +32,30 @@ def _get_owned_resume(db: Session, cv_id: uuid.UUID, user: User) -> Resume:
     if resume.user_id != user.id:
         raise _error("FORBIDDEN", "You do not have access to this CV.", status.HTTP_403_FORBIDDEN)
     return resume
+
+
+def _analysis_out(resume: Resume) -> CVAnalysisOut | None:
+    analysis = resume.analysis
+    if not analysis:
+        return None
+    return CVAnalysisOut(
+        resume_id=resume.id,
+        cv_score=analysis.cv_score,
+        score_type=analysis.score_type,
+        tech_category=analysis.tech_category,
+        tech_category_confidence=analysis.tech_category_confidence,
+        classifier_available=analysis.classifier_available,
+        skills=[SkillOut(name=skill) for skill in analysis.skills_found],
+        years_experience=analysis.years_experience,
+        education=analysis.education,
+        certifications=analysis.certifications,
+        seniority_level=analysis.seniority_level,
+        strengths=analysis.strengths,
+        weaknesses=analysis.weaknesses,
+        missing_skills=analysis.missing_skills,
+        non_tech_detected=len(analysis.skills_found) <= 2,
+        created_at=analysis.created_at,
+    )
 
 
 @router.post("/upload", response_model=ResumeUploadOut, status_code=status.HTTP_201_CREATED)
@@ -64,6 +91,45 @@ async def upload_cv(
     db.refresh(resume)
 
     return ResumeUploadOut(resume_id=resume.id, status=resume.status.value, uploaded_at=resume.uploaded_at)
+
+
+@router.get("/latest", response_model=LatestResumeOut | None)
+def get_latest_resume(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    resume = (
+        db.query(Resume)
+        .filter(Resume.user_id == current_user.id)
+        .order_by(Resume.uploaded_at.desc(), Resume.id.desc())
+        .first()
+    )
+    if not resume:
+        return None
+    return LatestResumeOut(
+        resume_id=resume.id,
+        original_filename=resume.original_filename,
+        status=resume.status.value,
+        stage=resume.stage,
+        progress=resume.progress,
+        uploaded_at=resume.uploaded_at,
+        analysis=_analysis_out(resume),
+    )
+
+
+@router.get("/{cv_id}/file")
+def download_cv(cv_id: uuid.UUID, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    resume = _get_owned_resume(db, cv_id, current_user)
+    if not resume.storage_key:
+        raise _error("FILE_UNAVAILABLE", "CV file is no longer available.", status.HTTP_410_GONE)
+    storage = get_storage_backend()
+    file_path = Path(storage.read_path(resume.storage_key))
+    if not file_path.is_file():
+        storage.cleanup_read_path(str(file_path))
+        raise _error("FILE_UNAVAILABLE", "CV file is no longer available.", status.HTTP_410_GONE)
+    return FileResponse(
+        file_path,
+        filename=resume.original_filename,
+        headers={"Cache-Control": "private, no-store"},
+        background=BackgroundTask(storage.cleanup_read_path, str(file_path)),
+    )
 
 
 @router.post("/{cv_id}/analyze", response_model=ResumeStatusOut, status_code=status.HTTP_202_ACCEPTED)
@@ -118,25 +184,7 @@ def get_status(cv_id: uuid.UUID, db: Session = Depends(get_db), current_user: Us
 @router.get("/{cv_id}", response_model=CVAnalysisOut)
 def get_analysis(cv_id: uuid.UUID, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     resume = _get_owned_resume(db, cv_id, current_user)
-    if not resume.analysis:
+    result = _analysis_out(resume)
+    if not result:
         raise _error("ANALYSIS_NOT_READY", "CV analysis is not complete yet.", status.HTTP_409_CONFLICT)
-    analysis = resume.analysis
-    non_tech_detected = len(analysis.skills_found) <= 2
-    return CVAnalysisOut(
-        resume_id=resume.id,
-        cv_score=analysis.cv_score,
-        score_type=analysis.score_type,
-        tech_category=analysis.tech_category,
-        tech_category_confidence=analysis.tech_category_confidence,
-        classifier_available=analysis.classifier_available,
-        skills=[SkillOut(name=s) for s in analysis.skills_found],
-        years_experience=analysis.years_experience,
-        education=analysis.education,
-        certifications=analysis.certifications,
-        seniority_level=analysis.seniority_level,
-        strengths=analysis.strengths,
-        weaknesses=analysis.weaknesses,
-        missing_skills=analysis.missing_skills,
-        non_tech_detected=non_tech_detected,
-        created_at=analysis.created_at,
-    )
+    return result

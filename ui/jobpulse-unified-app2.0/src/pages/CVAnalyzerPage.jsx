@@ -1,8 +1,8 @@
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo, useEffect } from "react";
 import { UploadCloud, FileText, CheckCircle2, AlertTriangle, X, ArrowRight, Loader2, Zap, GraduationCap, ExternalLink, Sparkles } from "lucide-react";
 import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, Radar, Legend } from "recharts";
 import { COLORS, FONTS, PRIORITY_STYLES } from "../lib/theme";
-import { analyzeCV } from "../api/client";
+import { analyzeCV, getLatestCVAnalysis } from "../api/client";
 import { inferDesiredRoles } from "../lib/roles";
 import { useCVAnalysisActions, useAppState } from "../state/AppContext";
 import EmptyState from "../components/shared/EmptyState";
@@ -532,6 +532,28 @@ export default function CVAnalyzerPage() {
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState("overview");
   const [jobSearchFocus, setJobSearchFocus] = useState(undefined);
+
+  useEffect(() => {
+    if (cvAnalysis) return undefined;
+    let active = true;
+    setStage("loading");
+    getLatestCVAnalysis()
+      .then((savedAnalysis) => {
+        if (!active) return;
+        if (savedAnalysis) {
+          setCVAnalysis(savedAnalysis);
+          setStage("results");
+        } else {
+          setStage("upload");
+        }
+      })
+      .catch((loadError) => {
+        if (!active) return;
+        setError(loadError);
+        setStage("error");
+      });
+    return () => { active = false; };
+  }, [cvAnalysis, setCVAnalysis]);
 
   // Roles the candidate is likely looking for, inferred from the CV's
   // detected skills. Seeded into the Recommended Jobs panel, where the

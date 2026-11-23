@@ -9,7 +9,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from app.api import auth, career_insights, cv, dashboard, jobs, rag, recommendations, system
+from app.api import auth, career_insights, cv, dashboard, jobs, profile, rag, recommendations, system
 from app.core.config import get_settings
 from app.database import SessionLocal, init_db
 from app.ml.registry.registry import build_registry
@@ -190,6 +190,13 @@ def on_startup():
     app.state.startup_id = str(uuid.uuid4())
     logger.info("JobPulse backend starting (env=%s, startup_id=%s)", settings.ENVIRONMENT, app.state.startup_id)
     logger.info("CORS origins: %s", settings.CORS_ORIGINS)
+    if settings.ENVIRONMENT.lower() == "production":
+        if len(settings.SECRET_KEY) < 32 or settings.SECRET_KEY.lower().startswith(("change-me", "replace-with")):
+            raise RuntimeError("SECRET_KEY must be a non-placeholder value of at least 32 characters in production.")
+        if not settings.GOOGLE_CLIENT_ID:
+            raise RuntimeError("GOOGLE_CLIENT_ID must be configured in production.")
+        if settings.STORAGE_PROVIDER == "s3" and not settings.STORAGE_BUCKET:
+            raise RuntimeError("STORAGE_BUCKET must be configured when production storage uses S3.")
 
     init_db()
     build_registry()
@@ -232,6 +239,7 @@ def get_startup_id():
 
 app.include_router(system.router)
 app.include_router(auth.router)
+app.include_router(profile.router)
 app.include_router(cv.router)
 app.include_router(recommendations.router)
 app.include_router(jobs.router)

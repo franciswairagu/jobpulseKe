@@ -18,12 +18,9 @@ const initialState = loadInitialAuth();
 function reducer(state, action) {
   switch (action.type) {
     case "LOGIN":
-      // Clear previous user's CV analysis on login
-      localStorage.removeItem("jobpulse_cv_analysis");
       return { ...state, ...action.payload };
     case "LOGOUT":
       localStorage.removeItem(STORAGE_KEY);
-      localStorage.removeItem("jobpulse_cv_analysis");
       return { token: null, refreshToken: null, user: null, startupId: null };
     case "SET_USER":
       return { ...state, user: action.payload };

@@ -1,6 +1,28 @@
 import os
 import json
 from functools import lru_cache
+from pathlib import Path
+from typing import MutableMapping
+
+from dotenv import dotenv_values
+
+
+def _load_environment_files(backend_root: Path, environ: MutableMapping[str, str]) -> None:
+    repository_root = next(
+        (parent for parent in backend_root.parents if (parent / ".git").exists()),
+        backend_root,
+    )
+    env_files = [backend_root / ".env"]
+    if repository_root != backend_root:
+        env_files.append(repository_root / ".env")
+
+    for env_file in env_files:
+        for key, value in dotenv_values(env_file).items():
+            if value and value.strip():
+                environ.setdefault(key, value)
+
+
+_load_environment_files(Path(__file__).resolve().parents[2], os.environ)
 
 
 def _bool(value: str | None, default: bool = False) -> bool:
@@ -16,6 +38,7 @@ class Settings:
 
     # --- Auth ---
     SECRET_KEY: str = os.getenv("SECRET_KEY", "change-me-in-.env")
+    GOOGLE_CLIENT_ID: str = os.getenv("GOOGLE_CLIENT_ID", "")
     ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
     REFRESH_TOKEN_EXPIRE_DAYS: int = int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", "7"))
     JWT_ALGORITHM: str = os.getenv("JWT_ALGORITHM", "HS256")
@@ -23,6 +46,7 @@ class Settings:
     # --- Storage ---
     STORAGE_PROVIDER: str = os.getenv("STORAGE_PROVIDER", "local")  # "local" or "s3"
     STORAGE_BUCKET: str = os.getenv("STORAGE_BUCKET", "")
+    STORAGE_ENDPOINT_URL: str = os.getenv("STORAGE_ENDPOINT_URL", "")
     LOCAL_STORAGE_DIR: str = os.getenv("LOCAL_STORAGE_DIR", "./data/uploads")
     MAX_CV_UPLOAD_MB: int = int(os.getenv("MAX_CV_UPLOAD_MB", "10"))
 
