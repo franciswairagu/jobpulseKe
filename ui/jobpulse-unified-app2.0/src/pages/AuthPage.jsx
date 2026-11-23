@@ -77,6 +77,7 @@ export default function AuthPage({ initialMode = "login", onBack }) {
       window.google.accounts.id.initialize({
         client_id: googleClientId,
         callback: ({ credential }) => handleGoogleCredential(credential),
+        use_fedcm_for_button: true,
       });
       window.google.accounts.id.renderButton(buttonRef.current, {
         theme: "outline",
